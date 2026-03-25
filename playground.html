@@ -72,52 +72,68 @@ const A = {
 
 /* ── Data ────────────────────────────────────────────────────────── */
 const GAMES = [
-  { id:  1, name: "Lululemon",      done: false, athletic: true,  expires: "2026-01-03", img: "https://picsum.photos/seed/fabric-teal/600/340"      },
-  { id:  2, name: "Aritzia",        done: false, athletic: false, expires: "2026-01-06", img: "https://picsum.photos/seed/boutique-rack/600/340"    },
-  { id:  3, name: "Nike",           done: false, athletic: true,  expires: "2026-01-15", img: "https://picsum.photos/seed/shoes-shelf/600/340"      },
-  { id:  4, name: "Adidas",         done: false, athletic: true,  expires: "2026-01-22", img: "https://picsum.photos/seed/sportswear-row/600/340"   },
-  { id:  5, name: "Gymshark",       done: false, athletic: true,  expires: "2026-01-07", img: "https://picsum.photos/seed/gym-apparel/600/340"      },
-  { id:  6, name: "Alo Yoga",       done: false, athletic: true,  expires: "2026-01-19", img: "https://picsum.photos/seed/yoga-texture/600/340"     },
-  { id:  7, name: "Vuori",          done: false, athletic: true,  expires: "2026-01-28", img: "https://picsum.photos/seed/outdoor-fabric/600/340"   },
-  { id:  8, name: "Athleta",        done: false, athletic: true,  expires: "2026-01-05", img: "https://picsum.photos/seed/retail-interior/600/340"  },
-  { id:  9, name: "Outdoor Voices", done: false, athletic: true,  expires: "2026-01-31", img: "https://picsum.photos/seed/color-activewear/600/340" },
-  { id: 10, name: "Free People",    done: false, athletic: false, expires: "2026-01-11", img: "https://picsum.photos/seed/boho-textile/600/340"     },
-  { id: 11, name: "Everlane",       done: false, athletic: false, expires: "2026-01-24", img: "https://picsum.photos/seed/minimal-clothing/600/340" },
-  { id: 12, name: "Patagonia",      done: false, athletic: true,  expires: "2026-01-17", img: "https://picsum.photos/seed/mountain-fleece/600/340"  },
-  { id: 13, name: "Arc'teryx",      done: true,  athletic: true,  expires: "2026-01-09", img: "https://picsum.photos/seed/technical-shell/600/340"  },
-  { id: 14, name: "Zara",           done: true,  athletic: false, expires: "2026-01-21", img: "https://picsum.photos/seed/fashion-window/600/340"   },
-  { id: 15, name: "Reformation",    done: true,  athletic: false, expires: "2026-01-14", img: "https://picsum.photos/seed/sustainable-dress/600/340"},
+  { id:  1, name: "Lululemon",      done: false, athletic: true,  isNew: false, expires: "2026-01-03", img: "https://picsum.photos/seed/fabric-teal/600/340"      },
+  { id:  2, name: "Aritzia",        done: false, athletic: false, isNew: false, expires: "2026-01-06", img: "https://picsum.photos/seed/boutique-rack/600/340"    },
+  { id:  3, name: "Nike",           done: false, athletic: true,  isNew: true,  expires: "2026-01-15", img: "https://picsum.photos/seed/shoes-shelf/600/340"      },
+  { id:  4, name: "Adidas",         done: false, athletic: true,  isNew: false, expires: "2026-01-22", img: "https://picsum.photos/seed/sportswear-row/600/340"   },
+  { id:  5, name: "Gymshark",       done: false, athletic: true,  isNew: false, expires: "2026-01-07", img: "https://picsum.photos/seed/gym-apparel/600/340"      },
+  { id:  6, name: "Alo Yoga",       done: false, athletic: true,  isNew: true,  expires: "2026-01-19", img: "https://picsum.photos/seed/yoga-texture/600/340"     },
+  { id:  7, name: "Vuori",          done: false, athletic: true,  isNew: true,  expires: "2026-01-28", img: "https://picsum.photos/seed/outdoor-fabric/600/340"   },
+  { id:  8, name: "Athleta",        done: false, athletic: true,  isNew: false, expires: "2026-01-05", img: "https://picsum.photos/seed/retail-interior/600/340"  },
+  { id:  9, name: "Outdoor Voices", done: false, athletic: true,  isNew: true,  expires: "2026-01-31", img: "https://picsum.photos/seed/color-activewear/600/340" },
+  { id: 10, name: "Free People",    done: false, athletic: false, isNew: false, expires: "2026-01-11", img: "https://picsum.photos/seed/boho-textile/600/340"     },
+  { id: 11, name: "Everlane",       done: false, athletic: false, isNew: true,  expires: "2026-01-24", img: "https://picsum.photos/seed/minimal-clothing/600/340" },
+  { id: 12, name: "Patagonia",      done: false, athletic: true,  isNew: true,  expires: "2026-01-17", img: "https://picsum.photos/seed/mountain-fleece/600/340"  },
+  { id: 13, name: "Arc'teryx",      done: true,  athletic: true,  isNew: false, expires: "2026-01-09", img: "https://picsum.photos/seed/technical-shell/600/340"  },
+  { id: 14, name: "Zara",           done: true,  athletic: false, isNew: false, expires: "2026-01-21", img: "https://picsum.photos/seed/fashion-window/600/340"   },
+  { id: 15, name: "Reformation",    done: true,  athletic: false, isNew: false, expires: "2026-01-14", img: "https://picsum.photos/seed/sustainable-dress/600/340"},
 ];
 
 const PREORDERS = [
-  {
-    id: 1, imgIdx: 0,
-    name: "Align™ High-Rise Pant 25\"",
-    color: "Noir Black", size: "4", price: 128,
-    unlocked: true,
-    tag: "Unlocked via Style Predictor",
-  },
-  {
-    id: 2, imgIdx: 1,
-    name: "Swiftly Tech Long-Sleeve",
-    color: "Ivory White", size: "S", price: 88,
-    unlocked: true, progress: 8,
-    tag: "Unlocked via Trend Quiz",
-  },
-  {
-    id: 3, imgIdx: 2,
-    name: "Define Jacket Nulu",
-    color: "Sage Green", size: "M", price: 138,
-    unlocked: false,
-    tag: "Play Outfit Builder to unlock",
-  },
-  {
-    id: 4, imgIdx: 3,
-    name: "Wunder Train Tight 25\"",
-    color: "Deep Navy", size: "6", price: 98,
-    unlocked: false,
-    tag: "Play Color Match to unlock",
-  },
+  // Lululemon
+  { id:  1, brand: "Lululemon",   name: "Align™ High-Rise Pant",      cat: "bottoms",   color: "Noir Black",      size: "4",  price: 128, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/pants-black/400/520"      },
+  { id:  2, brand: "Lululemon",   name: "Swiftly Tech Long-Sleeve",    cat: "tops",      color: "Ivory White",     size: "S",  price: 88,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/longsleeve-white/400/520"  },
+  { id:  3, brand: "Lululemon",   name: "Hotty Hot Short 2.5\"",       cat: "bottoms",   color: "Chambray",        size: "4",  price: 68,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/shorts-blue/400/520"       },
+  { id:  4, brand: "Lululemon",   name: "Scuba Oversized Half-Zip",    cat: "tops",      color: "Heathered Bone",  size: "M",  price: 118, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/scuba-zip/400/520"         },
+  { id:  5, brand: "Lululemon",   name: "Define Jacket Nulu",          cat: "outerwear", color: "Sage Green",      size: "M",  price: 138, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/jacket-sage/400/520"       },
+  { id:  6, brand: "Lululemon",   name: "Wunder Train Tight",          cat: "bottoms",   color: "Deep Navy",       size: "6",  price: 98,  unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/leggings-navy/400/520"     },
+  // Gymshark
+  { id:  7, brand: "Gymshark",    name: "Vital Seamless Leggings",     cat: "bottoms",   color: "Cacao Brown",     size: "S",  price: 55,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/seamless-leggings/400/520" },
+  { id:  8, brand: "Gymshark",    name: "Flex High-Waist Shorts",      cat: "bottoms",   color: "Sand Marl",       size: "XS", price: 40,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/flex-shorts/400/520"       },
+  { id:  9, brand: "Gymshark",    name: "Training Crop Tank",          cat: "tops",      color: "Black",           size: "S",  price: 35,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/crop-tank-black/400/520"   },
+  { id: 10, brand: "Gymshark",    name: "Rest Day Oversized Hoodie",   cat: "tops",      color: "Storm Grey",      size: "M",  price: 68,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/oversized-hoodie/400/520"  },
+  { id: 11, brand: "Gymshark",    name: "Speed Shorts",                cat: "bottoms",   color: "Teal",            size: "S",  price: 38,  unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/speed-shorts-teal/400/520" },
+  // Alo Yoga
+  { id: 12, brand: "Alo Yoga",    name: "Airlift High-Waist Legging",  cat: "bottoms",   color: "Black",           size: "XS", price: 114, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/yoga-legging/400/520"      },
+  { id: 13, brand: "Alo Yoga",    name: "Alosoft Finesse Bra",         cat: "tops",      color: "Dust Mauve",      size: "S",  price: 82,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/sports-bra-mauve/400/520"  },
+  { id: 14, brand: "Alo Yoga",    name: "Accolade Slim Sweatpant",     cat: "bottoms",   color: "Dove Grey",       size: "XS", price: 128, unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/sweatpant-grey/400/520"    },
+  { id: 15, brand: "Alo Yoga",    name: "Muse Sweatshirt",             cat: "tops",      color: "Umber",           size: "S",  price: 118, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/muse-sweat/400/520"        },
+  { id: 16, brand: "Alo Yoga",    name: "Goddess Ribbed Tank",         cat: "tops",      color: "White",           size: "XS", price: 68,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/ribbed-tank/400/520"       },
+  // Nike
+  { id: 17, brand: "Nike",        name: "Pro Dri-FIT Tight",           cat: "bottoms",   color: "Iron Grey",       size: "M",  price: 75,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/pro-tight/400/520"         },
+  { id: 18, brand: "Nike",        name: "One Dri-FIT Swoosh Bra",      cat: "tops",      color: "Obsidian",        size: "S",  price: 45,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/swoosh-bra/400/520"        },
+  { id: 19, brand: "Nike",        name: "Windrunner Jacket",           cat: "outerwear", color: "Black / White",   size: "M",  price: 110, unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/windrunner-blk/400/520"    },
+  { id: 20, brand: "Nike",        name: "Dri-FIT ADV Run Jacket",      cat: "outerwear", color: "Volt / Black",    size: "M",  price: 165, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/run-jacket-volt/400/520"   },
+  { id: 21, brand: "Nike",        name: "Epic Luxe Tight",             cat: "bottoms",   color: "Smoke Grey",      size: "S",  price: 90,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/epic-tight/400/520"        },
+  { id: 22, brand: "Nike",        name: "ACG Therma-FIT Fleece",       cat: "outerwear", color: "Dark Smoke Grey", size: "M",  price: 140, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/acg-fleece/400/520"        },
+  // Adidas
+  { id: 23, brand: "Adidas",      name: "Ultraboost 23",               cat: "footwear",  color: "Core Black",      size: "8",  price: 190, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/ultraboost-black/400/520"  },
+  { id: 24, brand: "Adidas",      name: "Adizero Adios Pro 3",         cat: "footwear",  color: "Solar Red",       size: "8",  price: 225, unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/adizero-red/400/520"       },
+  { id: 25, brand: "Adidas",      name: "Own The Run Tee",             cat: "tops",      color: "White",           size: "S",  price: 35,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/run-tee-white/400/520"     },
+  { id: 26, brand: "Adidas",      name: "Tiro 23 Track Jacket",        cat: "outerwear", color: "Team Navy",       size: "L",  price: 90,  unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/track-jacket-navy/400/520" },
+  { id: 27, brand: "Adidas",      name: "Techfit Compression Tight",   cat: "bottoms",   color: "Black",           size: "M",  price: 55,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/techfit-tight/400/520"     },
+  // Athleta
+  { id: 28, brand: "Athleta",     name: "Salutation Stash Tight",      cat: "bottoms",   color: "Deep Plum",       size: "S",  price: 89,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/stash-tight-plum/400/520"  },
+  { id: 29, brand: "Athleta",     name: "Exhale Crop Tank",            cat: "tops",      color: "Cascade Blue",    size: "XS", price: 49,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/crop-tank-blue/400/520"    },
+  { id: 30, brand: "Athleta",     name: "Trekkie North Stretch Pant",  cat: "bottoms",   color: "Heather Grey",    size: "4",  price: 118, unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/trekkie-pant/400/520"      },
+  // Vuori
+  { id: 31, brand: "Vuori",       name: "Ponto Performance Short",     cat: "bottoms",   color: "Heather Charcoal",size: "M",  price: 68,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/ponto-short/400/520"       },
+  { id: 32, brand: "Vuori",       name: "Strato Tech Hoodie",          cat: "tops",      color: "Dark Sage",       size: "M",  price: 128, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/strato-hoodie/400/520"     },
+  { id: 33, brand: "Vuori",       name: "Ripstop Climber Pant",        cat: "bottoms",   color: "Dark Navy",       size: "32", price: 108, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/climber-pant/400/520"      },
+  // Outdoor Voices
+  { id: 34, brand: "Outdoor Voices", name: "CloudKnit Sweatshirt",     cat: "tops",      color: "Grape",           size: "S",  price: 98,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/cloudknit-grape/400/520"   },
+  { id: 35, brand: "Outdoor Voices", name: "TechSweat 7/8 Legging",    cat: "bottoms",   color: "Dusty Rose",      size: "XS", price: 85,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/techsweat-rose/400/520"    },
+  { id: 36, brand: "Outdoor Voices", name: "Doing Things Shorts",      cat: "bottoms",   color: "Buoy Orange",     size: "XS", price: 65,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/doing-shorts-orange/400/520"},
 ];
 
 const LEADERBOARD = [
@@ -139,9 +155,9 @@ const C = {
   text1:     "#f0f0f0",
   text2:     "#aaa",
   text3:     "#888",
-  green:     "#6a8f4a",
-  greenDim:  "rgba(106,143,74,0.18)",
-  red:       "#d41935",
+  green:     "#a259f7",
+  greenDim:  "rgba(162,89,247,0.18)",
+  red:       "#7c3aed",
 };
 
 /* ── Icons ───────────────────────────────────────────────────────── */
@@ -319,7 +335,7 @@ function GameCard({ game, isSaved = false, onToggleSave = () => {} }) {
             }}>Play</button>
           )}
         </div>
-        <p style={{ fontSize: 12, fontWeight: 500, color: expiringSoon ? C.red : C.text3 }}>
+        <p style={{ fontSize: 12, fontWeight: 500, color: expiringSoon ? C.red : "rgba(162,89,247,0.6)" }}>
           Expires {fmtExpires}
         </p>
       </div>
@@ -402,7 +418,7 @@ function SectionHeader({ label, onViewAll, style: extraStyle }) {
 /* ── All Games Page ───────────────────────────────────────────────── */
 function AllGamesPage({ games, onBack, savedGames = new Set(), onToggleSave = () => {} }) {
   return (
-    <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+    <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingLeft: 48, paddingRight: 48, paddingTop: 24 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
         <button className="btn" onClick={onBack} style={{
           background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border}`,
@@ -425,55 +441,88 @@ function AllGamesPage({ games, onBack, savedGames = new Set(), onToggleSave = ()
 function PreorderCard({ item, inCart, onAdd, onRemove }) {
   return (
     <div className="card" style={{
-      flex: "1 1 0", minWidth: 0,
       background: C.card,
       border: `1px solid ${C.border}`,
-      borderRadius: 18,
+      borderRadius: 16,
       overflow: "hidden",
       display: "flex", flexDirection: "column",
-      boxShadow: "0 4px 18px rgba(0,0,0,0.3)",
-      opacity: item.unlocked ? 1 : 0.65,
+      boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
     }}>
-      <div style={{ position: "relative", height: 180, overflow: "hidden", flexShrink: 0 }}>
-        <img src={A.preorderImgs[item.imgIdx]} alt={item.name}
-             style={{ width: "100%", height: "100%", objectFit: "cover", opacity: item.unlocked ? 0.75 : 0.1 }} />
+      {/* Image */}
+      <div style={{ position: "relative", aspectRatio: "3/4", overflow: "hidden", flexShrink: 0 }}>
+        <img src={item.img} alt={item.name}
+             style={{ width: "100%", height: "100%", objectFit: "cover", opacity: item.unlocked ? 0.88 : 0.18,
+                      filter: item.unlocked ? "none" : "grayscale(60%)", transition: "opacity 0.2s" }} />
+        {/* gradient overlay */}
+        <div style={{ position: "absolute", inset: 0,
+                      background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 45%)" }} />
+
+        {/* Unlocked badge */}
+        {item.unlocked && (
+          <div style={{
+            position: "absolute", top: 10, left: 10,
+            background: "rgba(162,89,247,0.85)", backdropFilter: "blur(6px)",
+            borderRadius: 6, padding: "3px 8px",
+            fontSize: 10, fontWeight: 700, color: "white", letterSpacing: "0.8px",
+            fontFamily: "'Rajdhani', sans-serif",
+          }}>UNLOCKED</div>
+        )}
+
+        {/* Locked overlay */}
         {!item.unlocked && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            <IconLock />
-            <span style={{ fontSize: 12, color: C.text2, fontWeight: 700, letterSpacing: "1px" }}>PLAY TO UNLOCK</span>
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <IconLockSm />
+            <span style={{ fontSize: 11, color: C.text2, fontWeight: 700, letterSpacing: "1px",
+                           fontFamily: "'Rajdhani', sans-serif" }}>PLAY TO UNLOCK</span>
           </div>
         )}
-        {item.progress !== undefined && item.unlocked && (
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 12px 8px" }}>
-            <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${item.progress}%`, background: C.green }} />
-            </div>
-          </div>
-        )}
+
+        {/* Brand + price pinned to bottom of image */}
+        <div style={{ position: "absolute", bottom: 10, left: 12, right: 12,
+                      display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)",
+                         letterSpacing: "1.5px", fontFamily: "'Rajdhani', sans-serif",
+                         textTransform: "uppercase" }}>{item.brand}</span>
+          <span style={{ fontSize: 16, fontWeight: 800, color: item.unlocked ? C.text1 : C.text3 }}>
+            ${item.price}
+          </span>
+        </div>
       </div>
 
-      <div style={{ padding: "14px 16px 16px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-        <div>
-          <p style={{ fontSize: 15, fontWeight: 800, color: C.text1 }}>{item.name}</p>
-          <p style={{ fontSize: 13, color: C.text3, marginTop: 3 }}>{item.color} · Size {item.size}</p>
-        </div>
-        <p style={{ fontSize: 12, color: item.unlocked ? C.green : C.text3, fontWeight: 600 }}>{item.tag}</p>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
-          <span style={{ fontSize: 18, fontWeight: 800, color: C.text1 }}>${item.price}</span>
+      {/* Info */}
+      <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
+        <p style={{ fontSize: 14, fontWeight: 700, color: C.text1, lineHeight: 1.3 }}>{item.name}</p>
+        <p style={{ fontSize: 12, color: C.text3 }}>{item.color} · Size {item.size}</p>
+
+        <div style={{ marginTop: 4 }}>
           {item.unlocked ? (
             inCart ? (
-              <button className="btn" onClick={() => onRemove(item.id)}
-                      style={{ background: "rgba(255,255,255,0.08)", color: C.text2, borderRadius: 9, padding: "7px 13px", fontSize: 12, fontWeight: 800, letterSpacing: "0.8px" }}>
-                REMOVE
-              </button>
+              <button className="btn" onClick={() => onRemove(item.id)} style={{
+                width: "100%", background: "rgba(255,255,255,0.07)",
+                border: `1px solid ${C.border}`,
+                color: C.text2, borderRadius: 9, padding: "8px 0",
+                fontSize: 12, fontWeight: 700, letterSpacing: "0.8px",
+                fontFamily: "'Rajdhani', sans-serif",
+              }}>REMOVE</button>
             ) : (
-              <button className="btn" onClick={() => onAdd(item)}
-                      style={{ background: C.text1, color: "#111", borderRadius: 9, padding: "7px 13px", fontSize: 12, fontWeight: 800, letterSpacing: "0.8px" }}>
-                ADD TO CART
-              </button>
+              <button className="btn" onClick={() => onAdd(item)} style={{
+                width: "100%",
+                background: "linear-gradient(135deg, #a259f7 0%, #7c3aed 100%)",
+                color: "white", borderRadius: 9, padding: "8px 0",
+                fontSize: 12, fontWeight: 700, letterSpacing: "0.8px",
+                fontFamily: "'Rajdhani', sans-serif",
+                boxShadow: "0 2px 12px rgba(162,89,247,0.35)",
+              }}>ADD TO CART</button>
             )
           ) : (
-            <span style={{ fontSize: 12, color: C.text3 }}>Locked</span>
+            <div style={{
+              width: "100%", background: "rgba(255,255,255,0.04)",
+              border: `1px solid ${C.border}`,
+              borderRadius: 9, padding: "8px 0", textAlign: "center",
+              fontSize: 11, fontWeight: 700, color: C.text3, letterSpacing: "0.8px",
+              fontFamily: "'Rajdhani', sans-serif",
+            }}>{item.tag.replace("Play ", "▶ Play ")}</div>
           )}
         </div>
       </div>
@@ -571,11 +620,16 @@ function CartSidebar({ open, items, onClose, onRemove, onUpdateQty }) {
 function App() {
   const [tab, setTab]             = useState("play");
   const [cartOpen, setCartOpen]   = useState(false);
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState([
+    { ...PREORDERS[0], qty: 1 },
+    { ...PREORDERS[3], qty: 1 },
+    { ...PREORDERS[11], qty: 1 },
+  ]);
   const [gameView, setGameView]   = useState("home");
-  const [savedGames, setSavedGames] = useState(new Set());
+  const [savedGames, setSavedGames] = useState(new Set([2, 5, 9, 12]));
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
+  const [shopFilter, setShopFilter] = useState("all");
 
   const toggleSave = id => setSavedGames(prev => {
     const next = new Set(prev);
@@ -605,10 +659,10 @@ function App() {
         position: "absolute", top: 0, left: 0, right: 0, zIndex: 10,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         height: 60, padding: "0 48px",
-        background: "rgba(14,14,14,0.55)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(255,255,255,0.04)",
+        backdropFilter: "blur(40px) saturate(180%)",
+        WebkitBackdropFilter: "blur(40px) saturate(180%)",
+        boxShadow: "0 1px 0 rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}>
         {/* Left: Logo + Bridg + Tabs */}
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
@@ -677,11 +731,14 @@ function App() {
             <IconCart />
             {cartCount > 0 && (
               <div style={{
-                position: "absolute", top: -5, right: -5,
-                background: C.red, color: "white",
-                width: 15, height: 15, borderRadius: "50%",
-                fontSize: 8, fontWeight: 800,
+                position: "absolute", top: -6, right: -6,
+                background: "linear-gradient(135deg, #a259f7 0%, #7c3aed 100%)",
+                color: "white",
+                minWidth: 18, height: 18, borderRadius: 9, padding: "0 4px",
+                fontSize: 10, fontWeight: 800,
                 display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(162,89,247,0.5)",
+                border: "1.5px solid #0e0e0e",
               }}>{cartCount}</div>
             )}
           </button>
@@ -701,7 +758,7 @@ function App() {
 
       {/* ── Main ── */}
       <main style={{
-        position: "absolute", left: 0, right: 0, top: 74, bottom: 18,
+        position: "absolute", left: 0, right: 0, top: 60, bottom: 18,
         display: "flex", flexDirection: "column",
         overflow: "hidden", zIndex: 1,
       }}>
@@ -711,6 +768,7 @@ function App() {
           const active  = GAMES.filter(g => !g.done);
           const done    = GAMES.filter(g => g.done);
           const forYou  = active.filter(g => g.athletic);
+          const newGames = GAMES.filter(g => g.isNew && !g.done);
           const saved   = GAMES.filter(g => savedGames.has(g.id));
 
           const carouselProps = { savedGames, onToggleSave: toggleSave };
@@ -720,7 +778,7 @@ function App() {
             const q = searchQuery.trim().toLowerCase();
             const results = GAMES.filter(g => g.name.toLowerCase().includes(q));
             return (
-              <div style={{ flex: 1, overflowY: "auto", paddingTop: 24 }}>
+              <div style={{ flex: 1, overflowY: "auto", paddingTop: 24, paddingLeft: 48, paddingRight: 48 }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: C.text3, marginBottom: 16, fontFamily: "'Rajdhani', sans-serif", letterSpacing: "1px" }}>
                   {results.length} RESULT{results.length !== 1 ? "S" : ""} FOR "{searchQuery.toUpperCase()}"
                 </p>
@@ -742,10 +800,10 @@ function App() {
 
           /* ── Home view ── */
           return (
-            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column", paddingTop: 24, paddingLeft: 48, paddingRight: 0 }}>
+            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column", paddingTop: 40, paddingLeft: 48, paddingRight: 48 }}>
 
               {/* Hero + Leaderboard */}
-              <div style={{ display: "flex", gap: 24, marginBottom: 36, alignItems: "flex-start" }}>
+              <div style={{ display: "flex", gap: 24, marginBottom: 48, alignItems: "flex-start" }}>
                 {/* Hero text */}
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 38, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif", letterSpacing: "2px", color: C.text1, lineHeight: 1.1, marginBottom: 14 }}>
@@ -779,14 +837,18 @@ function App() {
               <SectionHeader label="For you" onViewAll={() => setGameView("all")} />
               <Carousel games={forYou} {...carouselProps} />
 
+              {/* New */}
+              <SectionHeader label="New" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
+              <Carousel games={newGames} {...carouselProps} />
+
               {/* January games */}
-              <SectionHeader label="January games" style={{ marginTop: 28 }} />
+              <SectionHeader label="January games" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
               <Carousel games={active} {...carouselProps} />
 
               {/* Saved games */}
               {saved.length > 0 && (
                 <>
-                  <SectionHeader label="Saved games" style={{ marginTop: 28 }} />
+                  <SectionHeader label="Saved games" onViewAll={() => setGameView("all")} style={{ marginTop: 28 }} />
                   <Carousel games={saved} {...carouselProps} />
                 </>
               )}
@@ -794,7 +856,7 @@ function App() {
               {/* Finished games */}
               {done.length > 0 && (
                 <>
-                  <SectionHeader label="Finished games" style={{ marginTop: 28 }} />
+                  <SectionHeader label="Finished games" onViewAll={() => setGameView("all")} style={{ marginTop: 28 }} />
                   <Carousel games={done} {...carouselProps} />
                 </>
               )}
@@ -803,16 +865,91 @@ function App() {
             </div>
           );
         })()
-        : (
-          <div style={{ display: "flex", gap: 14, flex: 1, overflowY: "auto", overflowX: "hidden" }}>
-            {PREORDERS.map(item => (
-              <PreorderCard key={item.id} item={item}
-                            inCart={!!cartItems.find(c => c.id === item.id)}
-                            onAdd={addToCart}
-                            onRemove={removeFromCart} />
-            ))}
-          </div>
-        )}
+        : (() => {
+          const CATS = [
+            { key: "all",       label: "All" },
+            { key: "tops",      label: "Tops" },
+            { key: "bottoms",   label: "Bottoms" },
+            { key: "outerwear", label: "Outerwear" },
+            { key: "footwear",  label: "Footwear" },
+          ];
+          const BRANDS = ["All brands", ...Array.from(new Set(PREORDERS.map(p => p.brand))).sort()];
+          const [brandFilter, setBrandFilter] = useState("All brands");
+          const [unlockedOnly, setUnlockedOnly] = useState(false);
+
+          let visible = PREORDERS;
+          if (shopFilter !== "all") visible = visible.filter(p => p.cat === shopFilter);
+          if (brandFilter !== "All brands") visible = visible.filter(p => p.brand === brandFilter);
+          if (unlockedOnly) visible = visible.filter(p => p.unlocked);
+          // unlocked first
+          visible = [...visible.filter(p => p.unlocked), ...visible.filter(p => !p.unlocked)];
+
+          return (
+            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
+              {/* Filter bar */}
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+                paddingLeft: 48, paddingRight: 48, paddingTop: 18, paddingBottom: 16,
+                borderBottom: `1px solid ${C.border}`, flexShrink: 0,
+              }}>
+                {/* Category pills */}
+                <div style={{ display: "flex", gap: 6 }}>
+                  {CATS.map(c => (
+                    <button key={c.key} className="btn" onClick={() => setShopFilter(c.key)} style={{
+                      padding: "5px 14px", borderRadius: 20,
+                      fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+                      background: shopFilter === c.key ? C.green : "rgba(255,255,255,0.06)",
+                      color: shopFilter === c.key ? "white" : C.text2,
+                      border: shopFilter === c.key ? "none" : `1px solid ${C.border}`,
+                      boxShadow: shopFilter === c.key ? "0 2px 10px rgba(162,89,247,0.3)" : "none",
+                    }}>{c.label}</button>
+                  ))}
+                </div>
+
+                {/* Divider */}
+                <div style={{ width: 1, height: 20, background: C.border, margin: "0 4px" }} />
+
+                {/* Brand select */}
+                <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} style={{
+                  background: "rgba(255,255,255,0.06)", border: `1px solid ${C.border}`,
+                  borderRadius: 20, padding: "5px 14px", color: C.text2,
+                  fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+                  cursor: "pointer", outline: "none",
+                }}>
+                  {BRANDS.map(b => <option key={b} value={b} style={{ background: "#1f1f1f" }}>{b}</option>)}
+                </select>
+
+                {/* Unlocked toggle */}
+                <button className="btn" onClick={() => setUnlockedOnly(v => !v)} style={{
+                  padding: "5px 14px", borderRadius: 20,
+                  fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+                  background: unlockedOnly ? "rgba(162,89,247,0.2)" : "rgba(255,255,255,0.06)",
+                  color: unlockedOnly ? C.green : C.text2,
+                  border: unlockedOnly ? `1px solid ${C.green}` : `1px solid ${C.border}`,
+                }}>Unlocked only</button>
+
+                <span style={{ marginLeft: "auto", fontSize: 12, color: C.text3 }}>
+                  {visible.length} item{visible.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+
+              {/* Grid */}
+              <div style={{
+                flex: 1, overflowY: "auto",
+                display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 18, padding: "24px 48px 32px",
+                alignContent: "start",
+              }}>
+                {visible.map(item => (
+                  <PreorderCard key={item.id} item={item}
+                                inCart={!!cartItems.find(c => c.id === item.id)}
+                                onAdd={addToCart}
+                                onRemove={removeFromCart} />
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
       </main>
     </div>
