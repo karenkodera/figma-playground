@@ -630,6 +630,8 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [shopFilter, setShopFilter] = useState("all");
+  const [brandFilter, setBrandFilter] = useState("All brands");
+  const [unlockedOnly, setUnlockedOnly] = useState(false);
 
   const toggleSave = id => setSavedGames(prev => {
     const next = new Set(prev);
@@ -874,8 +876,6 @@ function App() {
             { key: "footwear",  label: "Footwear" },
           ];
           const BRANDS = ["All brands", ...Array.from(new Set(PREORDERS.map(p => p.brand))).sort()];
-          const [brandFilter, setBrandFilter] = useState("All brands");
-          const [unlockedOnly, setUnlockedOnly] = useState(false);
 
           let visible = PREORDERS;
           if (shopFilter !== "all") visible = visible.filter(p => p.cat === shopFilter);
