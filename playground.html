@@ -47,6 +47,30 @@
 
     .search-bar { transition: width 0.25s cubic-bezier(0.4,0,0.2,1); width: 160px; }
     .search-bar.expanded { width: 240px; }
+
+    @keyframes unlockPop {
+      0%   { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+      65%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    @keyframes floatBob {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-10px); }
+    }
+    @keyframes sparkleOut {
+      0%   { transform: scale(0) translate(0,0); opacity: 1; }
+      100% { transform: scale(1.5) translate(var(--tx), var(--ty)); opacity: 0; }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes countdownPulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.15); }
+    }
+    .unlock-card { animation: unlockPop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    .float-bob   { animation: floatBob 2.5s ease-in-out infinite; }
   </style>
 </head>
 <body>
@@ -91,56 +115,56 @@ const GAMES = [
 
 const PREORDERS = [
   // Lululemon
-  { id:  1, brand: "Lululemon",   name: "Align™ High-Rise Pant",      cat: "bottoms",   color: "Noir Black",      size: "4",  price: 128, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/pants-black/400/520"      },
-  { id:  2, brand: "Lululemon",   name: "Swiftly Tech Long-Sleeve",    cat: "tops",      color: "Ivory White",     size: "S",  price: 88,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/longsleeve-white/400/520"  },
-  { id:  3, brand: "Lululemon",   name: "Hotty Hot Short 2.5\"",       cat: "bottoms",   color: "Chambray",        size: "4",  price: 68,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/shorts-blue/400/520"       },
-  { id:  4, brand: "Lululemon",   name: "Scuba Oversized Half-Zip",    cat: "tops",      color: "Heathered Bone",  size: "M",  price: 118, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/scuba-zip/400/520"         },
-  { id:  5, brand: "Lululemon",   name: "Define Jacket Nulu",          cat: "outerwear", color: "Sage Green",      size: "M",  price: 138, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/jacket-sage/400/520"       },
-  { id:  6, brand: "Lululemon",   name: "Wunder Train Tight",          cat: "bottoms",   color: "Deep Navy",       size: "6",  price: 98,  unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/leggings-navy/400/520"     },
+  { id:  1, brand: "Lululemon",   name: "Align™ High-Rise Pant",      cat: "bottoms",   color: "Noir Black",      size: "4",  price: 128, origPrice: 158, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/pants-black/400/520"      },
+  { id:  2, brand: "Lululemon",   name: "Swiftly Tech Long-Sleeve",    cat: "tops",      color: "Ivory White",     size: "S",  price: 88,  origPrice: 108, unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/longsleeve-white/400/520"  },
+  { id:  3, brand: "Lululemon",   name: "Hotty Hot Short 2.5\"",       cat: "bottoms",   color: "Chambray",        size: "4",  price: 68,  origPrice: 84,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/shorts-blue/400/520"       },
+  { id:  4, brand: "Lululemon",   name: "Scuba Oversized Half-Zip",    cat: "tops",      color: "Heathered Bone",  size: "M",  price: 118, origPrice: 148, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/scuba-zip/400/520"         },
+  { id:  5, brand: "Lululemon",   name: "Define Jacket Nulu",          cat: "outerwear", color: "Sage Green",      size: "M",  price: 138, origPrice: 168, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/jacket-sage/400/520"       },
+  { id:  6, brand: "Lululemon",   name: "Wunder Train Tight",          cat: "bottoms",   color: "Deep Navy",       size: "6",  price: 98,  origPrice: 118, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/leggings-navy/400/520"     },
   // Gymshark
-  { id:  7, brand: "Gymshark",    name: "Vital Seamless Leggings",     cat: "bottoms",   color: "Cacao Brown",     size: "S",  price: 55,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/seamless-leggings/400/520" },
-  { id:  8, brand: "Gymshark",    name: "Flex High-Waist Shorts",      cat: "bottoms",   color: "Sand Marl",       size: "XS", price: 40,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/flex-shorts/400/520"       },
-  { id:  9, brand: "Gymshark",    name: "Training Crop Tank",          cat: "tops",      color: "Black",           size: "S",  price: 35,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/crop-tank-black/400/520"   },
-  { id: 10, brand: "Gymshark",    name: "Rest Day Oversized Hoodie",   cat: "tops",      color: "Storm Grey",      size: "M",  price: 68,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/oversized-hoodie/400/520"  },
-  { id: 11, brand: "Gymshark",    name: "Speed Shorts",                cat: "bottoms",   color: "Teal",            size: "S",  price: 38,  unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/speed-shorts-teal/400/520" },
+  { id:  7, brand: "Gymshark",    name: "Vital Seamless Leggings",     cat: "bottoms",   color: "Cacao Brown",     size: "S",  price: 55,  origPrice: 68,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/seamless-leggings/400/520" },
+  { id:  8, brand: "Gymshark",    name: "Flex High-Waist Shorts",      cat: "bottoms",   color: "Sand Marl",       size: "XS", price: 40,  origPrice: 50,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/flex-shorts/400/520"       },
+  { id:  9, brand: "Gymshark",    name: "Training Crop Tank",          cat: "tops",      color: "Black",           size: "S",  price: 35,  origPrice: 44,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/crop-tank-black/400/520"   },
+  { id: 10, brand: "Gymshark",    name: "Rest Day Oversized Hoodie",   cat: "tops",      color: "Storm Grey",      size: "M",  price: 68,  origPrice: 85,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/oversized-hoodie/400/520"  },
+  { id: 11, brand: "Gymshark",    name: "Speed Shorts",                cat: "bottoms",   color: "Teal",            size: "S",  price: 38,  origPrice: 48,  unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/speed-shorts-teal/400/520" },
   // Alo Yoga
-  { id: 12, brand: "Alo Yoga",    name: "Airlift High-Waist Legging",  cat: "bottoms",   color: "Black",           size: "XS", price: 114, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/yoga-legging/400/520"      },
-  { id: 13, brand: "Alo Yoga",    name: "Alosoft Finesse Bra",         cat: "tops",      color: "Dust Mauve",      size: "S",  price: 82,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/sports-bra-mauve/400/520"  },
-  { id: 14, brand: "Alo Yoga",    name: "Accolade Slim Sweatpant",     cat: "bottoms",   color: "Dove Grey",       size: "XS", price: 128, unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/sweatpant-grey/400/520"    },
-  { id: 15, brand: "Alo Yoga",    name: "Muse Sweatshirt",             cat: "tops",      color: "Umber",           size: "S",  price: 118, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/muse-sweat/400/520"        },
-  { id: 16, brand: "Alo Yoga",    name: "Goddess Ribbed Tank",         cat: "tops",      color: "White",           size: "XS", price: 68,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/ribbed-tank/400/520"       },
+  { id: 12, brand: "Alo Yoga",    name: "Airlift High-Waist Legging",  cat: "bottoms",   color: "Black",           size: "XS", price: 114, origPrice: 138, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/yoga-legging/400/520"      },
+  { id: 13, brand: "Alo Yoga",    name: "Alosoft Finesse Bra",         cat: "tops",      color: "Dust Mauve",      size: "S",  price: 82,  origPrice: 98,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/sports-bra-mauve/400/520"  },
+  { id: 14, brand: "Alo Yoga",    name: "Accolade Slim Sweatpant",     cat: "bottoms",   color: "Dove Grey",       size: "XS", price: 128, origPrice: 158, unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/sweatpant-grey/400/520"    },
+  { id: 15, brand: "Alo Yoga",    name: "Muse Sweatshirt",             cat: "tops",      color: "Umber",           size: "S",  price: 118, origPrice: 148, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/muse-sweat/400/520"        },
+  { id: 16, brand: "Alo Yoga",    name: "Goddess Ribbed Tank",         cat: "tops",      color: "White",           size: "XS", price: 68,  origPrice: 85,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/ribbed-tank/400/520"       },
   // Nike
-  { id: 17, brand: "Nike",        name: "Pro Dri-FIT Tight",           cat: "bottoms",   color: "Iron Grey",       size: "M",  price: 75,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/pro-tight/400/520"         },
-  { id: 18, brand: "Nike",        name: "One Dri-FIT Swoosh Bra",      cat: "tops",      color: "Obsidian",        size: "S",  price: 45,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/swoosh-bra/400/520"        },
-  { id: 19, brand: "Nike",        name: "Windrunner Jacket",           cat: "outerwear", color: "Black / White",   size: "M",  price: 110, unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/windrunner-blk/400/520"    },
-  { id: 20, brand: "Nike",        name: "Dri-FIT ADV Run Jacket",      cat: "outerwear", color: "Volt / Black",    size: "M",  price: 165, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/run-jacket-volt/400/520"   },
-  { id: 21, brand: "Nike",        name: "Epic Luxe Tight",             cat: "bottoms",   color: "Smoke Grey",      size: "S",  price: 90,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/epic-tight/400/520"        },
-  { id: 22, brand: "Nike",        name: "ACG Therma-FIT Fleece",       cat: "outerwear", color: "Dark Smoke Grey", size: "M",  price: 140, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/acg-fleece/400/520"        },
+  { id: 17, brand: "Nike",        name: "Pro Dri-FIT Tight",           cat: "bottoms",   color: "Iron Grey",       size: "M",  price: 75,  origPrice: 92,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/pro-tight/400/520"         },
+  { id: 18, brand: "Nike",        name: "One Dri-FIT Swoosh Bra",      cat: "tops",      color: "Obsidian",        size: "S",  price: 45,  origPrice: 55,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/swoosh-bra/400/520"        },
+  { id: 19, brand: "Nike",        name: "Windrunner Jacket",           cat: "outerwear", color: "Black / White",   size: "M",  price: 110, origPrice: 135, unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/windrunner-blk/400/520"    },
+  { id: 20, brand: "Nike",        name: "Dri-FIT ADV Run Jacket",      cat: "outerwear", color: "Volt / Black",    size: "M",  price: 165, origPrice: 200, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/run-jacket-volt/400/520"   },
+  { id: 21, brand: "Nike",        name: "Epic Luxe Tight",             cat: "bottoms",   color: "Smoke Grey",      size: "S",  price: 90,  origPrice: 110, unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/epic-tight/400/520"        },
+  { id: 22, brand: "Nike",        name: "ACG Therma-FIT Fleece",       cat: "outerwear", color: "Dark Smoke Grey", size: "M",  price: 140, origPrice: 175, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/acg-fleece/400/520"        },
   // Adidas
-  { id: 23, brand: "Adidas",      name: "Ultraboost 23",               cat: "footwear",  color: "Core Black",      size: "8",  price: 190, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/ultraboost-black/400/520"  },
-  { id: 24, brand: "Adidas",      name: "Adizero Adios Pro 3",         cat: "footwear",  color: "Solar Red",       size: "8",  price: 225, unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/adizero-red/400/520"       },
-  { id: 25, brand: "Adidas",      name: "Own The Run Tee",             cat: "tops",      color: "White",           size: "S",  price: 35,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/run-tee-white/400/520"     },
-  { id: 26, brand: "Adidas",      name: "Tiro 23 Track Jacket",        cat: "outerwear", color: "Team Navy",       size: "L",  price: 90,  unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/track-jacket-navy/400/520" },
-  { id: 27, brand: "Adidas",      name: "Techfit Compression Tight",   cat: "bottoms",   color: "Black",           size: "M",  price: 55,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/techfit-tight/400/520"     },
+  { id: 23, brand: "Adidas",      name: "Ultraboost 23",               cat: "footwear",  color: "Core Black",      size: "8",  price: 190, origPrice: 220, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/ultraboost-black/400/520"  },
+  { id: 24, brand: "Adidas",      name: "Adizero Adios Pro 3",         cat: "footwear",  color: "Solar Red",       size: "8",  price: 225, origPrice: 260, unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/adizero-red/400/520"       },
+  { id: 25, brand: "Adidas",      name: "Own The Run Tee",             cat: "tops",      color: "White",           size: "S",  price: 35,  origPrice: 44,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/run-tee-white/400/520"     },
+  { id: 26, brand: "Adidas",      name: "Tiro 23 Track Jacket",        cat: "outerwear", color: "Team Navy",       size: "L",  price: 90,  origPrice: 112, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/track-jacket-navy/400/520" },
+  { id: 27, brand: "Adidas",      name: "Techfit Compression Tight",   cat: "bottoms",   color: "Black",           size: "M",  price: 55,  origPrice: 68,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/techfit-tight/400/520"     },
   // Athleta
-  { id: 28, brand: "Athleta",     name: "Salutation Stash Tight",      cat: "bottoms",   color: "Deep Plum",       size: "S",  price: 89,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/stash-tight-plum/400/520"  },
-  { id: 29, brand: "Athleta",     name: "Exhale Crop Tank",            cat: "tops",      color: "Cascade Blue",    size: "XS", price: 49,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/crop-tank-blue/400/520"    },
-  { id: 30, brand: "Athleta",     name: "Trekkie North Stretch Pant",  cat: "bottoms",   color: "Heather Grey",    size: "4",  price: 118, unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/trekkie-pant/400/520"      },
+  { id: 28, brand: "Athleta",     name: "Salutation Stash Tight",      cat: "bottoms",   color: "Deep Plum",       size: "S",  price: 89,  origPrice: 109, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/stash-tight-plum/400/520"  },
+  { id: 29, brand: "Athleta",     name: "Exhale Crop Tank",            cat: "tops",      color: "Cascade Blue",    size: "XS", price: 49,  origPrice: 60,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/crop-tank-blue/400/520"    },
+  { id: 30, brand: "Athleta",     name: "Trekkie North Stretch Pant",  cat: "bottoms",   color: "Heather Grey",    size: "4",  price: 118, origPrice: 145, unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/trekkie-pant/400/520"      },
   // Vuori
-  { id: 31, brand: "Vuori",       name: "Ponto Performance Short",     cat: "bottoms",   color: "Heather Charcoal",size: "M",  price: 68,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/ponto-short/400/520"       },
-  { id: 32, brand: "Vuori",       name: "Strato Tech Hoodie",          cat: "tops",      color: "Dark Sage",       size: "M",  price: 128, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/strato-hoodie/400/520"     },
-  { id: 33, brand: "Vuori",       name: "Ripstop Climber Pant",        cat: "bottoms",   color: "Dark Navy",       size: "32", price: 108, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/climber-pant/400/520"      },
+  { id: 31, brand: "Vuori",       name: "Ponto Performance Short",     cat: "bottoms",   color: "Heather Charcoal",size: "M",  price: 68,  origPrice: 85,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/ponto-short/400/520"       },
+  { id: 32, brand: "Vuori",       name: "Strato Tech Hoodie",          cat: "tops",      color: "Dark Sage",       size: "M",  price: 128, origPrice: 155, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/strato-hoodie/400/520"     },
+  { id: 33, brand: "Vuori",       name: "Ripstop Climber Pant",        cat: "bottoms",   color: "Dark Navy",       size: "32", price: 108, origPrice: 132, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/climber-pant/400/520"      },
   // Outdoor Voices
-  { id: 34, brand: "Outdoor Voices", name: "CloudKnit Sweatshirt",     cat: "tops",      color: "Grape",           size: "S",  price: 98,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/cloudknit-grape/400/520"   },
-  { id: 35, brand: "Outdoor Voices", name: "TechSweat 7/8 Legging",    cat: "bottoms",   color: "Dusty Rose",      size: "XS", price: 85,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/techsweat-rose/400/520"    },
-  { id: 36, brand: "Outdoor Voices", name: "Doing Things Shorts",      cat: "bottoms",   color: "Buoy Orange",     size: "XS", price: 65,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/doing-shorts-orange/400/520"},
+  { id: 34, brand: "Outdoor Voices", name: "CloudKnit Sweatshirt",     cat: "tops",      color: "Grape",           size: "S",  price: 98,  origPrice: 120, unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/cloudknit-grape/400/520"   },
+  { id: 35, brand: "Outdoor Voices", name: "TechSweat 7/8 Legging",    cat: "bottoms",   color: "Dusty Rose",      size: "XS", price: 85,  origPrice: 105, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/techsweat-rose/400/520"    },
+  { id: 36, brand: "Outdoor Voices", name: "Doing Things Shorts",      cat: "bottoms",   color: "Buoy Orange",     size: "XS", price: 65,  origPrice: 80,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/doing-shorts-orange/400/520"},
 ];
 
 const LEADERBOARD = [
   { rank: 1, name: "Maya R.",    pts: 2840 },
   { rank: 2, name: "Jordan K.",  pts: 2610 },
   { rank: 3, name: "Alex M.",    pts: 2450 },
-  { rank: 4, name: "Karen",      pts: 1820, isYou: true },
+  { rank: 4, name: "Karen K.",   pts: 1820, isYou: true },
   { rank: 5, name: "Sam L.",     pts: 1690 },
   { rank: 6, name: "Riley T.",   pts: 1420 },
 ];
@@ -261,25 +285,18 @@ function IconBookmark({ filled }) {
 
 function Logo() {
   return (
-    <div style={{ position: "relative", width: 36, height: 28, flexShrink: 0 }}>
+    <div style={{ width: 36, height: 36, flexShrink: 0 }}>
       <img
-        src="https://www.figma.com/api/mcp/asset/14906077-2379-47c3-b993-2d22c78c0279"
-        alt="Bridg mark"
-        style={{ width: "100%", height: "100%", objectFit: "contain", filter: "invert(1)" }}
+        src="bridg%20logo.png"
+        alt="Bridg"
+        style={{ width: "100%", height: "100%", objectFit: "contain" }}
       />
-      <span style={{
-        position: "absolute", inset: 0,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "'Bowlby One', sans-serif",
-        fontSize: 14, color: "white",
-        lineHeight: 1, paddingBottom: 1,
-      }}>B</span>
     </div>
   );
 }
 
 /* ── Game Card (carousel) ────────────────────────────────────────── */
-function GameCard({ game, isSaved = false, onToggleSave = () => {} }) {
+function GameCard({ game, isSaved = false, onToggleSave = () => {}, onPlay = () => {} }) {
   const jan1         = new Date("2026-01-01");
   const expDate      = new Date(game.expires);
   const daysOut      = (expDate - jan1) / (1000 * 60 * 60 * 24);
@@ -328,14 +345,14 @@ function GameCard({ game, isSaved = false, onToggleSave = () => {} }) {
             {game.name}
           </p>
           {!game.done && (
-            <button className="btn" style={{
+            <button className="btn" onClick={() => onPlay(game)} style={{
               background: C.red, color: "white", borderRadius: 7,
               padding: "5px 12px", fontSize: 12, fontWeight: 700, flexShrink: 0,
               fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.5px",
             }}>Play</button>
           )}
         </div>
-        <p style={{ fontSize: 12, fontWeight: 500, color: expiringSoon ? C.red : "rgba(162,89,247,0.6)" }}>
+        <p style={{ fontSize: 12, fontWeight: 500, color: expiringSoon ? "#d4975a" : "#7a8fa6" }}>
           Expires {fmtExpires}
         </p>
       </div>
@@ -344,7 +361,7 @@ function GameCard({ game, isSaved = false, onToggleSave = () => {} }) {
 }
 
 /* ── Carousel ────────────────────────────────────────────────────── */
-function Carousel({ games, savedGames = new Set(), onToggleSave = () => {} }) {
+function Carousel({ games, savedGames = new Set(), onToggleSave = () => {}, onPlay = () => {} }) {
   const [page, setPage] = useState(0);
   const PER_PAGE = 4;
 
@@ -356,7 +373,7 @@ function Carousel({ games, savedGames = new Set(), onToggleSave = () => {} }) {
     <div style={{ marginBottom: 4 }}>
       <div style={{ position: "relative" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, paddingRight: 64 }}>
-          {visible.map(g => <GameCard key={g.id} game={g} isSaved={savedGames.has(g.id)} onToggleSave={onToggleSave} />)}
+          {visible.map(g => <GameCard key={g.id} game={g} isSaved={savedGames.has(g.id)} onToggleSave={onToggleSave} onPlay={onPlay} />)}
         </div>
 
         {/* Left arrow — sits in left padding zone */}
@@ -416,7 +433,7 @@ function SectionHeader({ label, onViewAll, style: extraStyle }) {
 }
 
 /* ── All Games Page ───────────────────────────────────────────────── */
-function AllGamesPage({ games, onBack, savedGames = new Set(), onToggleSave = () => {} }) {
+function AllGamesPage({ games, onBack, savedGames = new Set(), onToggleSave = () => {}, onPlay = () => {} }) {
   return (
     <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingLeft: 48, paddingRight: 48, paddingTop: 24 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
@@ -431,7 +448,7 @@ function AllGamesPage({ games, onBack, savedGames = new Set(), onToggleSave = ()
         <p style={{ fontSize: 16, fontWeight: 700, color: C.text1, fontFamily: "'Inter', sans-serif" }}>All January games</p>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, paddingBottom: 28 }}>
-        {games.map(g => <GameCard key={g.id} game={g} isSaved={savedGames.has(g.id)} onToggleSave={onToggleSave} />)}
+        {games.map(g => <GameCard key={g.id} game={g} isSaved={savedGames.has(g.id)} onToggleSave={onToggleSave} onPlay={onPlay} />)}
       </div>
     </div>
   );
@@ -449,7 +466,7 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
       boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
     }}>
       {/* Image */}
-      <div style={{ position: "relative", aspectRatio: "3/4", overflow: "hidden", flexShrink: 0 }}>
+      <div style={{ position: "relative", height: 260, overflow: "hidden", flexShrink: 0 }}>
         <img src={item.img} alt={item.name}
              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: item.unlocked ? 0.88 : 0.18,
                       filter: item.unlocked ? "none" : "grayscale(60%)", transition: "opacity 0.2s" }} />
@@ -484,9 +501,14 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
           <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)",
                          letterSpacing: "1.5px", fontFamily: "'Rajdhani', sans-serif",
                          textTransform: "uppercase" }}>{item.brand}</span>
-          <span style={{ fontSize: 16, fontWeight: 800, color: item.unlocked ? C.text1 : C.text3 }}>
-            ${item.price}
-          </span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textDecoration: "line-through" }}>
+              ${item.origPrice}
+            </span>
+            <span style={{ fontSize: 16, fontWeight: 800, color: item.unlocked ? C.text1 : C.text3 }}>
+              ${item.price}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -532,7 +554,9 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
 
 /* ── Cart Sidebar ────────────────────────────────────────────────── */
 function CartSidebar({ open, items, onClose, onRemove, onUpdateQty }) {
-  const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const total    = items.reduce((s, i) => s + i.price    * i.qty, 0);
+  const origTotal= items.reduce((s, i) => s + i.origPrice * i.qty, 0);
+  const saved    = origTotal - total;
   return (
     <>
       {open && (
@@ -577,20 +601,24 @@ function CartSidebar({ open, items, onClose, onRemove, onUpdateQty }) {
           ) : (
             items.map(item => (
               <div key={item.id} style={{ display: "flex", gap: 14, paddingBottom: 16, borderBottom: `1px solid ${C.border}` }}>
-                <img src={A.preorderImgs[item.imgIdx]} alt={item.name}
-                     style={{ width: 68, height: 68, borderRadius: 10, objectFit: "cover", opacity: 0.8, flexShrink: 0 }} />
+                <img src={item.img} alt={item.name}
+                     style={{ width: 72, height: 92, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: C.text1, lineHeight: 1.3 }}>{item.name}</p>
-                  <p style={{ fontSize: 13, color: C.text3, marginTop: 3 }}>{item.color} · Size {item.size}</p>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: C.text3, letterSpacing: "0.5px", fontFamily: "'Rajdhani', sans-serif" }}>{item.brand}</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: C.text1, lineHeight: 1.3, marginTop: 1 }}>{item.name}</p>
+                  <p style={{ fontSize: 12, color: C.text3, marginTop: 2 }}>{item.color} · Size {item.size}</p>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden" }}>
-                      <button className="btn" style={{ width: 34, height: 34, fontSize: 18, background: "rgba(255,255,255,0.05)", color: C.text2, display: "flex", alignItems: "center", justifyContent: "center" }}
+                      <button className="btn" style={{ width: 30, height: 30, fontSize: 16, background: "rgba(255,255,255,0.05)", color: C.text2, display: "flex", alignItems: "center", justifyContent: "center" }}
                               onClick={() => item.qty > 1 ? onUpdateQty(item.id, item.qty-1) : onRemove(item.id)}>−</button>
-                      <span style={{ width: 30, textAlign: "center", fontSize: 15, fontWeight: 700, color: C.text1 }}>{item.qty}</span>
-                      <button className="btn" style={{ width: 34, height: 34, fontSize: 18, background: "rgba(255,255,255,0.05)", color: C.text2, display: "flex", alignItems: "center", justifyContent: "center" }}
+                      <span style={{ width: 26, textAlign: "center", fontSize: 14, fontWeight: 700, color: C.text1 }}>{item.qty}</span>
+                      <button className="btn" style={{ width: 30, height: 30, fontSize: 16, background: "rgba(255,255,255,0.05)", color: C.text2, display: "flex", alignItems: "center", justifyContent: "center" }}
                               onClick={() => onUpdateQty(item.id, item.qty+1)}>+</button>
                     </div>
-                    <span style={{ fontSize: 16, fontWeight: 800, color: C.text1 }}>${(item.price * item.qty).toFixed(0)}</span>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 11, color: C.text3, textDecoration: "line-through" }}>${(item.origPrice * item.qty).toFixed(0)}</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: C.text1 }}>${(item.price * item.qty).toFixed(0)}</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -600,19 +628,209 @@ function CartSidebar({ open, items, onClose, onRemove, onUpdateQty }) {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div style={{ padding: "18px 24px", borderTop: `1px solid ${C.border}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ fontSize: 15, color: C.text2 }}>Subtotal</span>
+          <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.border}` }}>
+            {/* Savings banner */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(162,89,247,0.15) 0%, rgba(124,58,237,0.1) 100%)",
+              border: `1px solid rgba(162,89,247,0.3)`,
+              borderRadius: 12, padding: "12px 14px", marginBottom: 14,
+              display: "flex", flexDirection: "column", gap: 3,
+            }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: C.green, letterSpacing: "0.3px" }}>
+                🎉 You're saving ${saved.toFixed(0)} on this order!
+              </p>
+              <p style={{ fontSize: 12, color: C.text2, lineHeight: 1.5 }}>
+                Pre-order pricing is your reward for playing. Keep going to unlock more deals.
+              </p>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+              <span style={{ fontSize: 14, color: C.text2 }}>Retail price</span>
+              <span style={{ fontSize: 14, color: C.text3, textDecoration: "line-through" }}>${origTotal.toFixed(0)}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+              <span style={{ fontSize: 15, fontWeight: 700, color: C.text1 }}>Pre-order total</span>
               <span style={{ fontSize: 18, fontWeight: 800, color: C.text1 }}>${total.toFixed(0)}</span>
             </div>
-            <p style={{ fontSize: 13, color: C.text3, marginBottom: 14 }}>Shipping & taxes calculated at checkout</p>
-            <button className="btn" style={{ width: "100%", background: C.text1, color: "#111", borderRadius: 12, height: 50, fontSize: 15, fontWeight: 800, letterSpacing: "2px" }}>
+            <p style={{ fontSize: 12, color: C.text3, marginBottom: 12 }}>Shipping & taxes calculated at checkout</p>
+            <button className="btn" style={{ width: "100%", background: "linear-gradient(135deg, #a259f7 0%, #7c3aed 100%)", color: "white", borderRadius: 12, height: 50, fontSize: 15, fontWeight: 800, letterSpacing: "2px", boxShadow: "0 4px 18px rgba(162,89,247,0.35)" }}>
               CHECKOUT
             </button>
           </div>
         )}
       </div>
     </>
+  );
+}
+
+/* ── Preorder Tab ────────────────────────────────────────────────── */
+function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, unlockedOnly, setUnlockedOnly, cartItems, onAdd, onRemove }) {
+  const CATS   = [
+    { key: "all", label: "All" }, { key: "tops", label: "Tops" },
+    { key: "bottoms", label: "Bottoms" }, { key: "outerwear", label: "Outerwear" },
+    { key: "footwear", label: "Footwear" },
+  ];
+  const BRANDS = ["All brands", ...Array.from(new Set(PREORDERS.map(p => p.brand))).sort()];
+
+  let visible = PREORDERS;
+  if (shopFilter !== "all") visible = visible.filter(p => p.cat === shopFilter);
+  if (brandFilter !== "All brands") visible = visible.filter(p => p.brand === brandFilter);
+  if (unlockedOnly) visible = visible.filter(p => p.unlocked);
+  visible = [...visible.filter(p => p.unlocked), ...visible.filter(p => !p.unlocked)];
+
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* Filter bar */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", flexShrink: 0,
+        paddingLeft: 48, paddingRight: 48, paddingTop: 16, paddingBottom: 14,
+        borderBottom: `1px solid ${C.border}`,
+      }}>
+        {CATS.map(c => (
+          <button key={c.key} className="btn" onClick={() => setShopFilter(c.key)} style={{
+            padding: "5px 14px", borderRadius: 20, fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+            background: shopFilter === c.key ? C.green : "rgba(255,255,255,0.06)",
+            color: shopFilter === c.key ? "white" : C.text2,
+            border: shopFilter === c.key ? "none" : `1px solid ${C.border}`,
+            boxShadow: shopFilter === c.key ? "0 2px 10px rgba(162,89,247,0.3)" : "none",
+          }}>{c.label}</button>
+        ))}
+        <div style={{ width: 1, height: 18, background: C.border, margin: "0 2px" }} />
+        <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} style={{
+          background: "rgba(255,255,255,0.06)", border: `1px solid ${C.border}`,
+          borderRadius: 20, padding: "5px 14px", color: C.text2,
+          fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+          cursor: "pointer", outline: "none",
+        }}>
+          {BRANDS.map(b => <option key={b} value={b} style={{ background: "#1f1f1f" }}>{b}</option>)}
+        </select>
+        <button className="btn" onClick={() => setUnlockedOnly(v => !v)} style={{
+          padding: "5px 14px", borderRadius: 20, fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+          background: unlockedOnly ? "rgba(162,89,247,0.2)" : "rgba(255,255,255,0.06)",
+          color: unlockedOnly ? C.green : C.text2,
+          border: unlockedOnly ? `1px solid ${C.green}` : `1px solid ${C.border}`,
+        }}>Unlocked only</button>
+        <span style={{ marginLeft: "auto", fontSize: 12, color: C.text3 }}>
+          {visible.length} item{visible.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+      {/* Grid */}
+      <div style={{
+        flex: 1, overflowY: "auto",
+        display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+        gap: 18, padding: "24px 48px 32px", alignContent: "start",
+      }}>
+        {visible.map(item => (
+          <PreorderCard key={item.id} item={item}
+            inCart={!!cartItems.find(c => c.id === item.id)}
+            onAdd={onAdd} onRemove={onRemove} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Hero Carousel ───────────────────────────────────────────────── */
+function HeroCarousel() {
+  // idx counts up infinitely. Track has 3 slots: [hero, leaderboard, hero_clone].
+  // When idx hits 2, after transition we silently snap back to 0.
+  const [idx, setIdx]         = useState(0);
+  const [animated, setAnimated] = useState(true);
+
+  const next = () => { setAnimated(true); setIdx(i => i + 1); };
+
+  // After landing on clone (idx===2), snap to real slide 0 instantly
+  useEffect(() => {
+    if (idx === 2) {
+      const t = setTimeout(() => { setAnimated(false); setIdx(0); }, 560);
+      return () => clearTimeout(t);
+    }
+  }, [idx]);
+
+  // Auto-advance
+  useEffect(() => {
+    const t = setInterval(next, 8000);
+    return () => clearInterval(t);
+  }, []);
+
+  const activeDot = idx % 2; // 0 or 1 for dot highlight
+
+  const SlideHero = (
+    <div style={{ minWidth: "100%", height: "100%", position: "relative", display: "flex", alignItems: "center" }}>
+      <div style={{ flex: 1, paddingRight: 40 }}>
+        <p style={{ fontSize: 42, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif", letterSpacing: "2px", color: C.text1, lineHeight: 1.1, marginBottom: 16 }}>
+          PLAY. UNLOCK.<br />SHOP SUSTAINABLY.
+        </p>
+        <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.8, maxWidth: 480, fontWeight: 400 }}>
+          Your voice shapes the future of brands! Play mini-games to understand your style and win early access to exclusive items.
+        </p>
+      </div>
+      {/* Earth — oversized, floated up-right */}
+      <img src="earth.png" alt="Earth" style={{
+        position: "absolute", right: -30, top: -70,
+        width: 420, height: 420, objectFit: "contain", flexShrink: 0,
+        filter: "drop-shadow(0 0 60px rgba(80,100,255,0.5))",
+        pointerEvents: "none",
+      }} />
+    </div>
+  );
+
+  const SlideLeaderboard = (
+    <div style={{ minWidth: "100%", height: "100%", display: "flex", alignItems: "center", gap: 40 }}>
+      <div style={{ flex: 1 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: C.green, letterSpacing: "2.5px", fontFamily: "'Rajdhani', sans-serif", marginBottom: 10 }}>THIS WEEK'S RANKINGS</p>
+        <p style={{ fontSize: 42, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif", letterSpacing: "2px", color: C.text1, lineHeight: 1.1, marginBottom: 14 }}>
+          LEADERBOARD
+        </p>
+        <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.8, maxWidth: 400, fontWeight: 400 }}>
+          Play more games to climb the ranks and unlock exclusive early-access rewards.
+        </p>
+      </div>
+      <div style={{ width: 300, background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: "16px 22px", flexShrink: 0 }}>
+        {LEADERBOARD.map((p, i) => (
+          <div key={p.rank} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: i < LEADERBOARD.length - 1 ? `1px solid ${C.border}` : "none" }}>
+            <span style={{ width: 20, fontSize: 12, fontWeight: 700, color: p.rank <= 3 ? C.green : C.text3, textAlign: "right", fontFamily: "'Rajdhani', sans-serif" }}>#{p.rank}</span>
+            <span style={{ flex: 1, fontSize: 13, fontWeight: p.isYou ? 700 : 400, color: p.isYou ? C.text1 : C.text2 }}>
+              {p.name}{p.isYou ? <span style={{ fontSize: 10, color: C.green, marginLeft: 4, fontWeight: 600 }}>you</span> : ""}
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: C.text3, fontFamily: "'Rajdhani', sans-serif" }}>{p.pts.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ marginBottom: 40 }}>
+      {/* Viewport */}
+      <div style={{ height: 260, overflow: "hidden", position: "relative" }}>
+        {/* 3-slot track: hero | leaderboard | hero_clone */}
+        <div style={{
+          display: "flex", height: "100%", width: "300%",
+          transform: `translateX(-${idx * (100/3)}%)`,
+          transition: animated ? "transform 0.55s cubic-bezier(0.4,0,0.2,1)" : "none",
+        }}>
+          <div style={{ width: "33.333%", height: "100%", flexShrink: 0 }}>{SlideHero}</div>
+          <div style={{ width: "33.333%", height: "100%", flexShrink: 0 }}>{SlideLeaderboard}</div>
+          <div style={{ width: "33.333%", height: "100%", flexShrink: 0 }}>{SlideHero}</div>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 16 }}>
+        {[0, 1].map(i => (
+          <button key={i} className="btn" onClick={next} style={{
+            width: i === activeDot ? 20 : 6, height: 6, borderRadius: 3, padding: 0,
+            background: i === activeDot ? C.green : "rgba(255,255,255,0.2)",
+            transition: "all 0.3s ease",
+          }} />
+        ))}
+        <button className="btn" onClick={next} style={{
+          marginLeft: 8, width: 28, height: 28, borderRadius: "50%", padding: 0,
+          background: "rgba(255,255,255,0.08)", border: `1px solid ${C.border}`,
+          color: C.text2, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center",
+        }}>›</button>
+      </div>
+    </div>
   );
 }
 
@@ -632,6 +850,7 @@ function App() {
   const [shopFilter, setShopFilter] = useState("all");
   const [brandFilter, setBrandFilter] = useState("All brands");
   const [unlockedOnly, setUnlockedOnly] = useState(false);
+  const [activeGame, setActiveGame] = useState(null);
 
   const toggleSave = id => setSavedGames(prev => {
     const next = new Set(prev);
@@ -773,7 +992,7 @@ function App() {
           const newGames = GAMES.filter(g => g.isNew && !g.done);
           const saved   = GAMES.filter(g => savedGames.has(g.id));
 
-          const carouselProps = { savedGames, onToggleSave: toggleSave };
+          const carouselProps = { savedGames, onToggleSave: toggleSave, onPlay: setActiveGame };
 
           /* ── Search results ── */
           if (searchQuery.trim()) {
@@ -797,46 +1016,26 @@ function App() {
 
           /* ── All games page ── */
           if (gameView === "all") {
-            return <AllGamesPage games={GAMES} onBack={() => setGameView("home")} savedGames={savedGames} onToggleSave={toggleSave} />;
+            return <AllGamesPage games={GAMES} onBack={() => setGameView("home")} savedGames={savedGames} onToggleSave={toggleSave} onPlay={setActiveGame} />;
           }
 
           /* ── Home view ── */
           return (
-            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column", paddingTop: 40, paddingLeft: 48, paddingRight: 48 }}>
+            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column", paddingTop: 56, paddingLeft: 48, paddingRight: 48 }}>
 
-              {/* Hero + Leaderboard */}
-              <div style={{ display: "flex", gap: 24, marginBottom: 48, alignItems: "flex-start" }}>
-                {/* Hero text */}
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 38, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif", letterSpacing: "2px", color: C.text1, lineHeight: 1.1, marginBottom: 14 }}>
-                    PLAY. UNLOCK.<br />SHOP SUSTAINABLY.
-                  </p>
-                  <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.8, maxWidth: 480, fontWeight: 400 }}>
-                    Your voice shapes the future of brands! Play mini-games to help us understand your style preferences and win early access to select items.
-                  </p>
-                </div>
+              {/* Hero Carousel */}
+              <HeroCarousel savedGames={savedGames} />
 
-                {/* Leaderboard */}
-                <div style={{ width: 300, background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: "18px 22px", flexShrink: 0 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: C.text3, letterSpacing: "2.5px", fontFamily: "'Rajdhani', sans-serif", marginBottom: 12 }}>
-                    LEADERBOARD
-                  </p>
-                  {LEADERBOARD.map((p, i) => (
-                    <div key={p.rank} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < LEADERBOARD.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                      <span style={{ width: 20, fontSize: 12, fontWeight: 700, color: p.rank <= 3 ? C.green : C.text3, textAlign: "right", fontFamily: "'Rajdhani', sans-serif" }}>
-                        #{p.rank}
-                      </span>
-                      <span style={{ flex: 1, fontSize: 14, fontWeight: p.isYou ? 700 : 400, color: p.isYou ? C.text1 : C.text2 }}>
-                        {p.name}{p.isYou ? <span style={{ fontSize: 11, color: C.green, marginLeft: 4, fontWeight: 600 }}>you</span> : ""}
-                      </span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: C.text3, fontFamily: "'Rajdhani', sans-serif" }}>{p.pts.toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {/* Saved games */}
+              {saved.length > 0 && (
+                <>
+                  <SectionHeader label="Saved" onViewAll={() => setGameView("all")} />
+                  <Carousel games={saved} {...carouselProps} />
+                </>
+              )}
 
               {/* For you */}
-              <SectionHeader label="For you" onViewAll={() => setGameView("all")} />
+              <SectionHeader label="For you" onViewAll={() => setGameView("all")} style={{ marginTop: saved.length > 0 ? 32 : 0 }} />
               <Carousel games={forYou} {...carouselProps} />
 
               {/* New */}
@@ -847,18 +1046,10 @@ function App() {
               <SectionHeader label="January games" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
               <Carousel games={active} {...carouselProps} />
 
-              {/* Saved games */}
-              {saved.length > 0 && (
-                <>
-                  <SectionHeader label="Saved games" onViewAll={() => setGameView("all")} style={{ marginTop: 28 }} />
-                  <Carousel games={saved} {...carouselProps} />
-                </>
-              )}
-
               {/* Finished games */}
               {done.length > 0 && (
                 <>
-                  <SectionHeader label="Finished games" onViewAll={() => setGameView("all")} style={{ marginTop: 28 }} />
+                  <SectionHeader label="Finished games" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
                   <Carousel games={done} {...carouselProps} />
                 </>
               )}
@@ -867,91 +1058,17 @@ function App() {
             </div>
           );
         })()
-        : (() => {
-          const CATS = [
-            { key: "all",       label: "All" },
-            { key: "tops",      label: "Tops" },
-            { key: "bottoms",   label: "Bottoms" },
-            { key: "outerwear", label: "Outerwear" },
-            { key: "footwear",  label: "Footwear" },
-          ];
-          const BRANDS = ["All brands", ...Array.from(new Set(PREORDERS.map(p => p.brand))).sort()];
-
-          let visible = PREORDERS;
-          if (shopFilter !== "all") visible = visible.filter(p => p.cat === shopFilter);
-          if (brandFilter !== "All brands") visible = visible.filter(p => p.brand === brandFilter);
-          if (unlockedOnly) visible = visible.filter(p => p.unlocked);
-          // unlocked first
-          visible = [...visible.filter(p => p.unlocked), ...visible.filter(p => !p.unlocked)];
-
-          return (
-            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
-              {/* Filter bar */}
-              <div style={{
-                display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-                paddingLeft: 48, paddingRight: 48, paddingTop: 18, paddingBottom: 16,
-                borderBottom: `1px solid ${C.border}`, flexShrink: 0,
-              }}>
-                {/* Category pills */}
-                <div style={{ display: "flex", gap: 6 }}>
-                  {CATS.map(c => (
-                    <button key={c.key} className="btn" onClick={() => setShopFilter(c.key)} style={{
-                      padding: "5px 14px", borderRadius: 20,
-                      fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
-                      background: shopFilter === c.key ? C.green : "rgba(255,255,255,0.06)",
-                      color: shopFilter === c.key ? "white" : C.text2,
-                      border: shopFilter === c.key ? "none" : `1px solid ${C.border}`,
-                      boxShadow: shopFilter === c.key ? "0 2px 10px rgba(162,89,247,0.3)" : "none",
-                    }}>{c.label}</button>
-                  ))}
-                </div>
-
-                {/* Divider */}
-                <div style={{ width: 1, height: 20, background: C.border, margin: "0 4px" }} />
-
-                {/* Brand select */}
-                <select value={brandFilter} onChange={e => setBrandFilter(e.target.value)} style={{
-                  background: "rgba(255,255,255,0.06)", border: `1px solid ${C.border}`,
-                  borderRadius: 20, padding: "5px 14px", color: C.text2,
-                  fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
-                  cursor: "pointer", outline: "none",
-                }}>
-                  {BRANDS.map(b => <option key={b} value={b} style={{ background: "#1f1f1f" }}>{b}</option>)}
-                </select>
-
-                {/* Unlocked toggle */}
-                <button className="btn" onClick={() => setUnlockedOnly(v => !v)} style={{
-                  padding: "5px 14px", borderRadius: 20,
-                  fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
-                  background: unlockedOnly ? "rgba(162,89,247,0.2)" : "rgba(255,255,255,0.06)",
-                  color: unlockedOnly ? C.green : C.text2,
-                  border: unlockedOnly ? `1px solid ${C.green}` : `1px solid ${C.border}`,
-                }}>Unlocked only</button>
-
-                <span style={{ marginLeft: "auto", fontSize: 12, color: C.text3 }}>
-                  {visible.length} item{visible.length !== 1 ? "s" : ""}
-                </span>
-              </div>
-
-              {/* Grid */}
-              <div style={{
-                flex: 1, overflowY: "auto",
-                display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
-                gap: 18, padding: "24px 48px 32px",
-                alignContent: "start",
-              }}>
-                {visible.map(item => (
-                  <PreorderCard key={item.id} item={item}
-                                inCart={!!cartItems.find(c => c.id === item.id)}
-                                onAdd={addToCart}
-                                onRemove={removeFromCart} />
-                ))}
-              </div>
-            </div>
-          );
-        })()}
+        : <PreorderTab
+            shopFilter={shopFilter} setShopFilter={setShopFilter}
+            brandFilter={brandFilter} setBrandFilter={setBrandFilter}
+            unlockedOnly={unlockedOnly} setUnlockedOnly={setUnlockedOnly}
+            cartItems={cartItems} onAdd={addToCart} onRemove={removeFromCart}
+          />}
 
       </main>
+
+      {/* Game overlay */}
+      {activeGame && <GamePage game={activeGame} onClose={() => setActiveGame(null)} />}
     </div>
   );
 }
