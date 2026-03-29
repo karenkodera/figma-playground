@@ -662,6 +662,315 @@ function CartSidebar({ open, items, onClose, onRemove, onUpdateQty }) {
   );
 }
 
+/* ── Game Page ───────────────────────────────────────────────────── */
+function GamePage({ game, onClose }) {
+  const canvasRef   = useRef(null);
+  const gRef        = useRef({ basket: 500, cards: [], running: false, spawnTimer: 0, rafId: null });
+  const [phase, setPhase]           = useState("intro");
+  const [timeLeft, setTimeLeft]     = useState(20);
+  const [caughtList, setCaughtList] = useState([]);
+  const [unlocked, setUnlocked]     = useState(null);
+  const [sparkles]                  = useState(() => Array.from({ length: 14 }, (_, i) => ({
+    angle: (i / 14) * 360,
+    dist: 90 + Math.random() * 60,
+    delay: Math.random() * 0.4,
+  })));
+
+  const CARD_TYPES = [
+    { cat: "tops",      color: "#4a9eff", border: "#2d7de0", label: "TOP",     icon: "👕" },
+    { cat: "bottoms",   color: "#a259f7", border: "#7c3aed", label: "BOTTOMS", icon: "👖" },
+    { cat: "footwear",  color: "#ff9f4a", border: "#e07a28", label: "SHOES",   icon: "👟" },
+    { cat: "outerwear", color: "#4adf86", border: "#2db862", label: "JACKET",  icon: "🧥" },
+  ];
+
+  function rr(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+  }
+
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const canvas = canvasRef.current;
+    const ctx    = canvas.getContext("2d");
+    const g      = gRef.current;
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    g.basket  = canvas.width / 2;
+    g.cards   = [];
+    g.running = true;
+    g.spawnTimer = 0;
+
+    const onMove = e => {
+      const r = canvas.getBoundingClientRect();
+      g.basket = e.clientX - r.left;
+    };
+    canvas.addEventListener("mousemove", onMove);
+
+    let last = performance.now();
+    const BASKW = 150, BASKH = 46, CW = 88, CH = 62;
+
+    const timerRef = { id: null };
+    timerRef.id = setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(timerRef.id);
+          g.running = false;
+          cancelAnimationFrame(g.rafId);
+          const locked = PREORDERS.filter(p => p.brand === game.name && !p.unlocked);
+          const mystery = locked.length > 0
+            ? locked[Math.floor(Math.random() * locked.length)]
+            : PREORDERS.find(p => p.brand === game.name) || PREORDERS[0];
+          setUnlocked(mystery);
+          setPhase("done");
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+
+    const loop = now => {
+      if (!g.running) return;
+      const dt = Math.min((now - last) / 16.67, 3);
+      last = now;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Spawn
+      g.spawnTimer -= dt;
+      if (g.spawnTimer <= 0) {
+        const t = CARD_TYPES[Math.floor(Math.random() * CARD_TYPES.length)];
+        g.cards.push({ x: CW/2 + 20 + Math.random()*(canvas.width-CW-40), y: -CH,
+          speed: 1.8 + Math.random()*1.8, ...t, id: Math.random() });
+        g.spawnTimer = 35 + Math.random()*35;
+      }
+
+      const bx = Math.max(BASKW/2, Math.min(canvas.width-BASKW/2, g.basket));
+      const by = canvas.height - 28;
+
+      // Cards
+      const next = [];
+      for (const c of g.cards) {
+        c.y += c.speed * dt;
+        const hitX = Math.abs(c.x - bx) < (BASKW+CW)/2 - 10;
+        const hitY = c.y + CH/2 >= by - BASKH && c.y - CH/2 < by;
+        if (hitX && hitY) {
+          setCaughtList(prev => [...prev, c.cat]);
+          continue;
+        }
+        if (c.y - CH/2 > canvas.height) continue;
+        next.push(c);
+
+        // Draw card
+        ctx.save();
+        ctx.shadowColor = c.color; ctx.shadowBlur = 14;
+        ctx.fillStyle = c.color + "30";
+        rr(ctx, c.x-CW/2, c.y-CH/2, CW, CH, 12); ctx.fill();
+        ctx.strokeStyle = c.border; ctx.lineWidth = 1.8; ctx.stroke();
+        ctx.restore();
+        ctx.font = "26px sans-serif"; ctx.textAlign = "center";
+        ctx.fillText(c.icon, c.x, c.y + 2);
+        ctx.font = "bold 10px Inter,sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.85)";
+        ctx.fillText(c.label, c.x, c.y + CH/2 - 6);
+      }
+      g.cards = next;
+
+      // Basket
+      ctx.save();
+      ctx.shadowColor = "rgba(162,89,247,0.7)"; ctx.shadowBlur = 22;
+      const grad = ctx.createLinearGradient(bx-BASKW/2, by-BASKH, bx+BASKW/2, by);
+      grad.addColorStop(0, "rgba(162,89,247,0.35)"); grad.addColorStop(1, "rgba(124,58,237,0.25)");
+      ctx.fillStyle = grad;
+      rr(ctx, bx-BASKW/2, by-BASKH, BASKW, BASKH, 10); ctx.fill();
+      ctx.strokeStyle = "#a259f7"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.restore();
+      ctx.font = "22px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("🧺", bx, by - BASKH/2 + 8);
+
+      g.rafId = requestAnimationFrame(loop);
+    };
+    g.rafId = requestAnimationFrame(loop);
+
+    return () => {
+      g.running = false;
+      cancelAnimationFrame(g.rafId);
+      clearInterval(timerRef.id);
+      canvas.removeEventListener("mousemove", onMove);
+    };
+  }, [phase]);
+
+  const urgency = timeLeft <= 5;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "#0a0a0f",
+                  display: "flex", flexDirection: "column" }}>
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "16px 32px", borderBottom: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.03)", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <img src={game.img} alt={game.name}
+               style={{ width: 40, height: 40, borderRadius: 8, objectFit: "cover", opacity: 0.8 }} />
+          <div>
+            <p style={{ fontSize: 11, color: C.text3, fontWeight: 600, letterSpacing: "1.5px",
+                        fontFamily: "'Rajdhani',sans-serif" }}>STYLE QUIZ</p>
+            <p style={{ fontSize: 18, fontWeight: 800, color: C.text1,
+                        fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>{game.name.toUpperCase()}</p>
+          </div>
+        </div>
+        {phase === "playing" && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8,
+                        animation: urgency ? "countdownPulse 0.5s ease infinite" : "none" }}>
+            <div style={{ fontSize: 32, fontWeight: 800, fontFamily: "'Rajdhani',sans-serif",
+                          color: urgency ? "#ff5a5a" : C.green, letterSpacing: "2px",
+                          textShadow: urgency ? "0 0 20px rgba(255,90,90,0.6)" : "0 0 20px rgba(162,89,247,0.4)" }}>
+              {String(timeLeft).padStart(2,"0")}s
+            </div>
+          </div>
+        )}
+        <button className="btn" onClick={onClose} style={{
+          background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: 10, width: 36, height: 36, color: C.text2,
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>×</button>
+      </div>
+
+      {/* Canvas */}
+      <canvas ref={canvasRef} style={{ flex: 1, width: "100%", cursor: "none",
+        background: "radial-gradient(ellipse at 50% 30%, rgba(80,30,140,0.18) 0%, transparent 70%)" }} />
+
+      {/* Caught counter */}
+      {phase === "playing" && (
+        <div style={{ position: "absolute", bottom: 80, right: 32,
+                      background: "rgba(0,0,0,0.6)", backdropFilter: "blur(10px)",
+                      borderRadius: 12, padding: "10px 18px", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <p style={{ fontSize: 11, color: C.text3, letterSpacing: "1px", fontFamily: "'Rajdhani',sans-serif" }}>CAUGHT</p>
+          <p style={{ fontSize: 28, fontWeight: 800, color: C.green, fontFamily: "'Rajdhani',sans-serif" }}>{caughtList.length}</p>
+        </div>
+      )}
+
+      {/* ── INTRO MODAL ── */}
+      {phase === "intro" && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center",
+                      justifyContent: "center", background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}>
+          <div style={{ background: "#18181f", border: "1px solid rgba(162,89,247,0.35)",
+                        borderRadius: 24, padding: "40px 48px", maxWidth: 480, width: "90%",
+                        boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 60px rgba(162,89,247,0.15)" }}>
+            <div style={{ fontSize: 48, textAlign: "center", marginBottom: 16 }}>🧺</div>
+            <p style={{ fontSize: 26, fontWeight: 800, color: C.text1, textAlign: "center",
+                        fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1.5px", marginBottom: 8 }}>
+              CATCH YOUR STYLE
+            </p>
+            <p style={{ fontSize: 14, color: C.text2, textAlign: "center", lineHeight: 1.7, marginBottom: 28 }}>
+              Move your mouse to control the basket.<br/>
+              Catch clothing cards that match your style — what you catch tells us what you love.<br/>
+              <span style={{ color: C.green, fontWeight: 600 }}>You have 20 seconds.</span> Complete the quiz to unlock an exclusive pre-order item!
+            </p>
+            <div style={{ display: "flex", gap: 12, marginBottom: 24, justifyContent: "center" }}>
+              {CARD_TYPES.map(t => (
+                <div key={t.cat} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: t.color+"25",
+                                border: `1.5px solid ${t.border}`, display: "flex", alignItems: "center",
+                                justifyContent: "center", fontSize: 22 }}>{t.icon}</div>
+                  <span style={{ fontSize: 10, color: C.text3, fontWeight: 600,
+                                 fontFamily: "'Rajdhani',sans-serif" }}>{t.label}</span>
+                </div>
+              ))}
+            </div>
+            <button className="btn" onClick={() => { setPhase("playing"); setTimeLeft(20); }} style={{
+              width: "100%", height: 52,
+              background: "linear-gradient(135deg, #a259f7 0%, #7c3aed 100%)",
+              color: "white", borderRadius: 14, fontSize: 16, fontWeight: 800,
+              letterSpacing: "2px", fontFamily: "'Rajdhani',sans-serif",
+              boxShadow: "0 4px 24px rgba(162,89,247,0.45)" }}>
+              LET'S GO →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── RESULT MODAL ── */}
+      {phase === "done" && unlocked && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center",
+                      justifyContent: "center", background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}>
+          <div style={{ position: "relative", textAlign: "center", maxWidth: 400, width: "90%" }}>
+            {/* Sparkles */}
+            {sparkles.map((s, i) => {
+              const tx = Math.cos(s.angle * Math.PI/180) * s.dist;
+              const ty = Math.sin(s.angle * Math.PI/180) * s.dist;
+              return (
+                <div key={i} style={{
+                  position: "absolute", left: "50%", top: "35%",
+                  width: 8, height: 8, borderRadius: "50%",
+                  background: i%3===0 ? "#a259f7" : i%3===1 ? "#fff" : "#ffd700",
+                  "--tx": tx+"px", "--ty": ty+"px",
+                  animation: `sparkleOut 0.8s ${s.delay}s ease-out both`,
+                  pointerEvents: "none",
+                }} />
+              );
+            })}
+
+            <p style={{ fontSize: 13, fontWeight: 700, color: C.green, letterSpacing: "3px",
+                        fontFamily: "'Rajdhani',sans-serif", marginBottom: 8 }}>YOU FINISHED THE QUIZ!</p>
+            <p style={{ fontSize: 32, fontWeight: 800, color: C.text1, fontFamily: "'Rajdhani',sans-serif",
+                        letterSpacing: "1px", marginBottom: 6 }}>MYSTERY UNLOCKED</p>
+            <p style={{ fontSize: 14, color: C.text2, marginBottom: 28 }}>Your style preferences have been recorded.</p>
+
+            {/* Unlocked card */}
+            <div className="unlock-card float-bob" style={{
+              background: "linear-gradient(135deg, #1a1030 0%, #130d28 100%)",
+              border: "1.5px solid rgba(162,89,247,0.6)",
+              borderRadius: 20, overflow: "hidden", display: "inline-block",
+              boxShadow: "0 0 60px rgba(162,89,247,0.4), 0 20px 60px rgba(0,0,0,0.6)",
+              width: 220,
+            }}>
+              <div style={{ position: "relative", height: 200, overflow: "hidden" }}>
+                <img src={unlocked.img} alt={unlocked.name}
+                     style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.9 }} />
+                <div style={{ position: "absolute", inset: 0,
+                              background: "linear-gradient(to top, rgba(20,8,48,0.8) 0%, transparent 50%)" }} />
+                <div style={{ position: "absolute", top: 10, left: 10,
+                              background: "linear-gradient(135deg,#a259f7,#7c3aed)", borderRadius: 6,
+                              padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "white",
+                              fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>
+                  ✦ UNLOCKED
+                </div>
+              </div>
+              <div style={{ padding: "14px 16px 18px" }}>
+                <p style={{ fontSize: 11, color: "rgba(162,89,247,0.8)", fontWeight: 700,
+                            letterSpacing: "1.5px", fontFamily: "'Rajdhani',sans-serif" }}>{unlocked.brand.toUpperCase()}</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: C.text1, marginTop: 3, lineHeight: 1.3 }}>{unlocked.name}</p>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 8 }}>
+                  <span style={{ fontSize: 11, color: C.text3, textDecoration: "line-through" }}>${unlocked.origPrice}</span>
+                  <span style={{ fontSize: 18, fontWeight: 800, color: C.green }}>${unlocked.price}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "center" }}>
+              <button className="btn" onClick={onClose} style={{
+                padding: "12px 28px", borderRadius: 12, background: "rgba(255,255,255,0.07)",
+                border: "1px solid rgba(255,255,255,0.15)", color: C.text2,
+                fontSize: 14, fontWeight: 700, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>
+                BACK
+              </button>
+              <button className="btn" onClick={onClose} style={{
+                padding: "12px 28px", borderRadius: 12,
+                background: "linear-gradient(135deg,#a259f7,#7c3aed)", color: "white",
+                fontSize: 14, fontWeight: 700, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px",
+                boxShadow: "0 4px 20px rgba(162,89,247,0.4)" }}>
+                PRE-ORDER NOW
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Preorder Tab ────────────────────────────────────────────────── */
 function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, unlockedOnly, setUnlockedOnly, cartItems, onAdd, onRemove }) {
   const CATS   = [
