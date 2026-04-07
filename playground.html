@@ -15,7 +15,7 @@
     body { font-family: 'Inter', Helvetica, sans-serif; background: #0e0e0e; }
 
     .card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-    .card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.5) !important; }
+    .card:hover { transform: translateY(-3px); }
 
     .btn { cursor: pointer; border: none; transition: filter 0.15s ease, transform 0.12s ease; }
     .btn:hover { filter: brightness(1.12); }
@@ -39,10 +39,10 @@
     }
     .bg-blob { position: fixed; pointer-events: none; border-radius: 50%; filter: blur(90px); }
     .bg-blob-1 { width: 65vw; height: 65vw; top: -25%; left: -15%; z-index: 0;
-      background: radial-gradient(circle, rgba(110,30,210,0.13) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(181,255,129,0.07) 0%, transparent 70%);
       animation: blob1 22s ease-in-out infinite; }
     .bg-blob-2 { width: 55vw; height: 55vw; bottom: -15%; right: -12%; z-index: 0;
-      background: radial-gradient(circle, rgba(70,0,170,0.09) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(181,255,129,0.05) 0%, transparent 70%);
       animation: blob2 28s ease-in-out infinite; }
 
     .search-bar { transition: width 0.25s cubic-bezier(0.4,0,0.2,1); width: 160px; }
@@ -71,6 +71,21 @@
     }
     .unlock-card { animation: unlockPop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards; }
     .float-bob   { animation: floatBob 2.5s ease-in-out infinite; }
+    @keyframes congratsReveal {
+      0%   { opacity: 0; transform: translateY(30px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes countdownRing {
+      0%   { transform: scale(1); opacity: 1; }
+      50%  { transform: scale(1.12); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .congrats-reveal { animation: congratsReveal 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.08; transform: scale(1); }
+      50%       { opacity: 0.65; transform: scale(1.5); }
+    }
   </style>
 </head>
 <body>
@@ -158,6 +173,10 @@ const PREORDERS = [
   { id: 34, brand: "Outdoor Voices", name: "CloudKnit Sweatshirt",     cat: "tops",      color: "Grape",           size: "S",  price: 98,  origPrice: 120, unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/cloudknit-grape/400/520"   },
   { id: 35, brand: "Outdoor Voices", name: "TechSweat 7/8 Legging",    cat: "bottoms",   color: "Dusty Rose",      size: "XS", price: 85,  origPrice: 105, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/techsweat-rose/400/520"    },
   { id: 36, brand: "Outdoor Voices", name: "Doing Things Shorts",      cat: "bottoms",   color: "Buoy Orange",     size: "XS", price: 65,  origPrice: 80,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/doing-shorts-orange/400/520"},
+  // Aritzia
+  { id: 37, brand: "Aritzia",     name: "Wilfred Ease Pant",           cat: "bottoms",   color: "Black",           size: "0",  price: 95,  origPrice: 118, unlocked: true,  tag: "Unlocked via Style Quiz",      img: "https://picsum.photos/seed/ease-pant-black/400/520"   },
+  { id: 38, brand: "Aritzia",     name: "Contour Bodysuit",            cat: "tops",      color: "Ivory",           size: "XS", price: 68,  origPrice: 85,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/bodysuit-ivory/400/520"    },
+  { id: 39, brand: "Aritzia",     name: "Super Puff™ Long Vest",       cat: "outerwear", color: "Washed Navy",     size: "XS", price: 178, origPrice: 220, unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/super-puff-navy/400/520"   },
 ];
 
 const LEADERBOARD = [
@@ -178,10 +197,10 @@ const C = {
   border:    "rgba(255,255,255,0.07)",
   text1:     "#f0f0f0",
   text2:     "#aaa",
-  text3:     "#888",
-  green:     "#a259f7",
-  greenDim:  "rgba(162,89,247,0.18)",
-  red:       "#7c3aed",
+  text3:     "#666",
+  green:     "#B5FF81",
+  greenDim:  "rgba(181,255,129,0.18)",
+  red:       "#41582A",
 };
 
 /* ── Icons ───────────────────────────────────────────────────────── */
@@ -302,17 +321,28 @@ function GameCard({ game, isSaved = false, onToggleSave = () => {}, onPlay = () 
   const daysOut      = (expDate - jan1) / (1000 * 60 * 60 * 24);
   const expiringSoon = daysOut >= 0 && daysOut <= 7;
   const fmtExpires   = expDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const [hovered, setHovered] = useState(false);
 
   return (
-    <div className="card" style={{
-      background: C.card, borderRadius: 16, border: `1px solid ${C.border}`,
-      overflow: "hidden", display: "flex", flexDirection: "column",
-      boxShadow: "0 4px 18px rgba(0,0,0,0.3)", opacity: game.done ? 0.45 : 1,
-    }}>
+    <div
+      className="card"
+      onClick={() => !game.done && onPlay(game)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: C.card, borderRadius: 16,
+        border: hovered && !game.done ? `2px solid ${C.green}` : `1px solid ${C.border}`,
+        overflow: "hidden", display: "flex", flexDirection: "column",
+        boxShadow: hovered && !game.done ? `0 0 18px rgba(181,255,129,0.25)` : "0 4px 18px rgba(0,0,0,0.3)",
+        opacity: game.done ? 0.45 : 1,
+        cursor: game.done ? "default" : "pointer",
+        transition: "border 0.18s ease, box-shadow 0.18s ease",
+      }}>
       {/* Image */}
       <div style={{ height: 150, overflow: "hidden", position: "relative" }}>
         <img src={game.img} alt={game.name}
-             style={{ width: "100%", height: "100%", objectFit: "cover", opacity: game.done ? 0.15 : 0.78 }} />
+             style={{ width: "100%", height: "100%", objectFit: "cover", opacity: game.done ? 0.15 : 0.78,
+                      transition: "opacity 0.18s ease" }} />
 
         {/* Save button — top right */}
         <button className="btn" onClick={e => { e.stopPropagation(); onToggleSave(game.id); }}
@@ -327,6 +357,27 @@ function GameCard({ game, isSaved = false, onToggleSave = () => {}, onPlay = () 
           <IconBookmark filled={isSaved} />
         </button>
 
+        {/* Hover play button — center */}
+        {hovered && !game.done && (
+          <div style={{
+            position: "absolute", inset: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(0,0,0,0.35)",
+            animation: "unlockPop 0.18s ease forwards",
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: "50%",
+              background: C.green,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: `0 0 20px rgba(181,255,129,0.5)`,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M5 3.5L14.5 9 5 14.5V3.5Z" fill="#1a2612"/>
+              </svg>
+            </div>
+          </div>
+        )}
+
         {/* Done checkmark */}
         {game.done && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -340,18 +391,9 @@ function GameCard({ game, isSaved = false, onToggleSave = () => {}, onPlay = () 
 
       {/* Info */}
       <div style={{ padding: "14px 16px 16px", display: "flex", flexDirection: "column", gap: 6 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-          <p style={{ fontSize: 15, fontWeight: 700, color: C.text1, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {game.name}
-          </p>
-          {!game.done && (
-            <button className="btn" onClick={() => onPlay(game)} style={{
-              background: C.red, color: "white", borderRadius: 7,
-              padding: "5px 12px", fontSize: 12, fontWeight: 700, flexShrink: 0,
-              fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.5px",
-            }}>Play</button>
-          )}
-        </div>
+        <p style={{ fontSize: 15, fontWeight: 700, color: C.text1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {game.name}
+        </p>
         <p style={{ fontSize: 12, fontWeight: 500, color: expiringSoon ? "#d4975a" : "#7a8fa6" }}>
           Expires {fmtExpires}
         </p>
@@ -466,7 +508,7 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
       boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
     }}>
       {/* Image */}
-      <div style={{ position: "relative", height: 260, overflow: "hidden", flexShrink: 0 }}>
+      <div style={{ position: "relative", aspectRatio: "1 / 1", overflow: "hidden", flexShrink: 0 }}>
         <img src={item.img} alt={item.name}
              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: item.unlocked ? 0.88 : 0.18,
                       filter: item.unlocked ? "none" : "grayscale(60%)", transition: "opacity 0.2s" }} />
@@ -478,9 +520,9 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
         {item.unlocked && (
           <div style={{
             position: "absolute", top: 10, left: 10,
-            background: "rgba(162,89,247,0.85)", backdropFilter: "blur(6px)",
+            background: "#B5FF81", backdropFilter: "blur(6px)",
             borderRadius: 6, padding: "3px 8px",
-            fontSize: 10, fontWeight: 700, color: "white", letterSpacing: "0.8px",
+            fontSize: 10, fontWeight: 700, color: "#1a2612", letterSpacing: "0.8px",
             fontFamily: "'Rajdhani', sans-serif",
           }}>UNLOCKED</div>
         )}
@@ -514,7 +556,13 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
 
       {/* Info */}
       <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
-        <p style={{ fontSize: 14, fontWeight: 700, color: C.text1, lineHeight: 1.3 }}>{item.name}</p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: C.text1, lineHeight: 1.3, flex: 1 }}>{item.name}</p>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", flexShrink: 0 }}>
+            <span style={{ fontSize: 15, fontWeight: 800, color: item.unlocked ? C.text1 : C.text3 }}>${item.price}</span>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", textDecoration: "line-through" }}>${item.origPrice}</span>
+          </div>
+        </div>
         <p style={{ fontSize: 12, color: C.text3 }}>{item.color} · Size {item.size}</p>
 
         <div style={{ marginTop: 4 }}>
@@ -530,11 +578,11 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
             ) : (
               <button className="btn" onClick={() => onAdd(item)} style={{
                 width: "100%",
-                background: "linear-gradient(135deg, #a259f7 0%, #7c3aed 100%)",
-                color: "white", borderRadius: 9, padding: "8px 0",
+                background: "#B5FF81",
+                color: "#1a2612", borderRadius: 9, padding: "8px 0",
                 fontSize: 12, fontWeight: 700, letterSpacing: "0.8px",
                 fontFamily: "'Rajdhani', sans-serif",
-                boxShadow: "0 2px 12px rgba(162,89,247,0.35)",
+                boxShadow: "0 2px 12px rgba(181,255,129,0.3)",
               }}>ADD TO CART</button>
             )
           ) : (
@@ -631,8 +679,8 @@ function CartSidebar({ open, items, onClose, onRemove, onUpdateQty }) {
           <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.border}` }}>
             {/* Savings banner */}
             <div style={{
-              background: "linear-gradient(135deg, rgba(162,89,247,0.15) 0%, rgba(124,58,237,0.1) 100%)",
-              border: `1px solid rgba(162,89,247,0.3)`,
+              background: "linear-gradient(135deg, rgba(181,255,129,0.1) 0%, rgba(181,255,129,0.05) 100%)",
+              border: `1px solid rgba(181,255,129,0.2)`,
               borderRadius: 12, padding: "12px 14px", marginBottom: 14,
               display: "flex", flexDirection: "column", gap: 3,
             }}>
@@ -652,7 +700,7 @@ function CartSidebar({ open, items, onClose, onRemove, onUpdateQty }) {
               <span style={{ fontSize: 18, fontWeight: 800, color: C.text1 }}>${total.toFixed(0)}</span>
             </div>
             <p style={{ fontSize: 12, color: C.text3, marginBottom: 12 }}>Shipping & taxes calculated at checkout</p>
-            <button className="btn" style={{ width: "100%", background: "linear-gradient(135deg, #a259f7 0%, #7c3aed 100%)", color: "white", borderRadius: 12, height: 50, fontSize: 15, fontWeight: 800, letterSpacing: "2px", boxShadow: "0 4px 18px rgba(162,89,247,0.35)" }}>
+            <button className="btn" style={{ width: "100%", background: "#B5FF81", color: "#1a2612", borderRadius: 12, height: 50, fontSize: 15, fontWeight: 800, letterSpacing: "2px", boxShadow: "0 4px 18px rgba(181,255,129,0.3)" }}>
               CHECKOUT
             </button>
           </div>
@@ -678,7 +726,7 @@ function GamePage({ game, onClose }) {
 
   const CARD_TYPES = [
     { cat: "tops",      color: "#4a9eff", border: "#2d7de0", label: "TOP",     icon: "👕" },
-    { cat: "bottoms",   color: "#a259f7", border: "#7c3aed", label: "BOTTOMS", icon: "👖" },
+    { cat: "bottoms",   color: "#41582A", border: "#2d3f1e", label: "BOTTOMS", icon: "👖" },
     { cat: "footwear",  color: "#ff9f4a", border: "#e07a28", label: "SHOES",   icon: "👟" },
     { cat: "outerwear", color: "#4adf86", border: "#2db862", label: "JACKET",  icon: "🧥" },
   ];
@@ -779,12 +827,12 @@ function GamePage({ game, onClose }) {
 
       // Basket
       ctx.save();
-      ctx.shadowColor = "rgba(162,89,247,0.7)"; ctx.shadowBlur = 22;
+      ctx.shadowColor = "rgba(181,255,129,0.7)"; ctx.shadowBlur = 22;
       const grad = ctx.createLinearGradient(bx-BASKW/2, by-BASKH, bx+BASKW/2, by);
-      grad.addColorStop(0, "rgba(162,89,247,0.35)"); grad.addColorStop(1, "rgba(124,58,237,0.25)");
+      grad.addColorStop(0, "rgba(181,255,129,0.35)"); grad.addColorStop(1, "rgba(65,88,42,0.25)");
       ctx.fillStyle = grad;
       rr(ctx, bx-BASKW/2, by-BASKH, BASKW, BASKH, 10); ctx.fill();
-      ctx.strokeStyle = "#a259f7"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.strokeStyle = "#41582A"; ctx.lineWidth = 2; ctx.stroke();
       ctx.restore();
       ctx.font = "22px sans-serif"; ctx.textAlign = "center";
       ctx.fillText("🧺", bx, by - BASKH/2 + 8);
@@ -809,7 +857,7 @@ function GamePage({ game, onClose }) {
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "16px 32px", borderBottom: "1px solid rgba(255,255,255,0.08)",
+                    padding: "16px 32px", borderBottom: `1px solid ${C.border}`,
                     background: "rgba(255,255,255,0.03)", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <img src={game.img} alt={game.name}
@@ -826,26 +874,26 @@ function GamePage({ game, onClose }) {
                         animation: urgency ? "countdownPulse 0.5s ease infinite" : "none" }}>
             <div style={{ fontSize: 32, fontWeight: 800, fontFamily: "'Rajdhani',sans-serif",
                           color: urgency ? "#ff5a5a" : C.green, letterSpacing: "2px",
-                          textShadow: urgency ? "0 0 20px rgba(255,90,90,0.6)" : "0 0 20px rgba(162,89,247,0.4)" }}>
+                          textShadow: urgency ? "0 0 20px rgba(255,90,90,0.6)" : "0 0 20px rgba(181,255,129,0.5)" }}>
               {String(timeLeft).padStart(2,"0")}s
             </div>
           </div>
         )}
         <button className="btn" onClick={onClose} style={{
-          background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)",
+          background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border}`,
           borderRadius: 10, width: 36, height: 36, color: C.text2,
           display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>×</button>
       </div>
 
       {/* Canvas */}
       <canvas ref={canvasRef} style={{ flex: 1, width: "100%", cursor: "none",
-        background: "radial-gradient(ellipse at 50% 30%, rgba(80,30,140,0.18) 0%, transparent 70%)" }} />
+        background: "radial-gradient(ellipse at 50% 30%, rgba(181,255,129,0.15) 0%, transparent 70%)" }} />
 
       {/* Caught counter */}
       {phase === "playing" && (
         <div style={{ position: "absolute", bottom: 80, right: 32,
-                      background: "rgba(0,0,0,0.6)", backdropFilter: "blur(10px)",
-                      borderRadius: 12, padding: "10px 18px", border: "1px solid rgba(255,255,255,0.1)" }}>
+                      background: "rgba(255,255,255,0.92)", backdropFilter: "blur(10px)",
+                      borderRadius: 12, padding: "10px 18px", border: `1px solid ${C.border}` }}>
           <p style={{ fontSize: 11, color: C.text3, letterSpacing: "1px", fontFamily: "'Rajdhani',sans-serif" }}>CAUGHT</p>
           <p style={{ fontSize: 28, fontWeight: 800, color: C.green, fontFamily: "'Rajdhani',sans-serif" }}>{caughtList.length}</p>
         </div>
@@ -855,9 +903,9 @@ function GamePage({ game, onClose }) {
       {phase === "intro" && (
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center",
                       justifyContent: "center", background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}>
-          <div style={{ background: "#18181f", border: "1px solid rgba(162,89,247,0.35)",
+          <div style={{ background: "#18181f", border: `1px solid rgba(181,255,129,0.2)`,
                         borderRadius: 24, padding: "40px 48px", maxWidth: 480, width: "90%",
-                        boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 60px rgba(162,89,247,0.15)" }}>
+                        boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 60px rgba(181,255,129,0.1)" }}>
             <div style={{ fontSize: 48, textAlign: "center", marginBottom: 16 }}>🧺</div>
             <p style={{ fontSize: 26, fontWeight: 800, color: C.text1, textAlign: "center",
                         fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1.5px", marginBottom: 8 }}>
@@ -881,10 +929,10 @@ function GamePage({ game, onClose }) {
             </div>
             <button className="btn" onClick={() => { setPhase("playing"); setTimeLeft(20); }} style={{
               width: "100%", height: 52,
-              background: "linear-gradient(135deg, #a259f7 0%, #7c3aed 100%)",
-              color: "white", borderRadius: 14, fontSize: 16, fontWeight: 800,
+              background: "#B5FF81",
+              color: "#1a2612", borderRadius: 14, fontSize: 16, fontWeight: 800,
               letterSpacing: "2px", fontFamily: "'Rajdhani',sans-serif",
-              boxShadow: "0 4px 24px rgba(162,89,247,0.45)" }}>
+              boxShadow: "0 4px 24px rgba(181,255,129,0.35)" }}>
               LET'S GO →
             </button>
           </div>
@@ -904,7 +952,7 @@ function GamePage({ game, onClose }) {
                 <div key={i} style={{
                   position: "absolute", left: "50%", top: "35%",
                   width: 8, height: 8, borderRadius: "50%",
-                  background: i%3===0 ? "#a259f7" : i%3===1 ? "#fff" : "#ffd700",
+                  background: i%3===0 ? "#41582A" : i%3===1 ? "#fff" : "#ffd700",
                   "--tx": tx+"px", "--ty": ty+"px",
                   animation: `sparkleOut 0.8s ${s.delay}s ease-out both`,
                   pointerEvents: "none",
@@ -920,26 +968,26 @@ function GamePage({ game, onClose }) {
 
             {/* Unlocked card */}
             <div className="unlock-card float-bob" style={{
-              background: "linear-gradient(135deg, #1a1030 0%, #130d28 100%)",
-              border: "1.5px solid rgba(162,89,247,0.6)",
+              background: "linear-gradient(135deg, #1a2612 0%, #111a0a 100%)",
+              border: "1.5px solid rgba(181,255,129,0.3)",
               borderRadius: 20, overflow: "hidden", display: "inline-block",
-              boxShadow: "0 0 60px rgba(162,89,247,0.4), 0 20px 60px rgba(0,0,0,0.6)",
+              boxShadow: "0 0 60px rgba(181,255,129,0.2), 0 20px 60px rgba(0,0,0,0.6)",
               width: 220,
             }}>
               <div style={{ position: "relative", height: 200, overflow: "hidden" }}>
                 <img src={unlocked.img} alt={unlocked.name}
                      style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.9 }} />
                 <div style={{ position: "absolute", inset: 0,
-                              background: "linear-gradient(to top, rgba(20,8,48,0.8) 0%, transparent 50%)" }} />
+                              background: "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%)" }} />
                 <div style={{ position: "absolute", top: 10, left: 10,
-                              background: "linear-gradient(135deg,#a259f7,#7c3aed)", borderRadius: 6,
-                              padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "white",
+                              background: "#B5FF81", borderRadius: 6,
+                              padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "#1a2612",
                               fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>
                   ✦ UNLOCKED
                 </div>
               </div>
               <div style={{ padding: "14px 16px 18px" }}>
-                <p style={{ fontSize: 11, color: "rgba(162,89,247,0.8)", fontWeight: 700,
+                <p style={{ fontSize: 11, color: "rgba(181,255,129,0.85)", fontWeight: 700,
                             letterSpacing: "1.5px", fontFamily: "'Rajdhani',sans-serif" }}>{unlocked.brand.toUpperCase()}</p>
                 <p style={{ fontSize: 15, fontWeight: 700, color: C.text1, marginTop: 3, lineHeight: 1.3 }}>{unlocked.name}</p>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 8 }}>
@@ -952,21 +1000,238 @@ function GamePage({ game, onClose }) {
             <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "center" }}>
               <button className="btn" onClick={onClose} style={{
                 padding: "12px 28px", borderRadius: 12, background: "rgba(255,255,255,0.07)",
-                border: "1px solid rgba(255,255,255,0.15)", color: C.text2,
+                border: `1px solid ${C.border}`, color: C.text2,
                 fontSize: 14, fontWeight: 700, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>
                 BACK
               </button>
               <button className="btn" onClick={onClose} style={{
                 padding: "12px 28px", borderRadius: 12,
-                background: "linear-gradient(135deg,#a259f7,#7c3aed)", color: "white",
+                background: "#B5FF81", color: "#1a2612",
                 fontSize: 14, fontWeight: 700, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px",
-                boxShadow: "0 4px 20px rgba(162,89,247,0.4)" }}>
+                boxShadow: "0 4px 20px rgba(181,255,129,0.3)" }}>
                 PRE-ORDER NOW
               </button>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── Aritzia Congrats Page ───────────────────────────────────────── */
+function AritziaCongratsPage({ game, onClose }) {
+  const [countdown, setCountdown] = useState(5);
+  const canvasRef = useRef(null);
+  const animRef   = useRef({ running: false, rafId: null });
+  const wonItem   = PREORDERS.find(p => p.brand === "Aritzia" && p.unlocked) || PREORDERS.find(p => p.brand === "Aritzia") || PREORDERS[0];
+
+  /* countdown → loop */
+  useEffect(() => {
+    const id = setTimeout(() => setCountdown(c => c <= 1 ? 5 : c - 1), 1000);
+    return () => clearTimeout(id);
+  }, [countdown]);
+
+  /* fireworks canvas */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const FW_COLORS = ["#41582A","#ffd700","#ff6b9d","#4adf86","#4a9eff","#ffffff","#ff9f4a"];
+    let particles = [];
+    animRef.current.running = true;
+    let spawnTimer = 0;
+    let last = performance.now();
+
+    function spawnBurst() {
+      const x = canvas.width * (0.15 + Math.random() * 0.7);
+      const y = canvas.height * (0.1 + Math.random() * 0.5);
+      const col = FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)];
+      for (let i = 0; i < 32; i++) {
+        const angle = (i / 32) * Math.PI * 2;
+        const spd = 2.5 + Math.random() * 4.5;
+        particles.push({ x, y, vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd - 1.5,
+          col, alpha: 1, size: 1.8 + Math.random()*2.5, decay: 0.014 + Math.random()*0.016 });
+      }
+      /* trailing sparks shooting upward */
+      for (let i = 0; i < 8; i++) {
+        particles.push({ x: x + (Math.random()-0.5)*20, y: canvas.height,
+          vx: (Math.random()-0.5)*1.2, vy: -(5 + Math.random()*6),
+          col, alpha: 0.9, size: 1.5, decay: 0.008 });
+      }
+    }
+    spawnBurst(); spawnBurst();
+
+    const loop = now => {
+      if (!animRef.current.running) return;
+      const dt = Math.min((now - last) / 16.67, 3);
+      last = now;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      spawnTimer -= dt;
+      if (spawnTimer <= 0) { spawnBurst(); spawnTimer = 50 + Math.random()*55; }
+      particles = particles.filter(p => p.alpha > 0.02);
+      for (const p of particles) {
+        p.x  += p.vx * dt;
+        p.y  += p.vy * dt;
+        p.vy += 0.09 * dt;
+        p.alpha -= p.decay * dt;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.col;
+        ctx.shadowColor = p.col;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+      animRef.current.rafId = requestAnimationFrame(loop);
+    };
+    animRef.current.rafId = requestAnimationFrame(loop);
+    return () => {
+      animRef.current.running = false;
+      cancelAnimationFrame(animRef.current.rafId);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  const GA = {
+    bg:      "#0a0a0f",
+    header:  "rgba(255,255,255,0.03)",
+    card:    "#1a2612",
+    border:  "rgba(181,255,129,0.2)",
+    text1:   "#f0f0f0",
+    text2:   "#aaa",
+    text3:   "#666",
+    green:   "#B5FF81",
+    greenLt: "#B5FF81",
+    greenDim:"rgba(181,255,129,0.18)",
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: GA.bg,
+                  display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* Fireworks layer */}
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
+                                       pointerEvents: "none", zIndex: 0 }} />
+
+      {/* Header */}
+      <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center",
+                    justifyContent: "space-between", padding: "14px 32px",
+                    borderBottom: `1px solid ${GA.border}`,
+                    background: GA.header, backdropFilter: "blur(12px)", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <img src={game.img} alt={game.name}
+               style={{ width: 24, height: 24, borderRadius: 6, objectFit: "cover" }} />
+          <div>
+            <p style={{ fontSize: 10, color: GA.text3, fontWeight: 600, letterSpacing: "1.5px",
+                        fontFamily: "'Rajdhani',sans-serif" }}>STYLE QUIZ</p>
+            <p style={{ fontSize: 16, fontWeight: 800, color: GA.text1,
+                        fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>{game.name.toUpperCase()}</p>
+          </div>
+        </div>
+        {/* Completion bar */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 11, color: GA.green, fontWeight: 700, letterSpacing: "1px",
+                         fontFamily: "'Rajdhani',sans-serif" }}>COMPLETE</span>
+          <div style={{ width: 140, height: 6, borderRadius: 3, background: "rgba(0,0,0,0.08)", overflow: "hidden" }}>
+            <div style={{ width: "100%", height: "100%", borderRadius: 3,
+                          background: `linear-gradient(90deg, ${GA.greenLt}, ${GA.green})`,
+                          boxShadow: `0 0 8px rgba(22,163,74,0.4)` }} />
+          </div>
+          <span style={{ fontSize: 11, color: GA.green, fontWeight: 800,
+                         fontFamily: "'Rajdhani',sans-serif" }}>100%</span>
+        </div>
+        <button className="btn" onClick={onClose} style={{
+          background: "rgba(0,0,0,0.05)", border: `1px solid ${GA.border}`,
+          borderRadius: 10, width: 36, height: 36, color: GA.text2,
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>×</button>
+      </div>
+
+      {/* Main content */}
+      <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center", gap: 6, padding: "24px 32px" }}>
+
+        {/* Congrats text */}
+        <div className="congrats-reveal" style={{ textAlign: "center", marginBottom: 16 }}>
+          <div style={{ fontSize: 38, marginBottom: 8 }}>🎉</div>
+          <p style={{ fontSize: 13, fontWeight: 700, color: GA.green, letterSpacing: "3px",
+                      fontFamily: "'Rajdhani',sans-serif", marginBottom: 6 }}>CONGRATULATIONS!</p>
+          <p style={{ fontSize: 30, fontWeight: 800, color: GA.text1,
+                      fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1.5px", marginBottom: 4 }}>
+            YOU'VE WON AN EXCLUSIVE ITEM
+          </p>
+          <p style={{ fontSize: 14, color: GA.text2 }}>Your Aritzia style quiz is complete — here's your reward.</p>
+        </div>
+
+        {/* Won item card */}
+        <div className="unlock-card float-bob" style={{
+          background: GA.card,
+          border: `1.5px solid rgba(22,163,74,0.3)`,
+          borderRadius: 22, overflow: "hidden", display: "inline-block",
+          boxShadow: "0 0 40px rgba(22,163,74,0.18), 0 20px 48px rgba(0,0,0,0.12)",
+          width: 240,
+        }}>
+          <div style={{ position: "relative", height: 240, overflow: "hidden" }}>
+            <img src={wonItem.img} alt={wonItem.name}
+                 style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <div style={{ position: "absolute", inset: 0,
+                          background: "linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 55%)" }} />
+            <div style={{ position: "absolute", top: 10, left: 10,
+                          background: `linear-gradient(135deg,${GA.greenLt},${GA.green})`, borderRadius: 6,
+                          padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "white",
+                          fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>✦ UNLOCKED</div>
+          </div>
+          <div style={{ padding: "14px 18px 20px" }}>
+            <p style={{ fontSize: 11, color: GA.green, fontWeight: 700,
+                        letterSpacing: "1.5px", fontFamily: "'Rajdhani',sans-serif" }}>ARITZIA</p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: GA.text1, marginTop: 4, lineHeight: 1.3 }}>{wonItem.name}</p>
+            <p style={{ fontSize: 12, color: GA.text3, marginTop: 3 }}>{wonItem.color} · Size {wonItem.size}</p>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 10 }}>
+              <span style={{ fontSize: 12, color: GA.text3, textDecoration: "line-through" }}>${wonItem.origPrice}</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: GA.green }}>${wonItem.price}</span>
+            </div>
+            <button className="btn" style={{
+              width: "100%", marginTop: 14,
+              background: `linear-gradient(135deg,${GA.greenLt},${GA.green})`, color: "white",
+              borderRadius: 10, padding: "10px 0", fontSize: 12, fontWeight: 800,
+              letterSpacing: "1.5px", fontFamily: "'Rajdhani',sans-serif",
+              boxShadow: "0 3px 14px rgba(181,255,129,0.3)" }}>
+              PRE-ORDER NOW
+            </button>
+          </div>
+        </div>
+
+        {/* Buttons + countdown */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, marginTop: 20 }}>
+          <button className="btn" onClick={onClose} style={{
+            padding: "13px 32px", borderRadius: 12,
+            background: "rgba(0,0,0,0.05)", border: `1px solid ${GA.border}`,
+            color: GA.text1, fontSize: 14, fontWeight: 700,
+            fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>
+            ← BACK TO HOME
+          </button>
+          {/* Countdown */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8,
+                        animation: "countdownRing 1s ease infinite" }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%",
+                          border: `2px solid ${countdown <= 2 ? "#ef4444" : GA.greenLt}`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 15, fontWeight: 800, color: countdown <= 2 ? "#ef4444" : GA.green,
+                          fontFamily: "'Rajdhani',sans-serif" }}>
+              {countdown}
+            </div>
+            <span style={{ fontSize: 12, color: GA.text3, fontFamily: "'Rajdhani',sans-serif",
+                           letterSpacing: "0.5px" }}>
+              Next game in {countdown}...
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -998,9 +1263,9 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
           <button key={c.key} className="btn" onClick={() => setShopFilter(c.key)} style={{
             padding: "5px 14px", borderRadius: 20, fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
             background: shopFilter === c.key ? C.green : "rgba(255,255,255,0.06)",
-            color: shopFilter === c.key ? "white" : C.text2,
+            color: shopFilter === c.key ? "#1a2612" : C.text2,
             border: shopFilter === c.key ? "none" : `1px solid ${C.border}`,
-            boxShadow: shopFilter === c.key ? "0 2px 10px rgba(162,89,247,0.3)" : "none",
+            boxShadow: shopFilter === c.key ? "0 2px 10px rgba(181,255,129,0.3)" : "none",
           }}>{c.label}</button>
         ))}
         <div style={{ width: 1, height: 18, background: C.border, margin: "0 2px" }} />
@@ -1014,7 +1279,7 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
         </select>
         <button className="btn" onClick={() => setUnlockedOnly(v => !v)} style={{
           padding: "5px 14px", borderRadius: 20, fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
-          background: unlockedOnly ? "rgba(162,89,247,0.2)" : "rgba(255,255,255,0.06)",
+          background: unlockedOnly ? "rgba(181,255,129,0.15)" : "rgba(255,255,255,0.06)",
           color: unlockedOnly ? C.green : C.text2,
           border: unlockedOnly ? `1px solid ${C.green}` : `1px solid ${C.border}`,
         }}>Unlocked only</button>
@@ -1039,105 +1304,109 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
 }
 
 /* ── Hero Carousel ───────────────────────────────────────────────── */
+const HERO_STARS = [
+  { top:"5%",  left:"8%",  s:1.5, d:0,   dur:3.2 },
+  { top:"12%", left:"18%", s:1,   d:1.1, dur:2.8 },
+  { top:"3%",  left:"32%", s:2,   d:0.4, dur:3.8 },
+  { top:"18%", left:"42%", s:1,   d:2.1, dur:2.4 },
+  { top:"8%",  left:"55%", s:1.5, d:0.7, dur:3.5 },
+  { top:"22%", left:"68%", s:1,   d:1.5, dur:2.9 },
+  { top:"6%",  left:"78%", s:2,   d:0.2, dur:4.0 },
+  { top:"15%", left:"88%", s:1,   d:1.8, dur:2.6 },
+  { top:"28%", left:"15%", s:1,   d:2.5, dur:3.1 },
+  { top:"33%", left:"28%", s:1.5, d:0.9, dur:3.6 },
+  { top:"25%", left:"72%", s:1,   d:1.3, dur:2.7 },
+  { top:"40%", left:"85%", s:1.5, d:0.6, dur:3.3 },
+  { top:"42%", left:"5%",  s:1,   d:2.0, dur:2.5 },
+  { top:"48%", left:"38%", s:1.5, d:1.6, dur:4.2 },
+  { top:"52%", left:"52%", s:1,   d:0.3, dur:3.0 },
+  { top:"45%", left:"62%", s:1,   d:2.3, dur:2.8 },
+  { top:"55%", left:"22%", s:1,   d:1.0, dur:3.7 },
+  { top:"60%", left:"78%", s:1.5, d:0.5, dur:3.4 },
+  { top:"10%", left:"47%", s:1,   d:1.7, dur:2.9 },
+  { top:"35%", left:"92%", s:1,   d:2.2, dur:3.2 },
+  { top:"20%", left:"3%",  s:1.5, d:0.8, dur:4.1 },
+  { top:"30%", left:"58%", s:1,   d:0.1, dur:3.9 },
+  { top:"50%", left:"95%", s:1,   d:1.9, dur:2.7 },
+  { top:"65%", left:"12%", s:1,   d:2.6, dur:3.5 },
+  { top:"58%", left:"45%", s:1,   d:1.4, dur:2.6 },
+];
+
 function HeroCarousel() {
-  // idx counts up infinitely. Track has 3 slots: [hero, leaderboard, hero_clone].
-  // When idx hits 2, after transition we silently snap back to 0.
-  const [idx, setIdx]         = useState(0);
-  const [animated, setAnimated] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const wrapperRef              = useRef(null);
 
-  const next = () => { setAnimated(true); setIdx(i => i + 1); };
-
-  // After landing on clone (idx===2), snap to real slide 0 instantly
   useEffect(() => {
-    if (idx === 2) {
-      const t = setTimeout(() => { setAnimated(false); setIdx(0); }, 560);
-      return () => clearTimeout(t);
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    let scrollEl = wrapper.parentElement;
+    while (scrollEl) {
+      const oy = window.getComputedStyle(scrollEl).overflowY;
+      if (oy === "auto" || oy === "scroll") break;
+      scrollEl = scrollEl.parentElement;
+      if (!scrollEl || scrollEl === document.body) { scrollEl = null; break; }
     }
-  }, [idx]);
-
-  // Auto-advance
-  useEffect(() => {
-    const t = setInterval(next, 8000);
-    return () => clearInterval(t);
+    if (!scrollEl) return;
+    const onScroll = () => {
+      const h = wrapper.offsetHeight;
+      if (h) setProgress(Math.min(Math.max(scrollEl.scrollTop / h, 0), 1));
+    };
+    scrollEl.addEventListener("scroll", onScroll, { passive: true });
+    return () => scrollEl.removeEventListener("scroll", onScroll);
   }, []);
 
-  const activeDot = idx % 2; // 0 or 1 for dot highlight
-
-  const SlideHero = (
-    <div style={{ minWidth: "100%", height: "100%", position: "relative", display: "flex", alignItems: "center" }}>
-      <div style={{ flex: 1, paddingRight: 40 }}>
-        <p style={{ fontSize: 42, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif", letterSpacing: "2px", color: C.text1, lineHeight: 1.1, marginBottom: 16 }}>
-          PLAY. UNLOCK.<br />SHOP SUSTAINABLY.
-        </p>
-        <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.8, maxWidth: 480, fontWeight: 400 }}>
-          Your voice shapes the future of brands! Play mini-games to understand your style and win early access to exclusive items.
-        </p>
-      </div>
-      {/* Earth — oversized, floated up-right */}
-      <img src="earth.png" alt="Earth" style={{
-        position: "absolute", right: -30, top: -70,
-        width: 420, height: 420, objectFit: "contain", flexShrink: 0,
-        filter: "drop-shadow(0 0 60px rgba(80,100,255,0.5))",
-        pointerEvents: "none",
-      }} />
-    </div>
-  );
-
-  const SlideLeaderboard = (
-    <div style={{ minWidth: "100%", height: "100%", display: "flex", alignItems: "center", gap: 40 }}>
-      <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: C.green, letterSpacing: "2.5px", fontFamily: "'Rajdhani', sans-serif", marginBottom: 10 }}>THIS WEEK'S RANKINGS</p>
-        <p style={{ fontSize: 42, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif", letterSpacing: "2px", color: C.text1, lineHeight: 1.1, marginBottom: 14 }}>
-          LEADERBOARD
-        </p>
-        <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.8, maxWidth: 400, fontWeight: 400 }}>
-          Play more games to climb the ranks and unlock exclusive early-access rewards.
-        </p>
-      </div>
-      <div style={{ width: 300, background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, padding: "16px 22px", flexShrink: 0 }}>
-        {LEADERBOARD.map((p, i) => (
-          <div key={p.rank} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: i < LEADERBOARD.length - 1 ? `1px solid ${C.border}` : "none" }}>
-            <span style={{ width: 20, fontSize: 12, fontWeight: 700, color: p.rank <= 3 ? C.green : C.text3, textAlign: "right", fontFamily: "'Rajdhani', sans-serif" }}>#{p.rank}</span>
-            <span style={{ flex: 1, fontSize: 13, fontWeight: p.isYou ? 700 : 400, color: p.isYou ? C.text1 : C.text2 }}>
-              {p.name}{p.isYou ? <span style={{ fontSize: 10, color: C.green, marginLeft: 4, fontWeight: 600 }}>you</span> : ""}
-            </span>
-            <span style={{ fontSize: 12, fontWeight: 600, color: C.text3, fontFamily: "'Rajdhani', sans-serif" }}>{p.pts.toLocaleString()}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  const opacity    = Math.max(0, 1 - progress / 0.55);
+  const translateY = progress * -90;
+  const scale      = 1 - progress * 0.05;
 
   return (
-    <div style={{ marginBottom: 40 }}>
-      {/* Viewport */}
-      <div style={{ height: 260, overflow: "hidden", position: "relative" }}>
-        {/* 3-slot track: hero | leaderboard | hero_clone */}
-        <div style={{
-          display: "flex", height: "100%", width: "300%",
-          transform: `translateX(-${idx * (100/3)}%)`,
-          transition: animated ? "transform 0.55s cubic-bezier(0.4,0,0.2,1)" : "none",
-        }}>
-          <div style={{ width: "33.333%", height: "100%", flexShrink: 0 }}>{SlideHero}</div>
-          <div style={{ width: "33.333%", height: "100%", flexShrink: 0 }}>{SlideLeaderboard}</div>
-          <div style={{ width: "33.333%", height: "100%", flexShrink: 0 }}>{SlideHero}</div>
-        </div>
-      </div>
+    <div ref={wrapperRef} style={{ height: "calc(100vh - 60px)", flexShrink: 0, position: "relative" }}>
 
-      {/* Controls */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 16 }}>
-        {[0, 1].map(i => (
-          <button key={i} className="btn" onClick={next} style={{
-            width: i === activeDot ? 20 : 6, height: 6, borderRadius: 3, padding: 0,
-            background: i === activeDot ? C.green : "rgba(255,255,255,0.2)",
-            transition: "all 0.3s ease",
+      {/* Earth — 1800px, bottom-anchored, top 30% visible; full earth revealed on scroll */}
+      <img src="earth.png" alt="Earth" style={{
+        position: "absolute", bottom: 0, left: "50%",
+        transform: "translateX(-50%) translateY(70%)",
+        width: 1800, height: 1800, objectFit: "contain",
+        filter: "drop-shadow(0 0 180px rgba(181,255,129,0.2))",
+        pointerEvents: "none",
+      }} />
+
+      {/* Scroll fade wrapper — stars + text, fades on scroll */}
+      <div style={{
+        height: "100%", position: "relative", zIndex: 1,
+        opacity, transform: `translateY(${translateY}px) scale(${scale})`,
+        transformOrigin: "center 40%",
+        pointerEvents: opacity < 0.1 ? "none" : "auto",
+      }}>
+        {/* Twinkling stars */}
+        {HERO_STARS.map((star, i) => (
+          <div key={i} style={{
+            position: "absolute", top: star.top, left: star.left,
+            width: star.s, height: star.s, borderRadius: "50%",
+            background: "#fff",
+            animation: `twinkle ${star.dur}s ease-in-out ${star.d}s infinite`,
           }} />
         ))}
-        <button className="btn" onClick={next} style={{
-          marginLeft: 8, width: 28, height: 28, borderRadius: "50%", padding: 0,
-          background: "rgba(255,255,255,0.08)", border: `1px solid ${C.border}`,
-          color: C.text2, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center",
-        }}>›</button>
+
+        {/* Text block — SCROLL line sits 24px above earth top edge (1800×30%=540px from hero bottom) */}
+        <div style={{
+          position: "absolute", bottom: 560, left: 0, right: 0,
+          textAlign: "center", padding: "0 80px",
+        }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
+                      fontFamily: "'Rajdhani', sans-serif", marginBottom: 20 }}>PLAY. UNLOCK. SHOP.</p>
+          <p style={{ fontSize: 72, fontWeight: 800, color: C.text1,
+                      fontFamily: "'Rajdhani', sans-serif", letterSpacing: "1px", lineHeight: 1.0 }}>
+            The Bridg is built,<br/>are you ready<br/>to cross it?
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, marginTop: 24,
+                        opacity: Math.max(0, 1 - progress * 5) }}>
+            <span style={{ fontSize: 10, color: C.text3, letterSpacing: "2px",
+                           fontFamily: "'Rajdhani', sans-serif", fontWeight: 600 }}>SCROLL</span>
+            <div style={{ width: 1, height: 24, background: `linear-gradient(to bottom, ${C.text3}, transparent)`,
+                          animation: "floatBob 1.8s ease-in-out infinite" }} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1194,29 +1463,45 @@ function App() {
         WebkitBackdropFilter: "blur(40px) saturate(180%)",
         boxShadow: "0 1px 0 rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}>
-        {/* Left: Logo + Bridg + Tabs */}
-        <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Logo />
-            <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "2px", color: C.text1, textTransform: "uppercase", fontFamily: "'Rajdhani', sans-serif" }}>
-              bridg
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+        {/* Left: Logo + Bridg */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <Logo />
+          <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "2px", color: C.text1, textTransform: "uppercase", fontFamily: "'Rajdhani', sans-serif" }}>
+            bridg
+          </span>
+        </div>
+
+        {/* Center: Play / Pre-order pill switch */}
+        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+          <div style={{
+            position: "relative", display: "flex",
+            background: "rgba(255,255,255,0.07)",
+            border: `1px solid ${C.border}`,
+            borderRadius: 999, padding: 3,
+          }}>
+            {/* Sliding thumb */}
+            <div style={{
+              position: "absolute", top: 3, bottom: 3,
+              width: "calc(50% - 3px)",
+              left: tab === "play" ? 3 : "calc(50%)",
+              background: C.green,
+              borderRadius: 999,
+              transition: "left 0.25s cubic-bezier(0.4,0,0.2,1)",
+              pointerEvents: "none",
+            }} />
             {[
               { key: "play",     label: "Play"      },
-              { key: "preorder", label: "Pre-order"  },
+              { key: "preorder", label: "Pre-order" },
             ].map(t => (
-              <button key={t.key} className="btn tab-btn"
-                      onClick={() => setTab(t.key)}
-                      style={{
-                        background: "none", padding: 0,
-                        fontSize: 15, fontWeight: 600,
-                        fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.5px",
-                        color: tab === t.key ? C.text1 : C.text2,
-                      }}>
-                {t.label}
-              </button>
+              <button key={t.key} className="btn" onClick={() => setTab(t.key)} style={{
+                position: "relative", zIndex: 1,
+                padding: "6px 24px", borderRadius: 999,
+                fontSize: 13, fontWeight: 700,
+                fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.8px",
+                color: tab === t.key ? "#1a2612" : C.text2,
+                background: "none", minWidth: 96,
+                transition: "color 0.2s",
+              }}>{t.label}</button>
             ))}
           </div>
         </div>
@@ -1253,7 +1538,7 @@ function App() {
                   style={{
                     position: "relative",
                     background: "rgba(255,255,255,0.07)",
-                    border: "1px solid rgba(255,255,255,0.1)",
+                    border: `1px solid ${C.border}`,
                     borderRadius: 10, width: 36, height: 36,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     color: C.text2,
@@ -1262,12 +1547,12 @@ function App() {
             {cartCount > 0 && (
               <div style={{
                 position: "absolute", top: -6, right: -6,
-                background: "linear-gradient(135deg, #a259f7 0%, #7c3aed 100%)",
-                color: "white",
+                background: "#B5FF81",
+                color: "#1a2612",
                 minWidth: 18, height: 18, borderRadius: 9, padding: "0 4px",
                 fontSize: 10, fontWeight: 800,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 8px rgba(162,89,247,0.5)",
+                boxShadow: "0 2px 8px rgba(181,255,129,0.4)",
                 border: "1.5px solid #0e0e0e",
               }}>{cartCount}</div>
             )}
@@ -1276,7 +1561,7 @@ function App() {
           {/* Account — person icon button */}
           <button className="btn" style={{
             background: "rgba(255,255,255,0.07)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            border: `1px solid ${C.border}`,
             borderRadius: 10, width: 36, height: 36,
             display: "flex", alignItems: "center", justifyContent: "center",
             color: C.text2,
@@ -1329,41 +1614,160 @@ function App() {
           }
 
           /* ── Home view ── */
-          return (
-            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column", paddingTop: 56, paddingLeft: 48, paddingRight: 48 }}>
+          const lbData = [
+            { rank: 1, name: "Jordan M.",  points: 14820, games: 12, trend: "up"   },
+            { rank: 2, name: "Taylor S.",  points: 12340, games: 10, trend: "up"   },
+            { rank: 3, name: "Alex R.",    points: 11090, games: 11, trend: "down" },
+            { rank: 4, name: "Morgan K.",  points:  9870, games:  9, trend: "up"   },
+            { rank: 5, name: "Jamie L.",   points:  8450, games:  8, trend: "same" },
+            { rank: 6, name: "Riley P.",   points:  7230, games:  7, trend: "down" },
+            { rank: 7, name: "Casey T.",   points:  6810, games:  9, trend: "up"   },
+          ];
 
-              {/* Hero Carousel */}
+          return (
+            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
+
+              {/* Hero — full viewport height */}
               <HeroCarousel savedGames={savedGames} />
 
-              {/* Saved games */}
-              {saved.length > 0 && (
-                <>
-                  <SectionHeader label="Saved" onViewAll={() => setGameView("all")} />
-                  <Carousel games={saved} {...carouselProps} />
-                </>
-              )}
+              {/* Spacer: earth hangs 70% × 1800px = 1260px below hero fold; box placed at 300px in */}
+              <div style={{ height: 300, flexShrink: 0 }} />
 
-              {/* For you */}
-              <SectionHeader label="For you" onViewAll={() => setGameView("all")} style={{ marginTop: saved.length > 0 ? 32 : 0 }} />
-              <Carousel games={forYou} {...carouselProps} />
+              {/* ── What is Bridg? — floats on top of the earth ── */}
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72 }}>
+                <div style={{
+                  background: "rgba(14,14,14,0.82)",
+                  backdropFilter: "blur(24px)",
+                  WebkitBackdropFilter: "blur(24px)",
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 24, padding: "56px 72px",
+                  position: "relative", overflow: "hidden",
+                  maxWidth: 820, margin: "0 auto",
+                }}>
+                  {/* Subtle green glow top-right */}
+                  <div style={{ position: "absolute", top: -80, right: -80, width: 400, height: 400,
+                                borderRadius: "50%", background: "radial-gradient(circle, rgba(181,255,129,0.06) 0%, transparent 70%)",
+                                pointerEvents: "none" }} />
+                  <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
+                              fontFamily: "'Rajdhani', sans-serif", marginBottom: 16 }}>WHAT IS BRIDG?</p>
+                  <p style={{ fontSize: 52, fontWeight: 800, color: C.text1, lineHeight: 1.05,
+                              fontFamily: "'Rajdhani', sans-serif", marginBottom: 24 }}>
+                    Fashion meets<br/>the game.
+                  </p>
+                  <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.75, maxWidth: 620, marginBottom: 14 }}>
+                    Bridg turns fashion discovery into a game. Play style challenges, climb the leaderboard, and unlock exclusive pre-order access to drops from your favourite brands — before anyone else.
+                  </p>
+                  <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 620 }}>
+                    The better you play, the earlier you get in. Score high enough and you unlock the ability to pre-order limited pieces at a discount — yours to keep, delivered to your door.
+                  </p>
+                  <div style={{ display: "flex", gap: 12, marginTop: 36 }}>
+                    {[
+                      { key: "PLAY",   sub: "Style challenges"  },
+                      { key: "UNLOCK", sub: "Exclusive drops"   },
+                      { key: "SHOP",   sub: "Before anyone else"},
+                    ].map(pill => (
+                      <div key={pill.key} style={{ padding: "12px 20px", borderRadius: 12,
+                                                   background: C.greenDim, border: `1px solid rgba(181,255,129,0.22)` }}>
+                        <p style={{ fontSize: 10, color: C.green, fontWeight: 700, letterSpacing: "3px",
+                                    fontFamily: "'Rajdhani', sans-serif" }}>{pill.key}</p>
+                        <p style={{ fontSize: 13, color: C.text2, marginTop: 3 }}>{pill.sub}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-              {/* New */}
-              <SectionHeader label="New" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
-              <Carousel games={newGames} {...carouselProps} />
+              {/* Padded content below */}
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 0, paddingBottom: 24 }}>
+                {/* Saved games */}
+                {saved.length > 0 && (
+                  <>
+                    <SectionHeader label="Saved" onViewAll={() => setGameView("all")} />
+                    <Carousel games={saved} {...carouselProps} />
+                  </>
+                )}
 
-              {/* January games */}
-              <SectionHeader label="January games" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
-              <Carousel games={active} {...carouselProps} />
+                {/* For you */}
+                <SectionHeader label="For you" onViewAll={() => setGameView("all")} style={{ marginTop: saved.length > 0 ? 32 : 0 }} />
+                <Carousel games={forYou} {...carouselProps} />
 
-              {/* Finished games */}
-              {done.length > 0 && (
-                <>
-                  <SectionHeader label="Finished games" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
-                  <Carousel games={done} {...carouselProps} />
-                </>
-              )}
+                {/* ── Leaderboard ── */}
+                <div style={{ marginTop: 48 }}>
+                  <SectionHeader label="Leaderboard" />
+                  <div style={{
+                    marginTop: 16, background: C.card, border: `1px solid ${C.border}`,
+                    borderRadius: 16, overflow: "hidden",
+                  }}>
+                    {/* Header row */}
+                    <div style={{ display: "grid", gridTemplateColumns: "48px 1fr 120px 100px 60px",
+                                  padding: "12px 20px", borderBottom: `1px solid ${C.border}` }}>
+                      {["#", "Player", "Points", "Games", ""].map((h, i) => (
+                        <span key={i} style={{ fontSize: 10, fontWeight: 700, color: C.text3,
+                                               letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif",
+                                               textAlign: i >= 2 ? "right" : "left" }}>{h}</span>
+                      ))}
+                    </div>
+                    {lbData.map((entry, i) => (
+                      <div key={entry.rank} style={{
+                        display: "grid", gridTemplateColumns: "48px 1fr 120px 100px 60px",
+                        padding: "14px 20px", alignItems: "center",
+                        borderBottom: i < lbData.length - 1 ? `1px solid ${C.border}` : "none",
+                        background: i === 0 ? "rgba(181,255,129,0.04)" : "transparent",
+                      }}>
+                        {/* Rank */}
+                        <span style={{ fontSize: 15, fontWeight: 800, fontFamily: "'Rajdhani', sans-serif",
+                                       color: i === 0 ? C.green : i < 3 ? C.text1 : C.text3 }}>
+                          {entry.rank}
+                        </span>
+                        {/* Name + avatar */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <div style={{ width: 36, height: 36, borderRadius: "50%",
+                                        background: `hsl(${(entry.rank * 53) % 360}, 35%, 25%)`,
+                                        border: i === 0 ? `2px solid ${C.green}` : `2px solid ${C.border}`,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        fontSize: 13, fontWeight: 700, color: C.text1 }}>
+                            {entry.name[0]}
+                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: i === 0 ? C.text1 : C.text2 }}>{entry.name}</span>
+                        </div>
+                        {/* Points */}
+                        <span style={{ fontSize: 15, fontWeight: 700, color: i === 0 ? C.green : C.text1,
+                                       textAlign: "right", fontFamily: "'Rajdhani', sans-serif" }}>
+                          {entry.points.toLocaleString()}
+                        </span>
+                        {/* Games */}
+                        <span style={{ fontSize: 13, color: C.text3, textAlign: "right" }}>
+                          {entry.games} played
+                        </span>
+                        {/* Trend */}
+                        <div style={{ textAlign: "right" }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif",
+                                         color: entry.trend === "up" ? C.green : entry.trend === "down" ? "#ff6b6b" : C.text3,
+                                         letterSpacing: "1px" }}>
+                            {entry.trend === "up" ? "UP" : entry.trend === "down" ? "DN" : "--"}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-              <div style={{ height: 24 }} />
+                {/* New */}
+                <SectionHeader label="New" onViewAll={() => setGameView("all")} style={{ marginTop: 48 }} />
+                <Carousel games={newGames} {...carouselProps} />
+
+                {/* January games */}
+                <SectionHeader label="January games" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
+                <Carousel games={active} {...carouselProps} />
+
+                {/* Finished games */}
+                {done.length > 0 && (
+                  <>
+                    <SectionHeader label="Finished games" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
+                    <Carousel games={done} {...carouselProps} />
+                  </>
+                )}
+              </div>
             </div>
           );
         })()
@@ -1377,7 +1781,10 @@ function App() {
       </main>
 
       {/* Game overlay */}
-      {activeGame && <GamePage game={activeGame} onClose={() => setActiveGame(null)} />}
+      {activeGame && (activeGame.name === "Aritzia"
+        ? <AritziaCongratsPage game={activeGame} onClose={() => setActiveGame(null)} />
+        : <GamePage game={activeGame} onClose={() => setActiveGame(null)} />
+      )}
     </div>
   );
 }
