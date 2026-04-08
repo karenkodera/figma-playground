@@ -1362,15 +1362,6 @@ function HeroCarousel() {
   return (
     <div ref={wrapperRef} style={{ height: "calc(100vh - 60px)", flexShrink: 0, position: "relative" }}>
 
-      {/* Earth — 1800px, bottom-anchored, top 30% visible; full earth revealed on scroll */}
-      <img src="earth.png" alt="Earth" style={{
-        position: "absolute", bottom: 0, left: "50%",
-        transform: "translateX(-50%) translateY(70%)",
-        width: 1800, height: 1800, objectFit: "contain",
-        filter: "drop-shadow(0 0 180px rgba(181,255,129,0.2))",
-        pointerEvents: "none",
-      }} />
-
       {/* Scroll fade wrapper — stars + text, fades on scroll */}
       <div style={{
         height: "100%", position: "relative", zIndex: 1,
@@ -1388,9 +1379,9 @@ function HeroCarousel() {
           }} />
         ))}
 
-        {/* Text block — SCROLL line sits 24px above earth top edge (1800×30%=540px from hero bottom) */}
+        {/* Text block — at bottom of hero, just above earth horizon (3600×6%≈216px from hero bottom) */}
         <div style={{
-          position: "absolute", bottom: 560, left: 0, right: 0,
+          position: "absolute", bottom: 240, left: 0, right: 0,
           textAlign: "center", padding: "0 80px",
         }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
@@ -1630,11 +1621,16 @@ function App() {
               {/* Hero — full viewport height */}
               <HeroCarousel savedGames={savedGames} />
 
-              {/* Spacer: earth hangs 70% × 1800px = 1260px below hero fold; box placed at 300px in */}
-              <div style={{ height: 300, flexShrink: 0 }} />
+              {/* Earth — flex child pulled up into hero view via top offset */}
+              <img src="earth%20pic%2033.png" alt="Earth" style={{
+                display: "block", flexShrink: 0, alignSelf: "center",
+                width: "100%", maxWidth: 1600,
+                position: "relative", top: -260,
+                pointerEvents: "none", zIndex: 0,
+              }} />
 
-              {/* ── What is Bridg? — floats on top of the earth ── */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72 }}>
+              {/* ── What is Bridg? — floats at ~40% down the earth ── */}
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1000 }}>
                 <div style={{
                   background: "rgba(14,14,14,0.82)",
                   backdropFilter: "blur(24px)",
