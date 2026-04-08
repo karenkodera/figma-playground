@@ -1621,16 +1621,42 @@ function App() {
               {/* Hero — full viewport height */}
               <HeroCarousel savedGames={savedGames} />
 
-              {/* Earth — flex child pulled up into hero view via top offset */}
-              <img src="earth%20pic%2033.png" alt="Earth" style={{
-                display: "block", flexShrink: 0, alignSelf: "center",
-                width: "100%", maxWidth: 1600,
-                position: "relative", top: -260,
-                pointerEvents: "none", zIndex: 0,
-              }} />
+              {/* Earth + stars wrapper */}
+              <div style={{ position: "relative", flexShrink: 0, width: "100%", top: -260 }}>
+                {/* Sparkly stars above the earth */}
+                {[
+                  { top:"2%",  left:"12%",  s:3, dur:1.8, d:0.0 },
+                  { top:"6%",  left:"25%",  s:2, dur:2.3, d:0.4 },
+                  { top:"3%",  left:"40%",  s:4, dur:1.5, d:0.9 },
+                  { top:"8%",  left:"55%",  s:2, dur:2.1, d:0.2 },
+                  { top:"1%",  left:"68%",  s:3, dur:1.9, d:0.6 },
+                  { top:"5%",  left:"80%",  s:2, dur:2.5, d:0.1 },
+                  { top:"10%", left:"90%",  s:3, dur:1.7, d:0.8 },
+                  { top:"4%",  left:"5%",   s:2, dur:2.2, d:0.3 },
+                  { top:"9%",  left:"34%",  s:3, dur:1.6, d:0.7 },
+                  { top:"7%",  left:"72%",  s:2, dur:2.4, d:0.5 },
+                  { top:"12%", left:"18%",  s:2, dur:1.9, d:1.0 },
+                  { top:"11%", left:"48%",  s:3, dur:2.0, d:0.2 },
+                  { top:"13%", left:"62%",  s:2, dur:1.7, d:0.6 },
+                  { top:"14%", left:"85%",  s:3, dur:2.3, d:0.4 },
+                ].map((star, i) => (
+                  <div key={i} style={{
+                    position: "absolute", top: star.top, left: star.left,
+                    width: star.s, height: star.s, borderRadius: "50%",
+                    background: "#fff",
+                    boxShadow: `0 0 ${star.s * 2}px ${star.s}px rgba(255,255,255,0.6)`,
+                    animation: `twinkle ${star.dur}s ease-in-out ${star.d}s infinite`,
+                    pointerEvents: "none", zIndex: 2,
+                  }} />
+                ))}
+                <img src="earth%20pic%2034.png" alt="Earth" style={{
+                  display: "block", width: "100%", maxWidth: 1600, margin: "0 auto",
+                  pointerEvents: "none", zIndex: 0,
+                }} />
+              </div>
 
               {/* ── What is Bridg? — floats at ~40% down the earth ── */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -940 }}>
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1000 }}>
                 <div style={{
                   background: "rgba(14,14,14,0.82)",
                   backdropFilter: "blur(24px)",
@@ -1660,7 +1686,7 @@ function App() {
               </div>
 
               {/* Padded content below — paddingTop pushes games below the earth image */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 400, paddingBottom: 24 }}>
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 200, paddingBottom: 24 }}>
                 {/* Saved games */}
                 {saved.length > 0 && (
                   <>
