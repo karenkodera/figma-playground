@@ -1249,7 +1249,7 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
   if (shopFilter !== "all") visible = visible.filter(p => p.cat === shopFilter);
   if (brandFilter !== "All brands") visible = visible.filter(p => p.brand === brandFilter);
   if (unlockedOnly) visible = visible.filter(p => p.unlocked);
-  visible = [...visible.filter(p => p.unlocked), ...visible.filter(p => !p.unlocked)];
+  visible = [...visible.filter(p => p.unlocked), ...visible.filter(p => !p.unlocked)].slice(0, 10);
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -1630,7 +1630,7 @@ function App() {
               }} />
 
               {/* ── What is Bridg? — floats at ~40% down the earth ── */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1000 }}>
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -940 }}>
                 <div style={{
                   background: "rgba(14,14,14,0.82)",
                   backdropFilter: "blur(24px)",
@@ -1660,7 +1660,7 @@ function App() {
               </div>
 
               {/* Padded content below — paddingTop pushes games below the earth image */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 600, paddingBottom: 24 }}>
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 400, paddingBottom: 24 }}>
                 {/* Saved games */}
                 {saved.length > 0 && (
                   <>
