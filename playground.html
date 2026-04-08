@@ -1636,9 +1636,9 @@ function App() {
                   backdropFilter: "blur(24px)",
                   WebkitBackdropFilter: "blur(24px)",
                   border: `1px solid ${C.border}`,
-                  borderRadius: 24, padding: "56px 72px",
+                  borderRadius: 24, padding: "48px 60px",
                   position: "relative", overflow: "hidden",
-                  maxWidth: 820, margin: "0 auto",
+                  maxWidth: 620, margin: "0 auto",
                 }}>
                   {/* Subtle green glow top-right */}
                   <div style={{ position: "absolute", top: -80, right: -80, width: 400, height: 400,
@@ -1650,31 +1650,17 @@ function App() {
                               fontFamily: "'Rajdhani', sans-serif", marginBottom: 24 }}>
                     Fashion meets<br/>the game.
                   </p>
-                  <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.75, maxWidth: 620, marginBottom: 14 }}>
-                    Bridg turns fashion discovery into a game. Play style challenges, climb the leaderboard, and unlock exclusive pre-order access to drops from your favourite brands — before anyone else.
+                  <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.75, maxWidth: 500, marginBottom: 14 }}>
+                    A service that transforms customer feedback into smarter production decisions to create a more sustainable fashion industry, driven by conscious creation.
                   </p>
-                  <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 620 }}>
-                    The better you play, the earlier you get in. Score high enough and you unlock the ability to pre-order limited pieces at a discount — yours to keep, delivered to your door.
+                  <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 500 }}>
+                    Play games, climb the leaderboard and unlock exclusive pre-order access to drops from your favorite brands, before anyone else.
                   </p>
-                  <div style={{ display: "flex", gap: 12, marginTop: 36 }}>
-                    {[
-                      { key: "PLAY",   sub: "Style challenges"  },
-                      { key: "UNLOCK", sub: "Exclusive drops"   },
-                      { key: "SHOP",   sub: "Before anyone else"},
-                    ].map(pill => (
-                      <div key={pill.key} style={{ padding: "12px 20px", borderRadius: 12,
-                                                   background: C.greenDim, border: `1px solid rgba(181,255,129,0.22)` }}>
-                        <p style={{ fontSize: 10, color: C.green, fontWeight: 700, letterSpacing: "3px",
-                                    fontFamily: "'Rajdhani', sans-serif" }}>{pill.key}</p>
-                        <p style={{ fontSize: 13, color: C.text2, marginTop: 3 }}>{pill.sub}</p>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
 
-              {/* Padded content below */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 0, paddingBottom: 24 }}>
+              {/* Padded content below — paddingTop pushes games below the earth image */}
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 600, paddingBottom: 24 }}>
                 {/* Saved games */}
                 {saved.length > 0 && (
                   <>
