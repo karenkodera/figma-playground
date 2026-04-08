@@ -1305,31 +1305,73 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
 
 /* ── Hero Carousel ───────────────────────────────────────────────── */
 const HERO_STARS = [
-  { top:"5%",  left:"8%",  s:1.5, d:0,   dur:3.2 },
-  { top:"12%", left:"18%", s:1,   d:1.1, dur:2.8 },
-  { top:"3%",  left:"32%", s:2,   d:0.4, dur:3.8 },
-  { top:"18%", left:"42%", s:1,   d:2.1, dur:2.4 },
-  { top:"8%",  left:"55%", s:1.5, d:0.7, dur:3.5 },
-  { top:"22%", left:"68%", s:1,   d:1.5, dur:2.9 },
-  { top:"6%",  left:"78%", s:2,   d:0.2, dur:4.0 },
-  { top:"15%", left:"88%", s:1,   d:1.8, dur:2.6 },
-  { top:"28%", left:"15%", s:1,   d:2.5, dur:3.1 },
-  { top:"33%", left:"28%", s:1.5, d:0.9, dur:3.6 },
-  { top:"25%", left:"72%", s:1,   d:1.3, dur:2.7 },
-  { top:"40%", left:"85%", s:1.5, d:0.6, dur:3.3 },
-  { top:"42%", left:"5%",  s:1,   d:2.0, dur:2.5 },
-  { top:"48%", left:"38%", s:1.5, d:1.6, dur:4.2 },
-  { top:"52%", left:"52%", s:1,   d:0.3, dur:3.0 },
-  { top:"45%", left:"62%", s:1,   d:2.3, dur:2.8 },
-  { top:"55%", left:"22%", s:1,   d:1.0, dur:3.7 },
-  { top:"60%", left:"78%", s:1.5, d:0.5, dur:3.4 },
-  { top:"10%", left:"47%", s:1,   d:1.7, dur:2.9 },
-  { top:"35%", left:"92%", s:1,   d:2.2, dur:3.2 },
-  { top:"20%", left:"3%",  s:1.5, d:0.8, dur:4.1 },
-  { top:"30%", left:"58%", s:1,   d:0.1, dur:3.9 },
-  { top:"50%", left:"95%", s:1,   d:1.9, dur:2.7 },
-  { top:"65%", left:"12%", s:1,   d:2.6, dur:3.5 },
-  { top:"58%", left:"45%", s:1,   d:1.4, dur:2.6 },
+  /* row 1 ~3% */
+  { top:"2%",  left:"8%",  s:1.5, d:0.0, dur:3.2 },
+  { top:"4%",  left:"22%", s:1.0, d:0.7, dur:2.8 },
+  { top:"2%",  left:"38%", s:2.0, d:1.3, dur:3.8 },
+  { top:"3%",  left:"54%", s:1.0, d:0.4, dur:2.5 },
+  { top:"4%",  left:"70%", s:1.5, d:1.8, dur:3.4 },
+  { top:"2%",  left:"84%", s:1.0, d:0.9, dur:2.9 },
+  { top:"3%",  left:"95%", s:2.0, d:0.2, dur:4.0 },
+  /* row 2 ~10% */
+  { top:"9%",  left:"4%",  s:1.0, d:1.5, dur:3.1 },
+  { top:"11%", left:"17%", s:1.5, d:0.3, dur:2.7 },
+  { top:"10%", left:"31%", s:1.0, d:2.0, dur:3.6 },
+  { top:"9%",  left:"47%", s:1.5, d:0.6, dur:2.6 },
+  { top:"11%", left:"62%", s:1.0, d:1.1, dur:4.1 },
+  { top:"10%", left:"78%", s:2.0, d:0.5, dur:3.3 },
+  { top:"9%",  left:"91%", s:1.0, d:1.9, dur:2.8 },
+  /* row 3 ~18% */
+  { top:"17%", left:"11%", s:1.5, d:0.8, dur:3.7 },
+  { top:"19%", left:"26%", s:1.0, d:2.2, dur:2.5 },
+  { top:"18%", left:"42%", s:1.0, d:0.1, dur:3.9 },
+  { top:"17%", left:"58%", s:1.5, d:1.4, dur:3.0 },
+  { top:"19%", left:"73%", s:1.0, d:0.6, dur:2.7 },
+  { top:"18%", left:"88%", s:2.0, d:1.7, dur:3.5 },
+  /* row 4 ~26% */
+  { top:"25%", left:"5%",  s:1.0, d:0.4, dur:2.9 },
+  { top:"27%", left:"20%", s:1.5, d:1.2, dur:3.8 },
+  { top:"26%", left:"36%", s:1.0, d:2.4, dur:2.6 },
+  { top:"25%", left:"51%", s:1.5, d:0.7, dur:4.2 },
+  { top:"27%", left:"67%", s:1.0, d:1.6, dur:3.1 },
+  { top:"26%", left:"82%", s:1.5, d:0.3, dur:2.8 },
+  { top:"25%", left:"94%", s:1.0, d:2.1, dur:3.6 },
+  /* row 5 ~34% */
+  { top:"33%", left:"13%", s:2.0, d:0.9, dur:3.3 },
+  { top:"35%", left:"28%", s:1.0, d:0.2, dur:2.7 },
+  { top:"34%", left:"44%", s:1.5, d:1.8, dur:3.9 },
+  { top:"33%", left:"60%", s:1.0, d:0.5, dur:2.5 },
+  { top:"35%", left:"76%", s:1.5, d:1.3, dur:3.4 },
+  { top:"34%", left:"90%", s:1.0, d:2.3, dur:3.0 },
+  /* row 6 ~42% */
+  { top:"41%", left:"7%",  s:1.5, d:1.0, dur:2.9 },
+  { top:"43%", left:"23%", s:1.0, d:0.4, dur:3.7 },
+  { top:"42%", left:"39%", s:1.0, d:1.9, dur:2.6 },
+  { top:"41%", left:"55%", s:1.5, d:0.8, dur:4.0 },
+  { top:"43%", left:"71%", s:1.0, d:2.5, dur:3.2 },
+  { top:"42%", left:"86%", s:2.0, d:0.1, dur:2.8 },
+  /* row 7 ~50% */
+  { top:"49%", left:"15%", s:1.0, d:1.4, dur:3.5 },
+  { top:"51%", left:"32%", s:1.5, d:0.6, dur:2.7 },
+  { top:"50%", left:"48%", s:1.0, d:2.0, dur:3.8 },
+  { top:"49%", left:"64%", s:1.5, d:0.3, dur:3.1 },
+  { top:"51%", left:"80%", s:1.0, d:1.7, dur:2.5 },
+  { top:"50%", left:"93%", s:1.5, d:0.9, dur:4.1 },
+  /* row 8 ~58% */
+  { top:"57%", left:"9%",  s:1.0, d:2.2, dur:3.3 },
+  { top:"59%", left:"25%", s:1.5, d:0.5, dur:2.8 },
+  { top:"58%", left:"41%", s:1.0, d:1.1, dur:3.6 },
+  { top:"57%", left:"57%", s:2.0, d:0.7, dur:2.6 },
+  { top:"59%", left:"73%", s:1.0, d:1.6, dur:3.9 },
+  { top:"58%", left:"87%", s:1.5, d:0.2, dur:3.0 },
+  /* row 9 ~66% */
+  { top:"65%", left:"4%",  s:1.0, d:1.3, dur:2.7 },
+  { top:"67%", left:"19%", s:1.5, d:0.8, dur:3.5 },
+  { top:"66%", left:"35%", s:1.0, d:2.4, dur:2.9 },
+  { top:"65%", left:"52%", s:1.5, d:0.4, dur:4.0 },
+  { top:"67%", left:"68%", s:1.0, d:1.9, dur:3.2 },
+  { top:"66%", left:"83%", s:2.0, d:0.6, dur:2.6 },
+  { top:"65%", left:"96%", s:1.0, d:1.0, dur:3.7 },
 ];
 
 function HeroCarousel() {
@@ -1621,42 +1663,15 @@ function App() {
               {/* Hero — full viewport height */}
               <HeroCarousel savedGames={savedGames} />
 
-              {/* Earth + stars wrapper */}
-              <div style={{ position: "relative", flexShrink: 0, width: "100%", top: -260 }}>
-                {/* Sparkly stars above the earth */}
-                {[
-                  { top:"2%",  left:"12%",  s:3, dur:1.8, d:0.0 },
-                  { top:"6%",  left:"25%",  s:2, dur:2.3, d:0.4 },
-                  { top:"3%",  left:"40%",  s:4, dur:1.5, d:0.9 },
-                  { top:"8%",  left:"55%",  s:2, dur:2.1, d:0.2 },
-                  { top:"1%",  left:"68%",  s:3, dur:1.9, d:0.6 },
-                  { top:"5%",  left:"80%",  s:2, dur:2.5, d:0.1 },
-                  { top:"10%", left:"90%",  s:3, dur:1.7, d:0.8 },
-                  { top:"4%",  left:"5%",   s:2, dur:2.2, d:0.3 },
-                  { top:"9%",  left:"34%",  s:3, dur:1.6, d:0.7 },
-                  { top:"7%",  left:"72%",  s:2, dur:2.4, d:0.5 },
-                  { top:"12%", left:"18%",  s:2, dur:1.9, d:1.0 },
-                  { top:"11%", left:"48%",  s:3, dur:2.0, d:0.2 },
-                  { top:"13%", left:"62%",  s:2, dur:1.7, d:0.6 },
-                  { top:"14%", left:"85%",  s:3, dur:2.3, d:0.4 },
-                ].map((star, i) => (
-                  <div key={i} style={{
-                    position: "absolute", top: star.top, left: star.left,
-                    width: star.s, height: star.s, borderRadius: "50%",
-                    background: "#fff",
-                    boxShadow: `0 0 ${star.s * 2}px ${star.s}px rgba(255,255,255,0.6)`,
-                    animation: `twinkle ${star.dur}s ease-in-out ${star.d}s infinite`,
-                    pointerEvents: "none", zIndex: 2,
-                  }} />
-                ))}
-                <img src="earth%20pic%2034.png" alt="Earth" style={{
-                  display: "block", width: "100%", maxWidth: 1600, margin: "0 auto",
-                  pointerEvents: "none", zIndex: 0,
-                }} />
-              </div>
+              {/* Earth */}
+              <img src="earth%20pic%2034.png" alt="Earth" style={{
+                display: "block", flexShrink: 0, width: "100%", maxWidth: 1440, margin: "0 auto",
+                position: "relative", top: -260,
+                pointerEvents: "none", zIndex: 0,
+              }} />
 
               {/* ── What is Bridg? — floats at ~40% down the earth ── */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1000 }}>
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1200 }}>
                 <div style={{
                   background: "rgba(14,14,14,0.82)",
                   backdropFilter: "blur(24px)",
