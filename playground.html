@@ -188,6 +188,12 @@ const LEADERBOARD = [
   { rank: 6, name: "Riley T.",   pts: 1420 },
 ];
 
+const BRAND_LOGOS = {
+  "Gymshark":       "gymshark%20logo.jpg",
+  "Outdoor Voices": "outdoor%20voices%20logo.png",
+  "Aritzia":        "aritzia%20logo.png",
+};
+
 /* ── Design tokens ───────────────────────────────────────────────── */
 const C = {
   bg:        "#0e0e0e",
@@ -508,13 +514,21 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
       boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
     }}>
       {/* Image */}
-      <div style={{ position: "relative", aspectRatio: "1 / 1", overflow: "hidden", flexShrink: 0 }}>
-        <img src={item.img} alt={item.name}
-             style={{ width: "100%", height: "100%", objectFit: "cover", opacity: item.unlocked ? 0.88 : 0.18,
-                      filter: item.unlocked ? "none" : "grayscale(60%)", transition: "opacity 0.2s" }} />
-        {/* gradient overlay */}
-        <div style={{ position: "absolute", inset: 0,
-                      background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 45%)" }} />
+      <div style={{ position: "relative", aspectRatio: "1 / 1", overflow: "hidden", flexShrink: 0,
+                    background: BRAND_LOGOS[item.brand] ? "#ffffff" : "transparent" }}>
+        <img src={BRAND_LOGOS[item.brand] || item.img} alt={item.brand}
+             style={{
+               width: "100%", height: "100%", transition: "opacity 0.2s",
+               objectFit: BRAND_LOGOS[item.brand] ? "contain" : "cover",
+               padding: BRAND_LOGOS[item.brand] ? "24px" : 0,
+               opacity: item.unlocked ? (BRAND_LOGOS[item.brand] ? 1 : 0.88) : 0.18,
+               filter: item.unlocked ? "none" : "grayscale(60%)",
+             }} />
+        {/* gradient overlay — only for photo cards */}
+        {!BRAND_LOGOS[item.brand] && (
+          <div style={{ position: "absolute", inset: 0,
+                        background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 45%)" }} />
+        )}
 
         {/* Unlocked badge */}
         {item.unlocked && (
