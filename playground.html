@@ -514,7 +514,7 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
       boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
     }}>
       {/* Image */}
-      <div style={{ position: "relative", aspectRatio: "1 / 1", overflow: "hidden", flexShrink: 0,
+      <div style={{ position: "relative", aspectRatio: "1 / 1.35", overflow: "hidden", flexShrink: 0,
                     background: BRAND_LOGOS[item.brand] ? "#ffffff" : "transparent" }}>
         <img src={BRAND_LOGOS[item.brand] || item.img} alt={item.brand}
              style={{
@@ -1269,7 +1269,6 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
       {/* Hero */}
       <div style={{
         paddingLeft: 48, paddingRight: 48, paddingTop: 40, paddingBottom: 36,
-        borderBottom: `1px solid ${C.border}`,
         background: "linear-gradient(to bottom, rgba(181,255,129,0.04) 0%, transparent 100%)",
       }}>
         <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
@@ -1286,7 +1285,6 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
       <div style={{
         display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", flexShrink: 0,
         paddingLeft: 48, paddingRight: 48, paddingTop: 16, paddingBottom: 14,
-        borderBottom: `1px solid ${C.border}`,
       }}>
         {CATS.map(c => (
           <button key={c.key} className="btn" onClick={() => setShopFilter(c.key)} style={{
@@ -1313,7 +1311,7 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
       {/* Grid */}
       <div style={{
         flex: 1, minHeight: 0, overflowY: "auto",
-        display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+        display: "grid", gridTemplateColumns: "repeat(2, 1fr)",
         gap: 24, padding: "28px 48px 40px", alignContent: "start",
       }}>
         {visible.map(item => (
