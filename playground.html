@@ -1664,15 +1664,17 @@ function App() {
               {/* Hero — full viewport height */}
               <HeroCarousel savedGames={savedGames} />
 
-              {/* Earth */}
+              {/* Earth — fades out at 75% down via mask */}
               <img src="earth%20pic%2034.png" alt="Earth" style={{
                 display: "block", flexShrink: 0, width: "100%", maxWidth: 1224, margin: "0 auto",
                 position: "relative", top: -260,
                 pointerEvents: "none", zIndex: 0,
+                WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 60%, transparent 100%)",
+                maskImage: "linear-gradient(to bottom, black 0%, black 60%, transparent 100%)",
               }} />
 
               {/* ── What is Bridg? — floats at ~40% down the earth ── */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1260 }}>
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1320 }}>
                 <div style={{
                   background: "rgba(14,14,14,0.82)",
                   backdropFilter: "blur(24px)",
@@ -1698,6 +1700,23 @@ function App() {
                   <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 500 }}>
                     Play games, climb the leaderboard and unlock exclusive pre-order access to drops from your favorite brands, before anyone else.
                   </p>
+                  <button
+                    onClick={() => setTab("play")}
+                    style={{
+                      marginTop: 32,
+                      padding: "14px 36px",
+                      borderRadius: 12,
+                      border: "none",
+                      background: C.green,
+                      color: "#0a0a0a",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      letterSpacing: "2px",
+                      fontFamily: "'Rajdhani', sans-serif",
+                      cursor: "pointer",
+                      textTransform: "uppercase",
+                    }}
+                  >Start Playing</button>
                 </div>
               </div>
 
