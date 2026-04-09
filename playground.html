@@ -518,7 +518,7 @@ function AllGamesPage({ games, onBack, savedGames = new Set(), onToggleSave = ()
 }
 
 /* ── Pre-order Card ──────────────────────────────────────────────── */
-function PreorderCard({ item, inCart, onAdd, onRemove }) {
+function PreorderCard({ item, inCart, cartQty, onAdd, onRemove, onUpdateQty }) {
   return (
     <div className="card" style={{
       background: C.card,
@@ -587,13 +587,13 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
         <div style={{ marginTop: 4 }}>
           {item.unlocked ? (
             inCart ? (
-              <button className="btn" onClick={() => onRemove(item.id)} style={{
-                width: "100%", background: "rgba(255,255,255,0.07)",
-                border: `1px solid ${C.border}`,
-                color: C.text2, borderRadius: 0, padding: "10px 0",
-                fontSize: 12, fontWeight: 700, letterSpacing: "0.8px",
-                fontFamily: "'Rajdhani', sans-serif",
-              }}>REMOVE</button>
+              <div style={{ display: "flex", alignItems: "center", border: `1px solid ${C.border}`, background: "rgba(255,255,255,0.04)" }}>
+                <button className="btn" onClick={() => cartQty > 1 ? onUpdateQty(item.id, cartQty - 1) : onRemove(item.id)}
+                        style={{ flex: 1, padding: "10px 0", fontSize: 18, color: C.text2, background: "transparent", fontWeight: 400 }}>−</button>
+                <span style={{ flex: 1, textAlign: "center", fontSize: 13, fontWeight: 700, color: C.text1 }}>{cartQty}</span>
+                <button className="btn" onClick={() => onUpdateQty(item.id, cartQty + 1)}
+                        style={{ flex: 1, padding: "10px 0", fontSize: 18, color: C.text2, background: "transparent", fontWeight: 400 }}>+</button>
+              </div>
             ) : (
               <button className="btn" onClick={() => onAdd(item)} style={{
                 width: "100%",
@@ -1256,7 +1256,7 @@ function AritziaCongratsPage({ game, onClose }) {
 }
 
 /* ── Preorder Tab ────────────────────────────────────────────────── */
-function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, unlockedOnly, setUnlockedOnly, cartItems, onAdd, onRemove }) {
+function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, unlockedOnly, setUnlockedOnly, cartItems, onAdd, onRemove, onUpdateQty }) {
   const CATS   = [
     { key: "all", label: "All" }, { key: "tops", label: "Tops" },
     { key: "bottoms", label: "Bottoms" }, { key: "outerwear", label: "Outerwear" },
@@ -1324,7 +1324,8 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
         {visible.map(item => (
           <PreorderCard key={item.id} item={item}
             inCart={!!cartItems.find(c => c.id === item.id)}
-            onAdd={onAdd} onRemove={onRemove} />
+            cartQty={cartItems.find(c => c.id === item.id)?.qty || 0}
+            onAdd={onAdd} onRemove={onRemove} onUpdateQty={onUpdateQty} />
         ))}
       </div>
     </div>
@@ -1931,7 +1932,7 @@ function App() {
             shopFilter={shopFilter} setShopFilter={setShopFilter}
             brandFilter={brandFilter} setBrandFilter={setBrandFilter}
             unlockedOnly={unlockedOnly} setUnlockedOnly={setUnlockedOnly}
-            cartItems={cartItems} onAdd={addToCart} onRemove={removeFromCart}
+            cartItems={cartItems} onAdd={addToCart} onRemove={removeFromCart} onUpdateQty={updateQty}
           />}
 
       </main>
