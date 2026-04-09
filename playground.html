@@ -1450,9 +1450,11 @@ function HeroCarousel() {
 function App() {
   const [tab, setTab]             = useState("about");
   const [playKey, setPlayKey]     = useState(0);
+  const [preorderKey, setPreorderKey] = useState(0);
   const [aboutPage, setAboutPage] = useState(0);
   const aboutPageRef              = useRef(0);
   const aboutWheelAccum           = useRef(0);
+  const tabInitRef                = useRef(false);
   const aboutIsAnimating          = useRef(false);
   const aboutContainerRef         = useRef(null);
   const [cartOpen, setCartOpen]   = useState(false);
@@ -1483,6 +1485,14 @@ function App() {
   const removeFromCart = (id)      => setCartItems(p => p.filter(i => i.id !== id));
   const updateQty      = (id, qty) => setCartItems(p => p.map(i => i.id === id ? { ...i, qty } : i));
   const cartCount = cartItems.reduce((s, i) => s + i.qty, 0);
+
+  /* ── Reset scroll position when switching tabs ── */
+  useEffect(() => {
+    if (!tabInitRef.current) { tabInitRef.current = true; return; }
+    if (tab === "play")     setPlayKey(k => k + 1);
+    if (tab === "preorder") setPreorderKey(k => k + 1);
+    if (tab === "about")    { setAboutPage(0); aboutPageRef.current = 0; aboutWheelAccum.current = 0; }
+  }, [tab]);
 
   /* ── About page wheel handler ── */
   useEffect(() => {
@@ -1792,7 +1802,7 @@ function App() {
                 {/* ── Top row: Intro left + Leaderboard right ── */}
                 <div style={{ display: "flex", gap: 40, alignItems: "center", marginBottom: 40 }}>
                   {/* Left: intro text */}
-                  <div style={{ flex: 1, paddingTop: 8, textAlign: "center" }}>
+                  <div style={{ flex: 1, paddingTop: 8 }}>
                     <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
                                 fontFamily: "'Rajdhani', sans-serif", marginBottom: 14 }}>PLAY. UNLOCK. SHOP.</p>
                     <p style={{ fontSize: 38, fontWeight: 800, color: C.text1, lineHeight: 1.1,
@@ -1889,7 +1899,7 @@ function App() {
             </div>
           );
         })()
-        : <PreorderTab
+        : <PreorderTab key={preorderKey}
             shopFilter={shopFilter} setShopFilter={setShopFilter}
             brandFilter={brandFilter} setBrandFilter={setBrandFilter}
             unlockedOnly={unlockedOnly} setUnlockedOnly={setUnlockedOnly}
