@@ -1415,9 +1415,9 @@ function HeroCarousel() {
         {HERO_STARS.map((star, i) => (
           <div key={i} style={{
             position: "absolute", top: star.top, left: star.left,
-            width: star.s * 2, height: star.s * 2, borderRadius: "50%",
+            width: star.s * 1.4, height: star.s * 1.4, borderRadius: "50%",
             background: "#fff",
-            boxShadow: `0 0 ${star.s * 3}px ${star.s * 1.5}px rgba(255,255,255,0.7)`,
+            boxShadow: `0 0 ${star.s * 2}px ${star.s}px rgba(255,255,255,0.6)`,
             animation: `twinkle ${star.dur}s ease-in-out ${star.d}s infinite`,
           }} />
         ))}
@@ -1448,7 +1448,7 @@ function HeroCarousel() {
 
 /* ── App ─────────────────────────────────────────────────────────── */
 function App() {
-  const [tab, setTab]             = useState("play");
+  const [tab, setTab]             = useState("landing");
   const [cartOpen, setCartOpen]   = useState(false);
   const [cartItems, setCartItems] = useState([
     { ...PREORDERS[0], qty: 1 },
@@ -1497,16 +1497,16 @@ function App() {
         WebkitBackdropFilter: "blur(40px) saturate(180%)",
         boxShadow: "0 1px 0 rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}>
-        {/* Left: Logo + Bridg */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        {/* Left: Logo + Bridg — clicking returns to landing */}
+        <div onClick={() => setTab("landing")} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
           <Logo />
           <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "2px", color: C.text1, textTransform: "uppercase", fontFamily: "'Rajdhani', sans-serif" }}>
             bridg
           </span>
         </div>
 
-        {/* Center: Play / Pre-order pill switch */}
-        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+        {/* Center: Play / Pre-order pill switch — hidden on landing */}
+        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", opacity: tab === "landing" ? 0 : 1, pointerEvents: tab === "landing" ? "none" : "auto", transition: "opacity 0.2s" }}>
           <div style={{
             position: "relative", display: "flex",
             background: "rgba(255,255,255,0.07)",
@@ -1613,7 +1613,42 @@ function App() {
       }}>
 
         {/* Content */}
-        {tab === "play" ? (() => {
+        {tab === "landing" ? (
+          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
+            <HeroCarousel savedGames={savedGames} />
+            <img src="earth%20pic%2034.png" alt="Earth" style={{
+              display: "block", flexShrink: 0, width: "100%", maxWidth: 1224, margin: "0 auto",
+              position: "relative", top: -260, pointerEvents: "none", zIndex: 0,
+            }} />
+            <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1260 }}>
+              <div style={{
+                background: "rgba(14,14,14,0.82)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+                border: `1px solid ${C.border}`, borderRadius: 24, padding: "48px 60px",
+                position: "relative", overflow: "hidden", maxWidth: 620, margin: "0 auto",
+              }}>
+                <div style={{ position: "absolute", top: -80, right: -80, width: 400, height: 400,
+                              borderRadius: "50%", background: "radial-gradient(circle, rgba(181,255,129,0.06) 0%, transparent 70%)",
+                              pointerEvents: "none" }} />
+                <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
+                            fontFamily: "'Rajdhani', sans-serif", marginBottom: 16 }}>WHAT IS BRIDG?</p>
+                <p style={{ fontSize: 52, fontWeight: 800, color: C.text1, lineHeight: 1.05,
+                            fontFamily: "'Rajdhani', sans-serif", marginBottom: 24 }}>Fashion meets<br/>the game.</p>
+                <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.75, maxWidth: 500, marginBottom: 14 }}>
+                  A service that transforms customer feedback into smarter production decisions to create a more sustainable fashion industry, driven by conscious creation.
+                </p>
+                <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 500 }}>
+                  Play games, climb the leaderboard and unlock exclusive pre-order access to drops from your favorite brands, before anyone else.
+                </p>
+                <button onClick={() => setTab("play")} style={{
+                  marginTop: 32, padding: "14px 36px", width: "100%", borderRadius: 12,
+                  border: "none", background: C.green, color: "#0a0a0a", fontSize: 13,
+                  fontWeight: 700, letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif",
+                  cursor: "pointer", textTransform: "uppercase",
+                }}>Start Playing</button>
+              </div>
+            </div>
+          </div>
+        ) : tab === "play" ? (() => {
           const active  = GAMES.filter(g => !g.done);
           const done    = GAMES.filter(g => g.done);
           const forYou  = active.filter(g => g.athletic);
@@ -1660,67 +1695,7 @@ function App() {
 
           return (
             <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
-
-              {/* Hero — full viewport height */}
-              <HeroCarousel savedGames={savedGames} />
-
-              {/* Earth — fades out at 75% down via mask */}
-              <img src="earth%20pic%2034.png" alt="Earth" style={{
-                display: "block", flexShrink: 0, width: "100%", maxWidth: 1224, margin: "0 auto",
-                position: "relative", top: -260,
-                pointerEvents: "none", zIndex: 0,
-              }} />
-
-              {/* ── What is Bridg? — floats at ~40% down the earth ── */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1260 }}>
-                <div style={{
-                  background: "rgba(14,14,14,0.82)",
-                  backdropFilter: "blur(24px)",
-                  WebkitBackdropFilter: "blur(24px)",
-                  border: `1px solid ${C.border}`,
-                  borderRadius: 24, padding: "48px 60px",
-                  position: "relative", overflow: "hidden",
-                  maxWidth: 620, margin: "0 auto",
-                }}>
-                  {/* Subtle green glow top-right */}
-                  <div style={{ position: "absolute", top: -80, right: -80, width: 400, height: 400,
-                                borderRadius: "50%", background: "radial-gradient(circle, rgba(181,255,129,0.06) 0%, transparent 70%)",
-                                pointerEvents: "none" }} />
-                  <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
-                              fontFamily: "'Rajdhani', sans-serif", marginBottom: 16 }}>WHAT IS BRIDG?</p>
-                  <p style={{ fontSize: 52, fontWeight: 800, color: C.text1, lineHeight: 1.05,
-                              fontFamily: "'Rajdhani', sans-serif", marginBottom: 24 }}>
-                    Fashion meets<br/>the game.
-                  </p>
-                  <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.75, maxWidth: 500, marginBottom: 14 }}>
-                    A service that transforms customer feedback into smarter production decisions to create a more sustainable fashion industry, driven by conscious creation.
-                  </p>
-                  <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 500 }}>
-                    Play games, climb the leaderboard and unlock exclusive pre-order access to drops from your favorite brands, before anyone else.
-                  </p>
-                  <button
-                    onClick={() => setTab("play")}
-                    style={{
-                      marginTop: 32,
-                      padding: "14px 36px",
-                      width: "100%",
-                      borderRadius: 12,
-                      border: "none",
-                      background: C.green,
-                      color: "#0a0a0a",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      letterSpacing: "2px",
-                      fontFamily: "'Rajdhani', sans-serif",
-                      cursor: "pointer",
-                      textTransform: "uppercase",
-                    }}
-                  >Start Playing</button>
-                </div>
-              </div>
-
-              {/* Padded content below — paddingTop pushes games below the earth image */}
-              <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 200, paddingBottom: 24 }}>
+              <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 24, paddingBottom: 24 }}>
                 {/* Saved games */}
                 {saved.length > 0 && (
                   <>
