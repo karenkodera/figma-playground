@@ -1248,8 +1248,7 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
   let visible = PREORDERS;
   if (shopFilter !== "all") visible = visible.filter(p => p.cat === shopFilter);
   if (brandFilter !== "All brands") visible = visible.filter(p => p.brand === brandFilter);
-  if (unlockedOnly) visible = visible.filter(p => p.unlocked);
-  visible = [...visible.filter(p => p.unlocked), ...visible.filter(p => !p.unlocked)].slice(0, 10);
+  visible = visible.filter(p => p.unlocked).slice(0, 10);
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -1266,7 +1265,7 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
           Pre-order drops<br/>before they go public.
         </p>
         <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 520 }}>
-          Play brand challenges to unlock exclusive pre-order access. Locked items become available as you earn points and climb the leaderboard.
+          Locked items become available as you earn points and climb the leaderboard.
         </p>
       </div>
       {/* Filter bar */}
@@ -1293,19 +1292,13 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
         }}>
           {BRANDS.map(b => <option key={b} value={b} style={{ background: "#1f1f1f" }}>{b}</option>)}
         </select>
-        <button className="btn" onClick={() => setUnlockedOnly(v => !v)} style={{
-          padding: "5px 14px", borderRadius: 20, fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif",
-          background: unlockedOnly ? "rgba(181,255,129,0.15)" : "rgba(255,255,255,0.06)",
-          color: unlockedOnly ? C.green : C.text2,
-          border: unlockedOnly ? `1px solid ${C.green}` : `1px solid ${C.border}`,
-        }}>Unlocked only</button>
         <span style={{ marginLeft: "auto", fontSize: 12, color: C.text3 }}>
           {visible.length} item{visible.length !== 1 ? "s" : ""}
         </span>
       </div>
       {/* Grid */}
       <div style={{
-        flex: 1, overflowY: "auto",
+        flex: 1, minHeight: 0, overflowY: "auto",
         display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
         gap: 24, padding: "28px 48px 40px", alignContent: "start",
       }}>
