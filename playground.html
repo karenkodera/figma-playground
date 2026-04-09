@@ -502,7 +502,7 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
     <div className="card" style={{
       background: C.card,
       border: `1px solid ${C.border}`,
-      borderRadius: 16,
+      borderRadius: 0,
       overflow: "hidden",
       display: "flex", flexDirection: "column",
       boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
@@ -555,7 +555,7 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
       </div>
 
       {/* Info */}
-      <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
           <p style={{ fontSize: 13, fontWeight: 700, color: C.text1, lineHeight: 1.3, flex: 1 }}>{item.name}</p>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", flexShrink: 0 }}>
@@ -571,7 +571,7 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
               <button className="btn" onClick={() => onRemove(item.id)} style={{
                 width: "100%", background: "rgba(255,255,255,0.07)",
                 border: `1px solid ${C.border}`,
-                color: C.text2, borderRadius: 9, padding: "8px 0",
+                color: C.text2, borderRadius: 0, padding: "10px 0",
                 fontSize: 12, fontWeight: 700, letterSpacing: "0.8px",
                 fontFamily: "'Rajdhani', sans-serif",
               }}>REMOVE</button>
@@ -579,7 +579,7 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
               <button className="btn" onClick={() => onAdd(item)} style={{
                 width: "100%",
                 background: "#B5FF81",
-                color: "#1a2612", borderRadius: 9, padding: "8px 0",
+                color: "#1a2612", borderRadius: 0, padding: "10px 0",
                 fontSize: 12, fontWeight: 700, letterSpacing: "0.8px",
                 fontFamily: "'Rajdhani', sans-serif",
                 boxShadow: "0 2px 12px rgba(181,255,129,0.3)",
@@ -589,7 +589,7 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
             <div style={{
               width: "100%", background: "rgba(255,255,255,0.04)",
               border: `1px solid ${C.border}`,
-              borderRadius: 9, padding: "8px 0", textAlign: "center",
+              borderRadius: 0, padding: "10px 0", textAlign: "center",
               fontSize: 11, fontWeight: 700, color: C.text3, letterSpacing: "0.8px",
               fontFamily: "'Rajdhani', sans-serif",
             }}>{item.tag.replace("Play ", "▶ Play ")}</div>
@@ -1253,6 +1253,22 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* Hero */}
+      <div style={{
+        paddingLeft: 48, paddingRight: 48, paddingTop: 40, paddingBottom: 36,
+        borderBottom: `1px solid ${C.border}`,
+        background: "linear-gradient(to bottom, rgba(181,255,129,0.04) 0%, transparent 100%)",
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
+                    fontFamily: "'Rajdhani', sans-serif", marginBottom: 12 }}>EARLY ACCESS</p>
+        <p style={{ fontSize: 44, fontWeight: 800, color: C.text1, lineHeight: 1.05,
+                    fontFamily: "'Rajdhani', sans-serif", marginBottom: 16 }}>
+          Pre-order drops<br/>before they go public.
+        </p>
+        <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 520 }}>
+          Play brand challenges to unlock exclusive pre-order access. Locked items become available as you earn points and climb the leaderboard.
+        </p>
+      </div>
       {/* Filter bar */}
       <div style={{
         display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", flexShrink: 0,
@@ -1290,8 +1306,8 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
       {/* Grid */}
       <div style={{
         flex: 1, overflowY: "auto",
-        display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
-        gap: 18, padding: "24px 48px 32px", alignContent: "start",
+        display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+        gap: 24, padding: "28px 48px 40px", alignContent: "start",
       }}>
         {visible.map(item => (
           <PreorderCard key={item.id} item={item}
