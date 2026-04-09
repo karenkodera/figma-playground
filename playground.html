@@ -1402,7 +1402,7 @@ function HeroCarousel() {
   const scale      = 1 - progress * 0.05;
 
   return (
-    <div ref={wrapperRef} style={{ height: "100vh", flexShrink: 0, position: "relative" }}>
+    <div ref={wrapperRef} style={{ height: "calc(100vh - 60px)", flexShrink: 0, position: "relative" }}>
 
       {/* Scroll fade wrapper — stars + text, fades on scroll */}
       <div style={{
@@ -1448,7 +1448,7 @@ function HeroCarousel() {
 
 /* ── App ─────────────────────────────────────────────────────────── */
 function App() {
-  const [tab, setTab]             = useState("landing");
+  const [tab, setTab]             = useState("about");
   const [playKey, setPlayKey]     = useState(0);
   const [cartOpen, setCartOpen]   = useState(false);
   const [cartItems, setCartItems] = useState([
@@ -1488,8 +1488,8 @@ function App() {
       <CartSidebar open={cartOpen} items={cartItems} onClose={() => setCartOpen(false)}
                    onRemove={removeFromCart} onUpdateQty={updateQty} />
 
-      {/* ── Header — hidden on landing page ── */}
-      {tab !== "landing" && <header style={{
+      {/* ── Header ── */}
+      <header style={{
         position: "absolute", top: 0, left: 0, right: 0, zIndex: 10,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         height: 60, padding: "0 48px",
@@ -1498,16 +1498,16 @@ function App() {
         WebkitBackdropFilter: "blur(40px) saturate(180%)",
         boxShadow: "0 1px 0 rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}>
-        {/* Left: Logo + Bridg — clicking returns to landing */}
-        <div onClick={() => setTab("landing")} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+        {/* Left: Logo + Bridg — clicking returns to About Bridg */}
+        <div onClick={() => setTab("about")} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
           <Logo />
           <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "2px", color: C.text1, textTransform: "uppercase", fontFamily: "'Rajdhani', sans-serif" }}>
             bridg
           </span>
         </div>
 
-        {/* Center: Play / Pre-order pill switch — hidden on landing */}
-        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", opacity: tab === "landing" ? 0 : 1, pointerEvents: tab === "landing" ? "none" : "auto", transition: "opacity 0.2s" }}>
+        {/* Center: About Bridg / Play / Pre-order pill switch */}
+        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
           <div style={{
             position: "relative", display: "flex",
             background: "rgba(255,255,255,0.07)",
@@ -1517,20 +1517,21 @@ function App() {
             {/* Sliding thumb */}
             <div style={{
               position: "absolute", top: 3, bottom: 3,
-              width: "calc(50% - 3px)",
-              left: tab === "play" ? 3 : "calc(50%)",
+              width: "calc(33.33% - 4px)",
+              left: tab === "about" ? 3 : tab === "play" ? "calc(33.33%)" : "calc(66.66%)",
               background: C.green,
               borderRadius: 999,
               transition: "left 0.25s cubic-bezier(0.4,0,0.2,1)",
               pointerEvents: "none",
             }} />
             {[
-              { key: "play",     label: "Play"      },
-              { key: "preorder", label: "Pre-order" },
+              { key: "about",    label: "About Bridg" },
+              { key: "play",     label: "Play"         },
+              { key: "preorder", label: "Pre-order"    },
             ].map(t => (
               <button key={t.key} className="btn" onClick={() => setTab(t.key)} style={{
                 position: "relative", zIndex: 1,
-                padding: "6px 24px", borderRadius: 999,
+                padding: "6px 20px", borderRadius: 999,
                 fontSize: 13, fontWeight: 700,
                 fontFamily: "'Rajdhani', sans-serif", letterSpacing: "0.8px",
                 color: tab === t.key ? "#1a2612" : C.text2,
@@ -1604,19 +1605,17 @@ function App() {
             <IconPerson />
           </button>
         </div>
-      </header>}
+      </header>
 
       {/* ── Main ── */}
       <main style={{
-        position: "absolute", left: 0, right: 0,
-        top: tab === "landing" ? 0 : 60,
-        bottom: tab === "landing" ? 0 : 18,
+        position: "absolute", left: 0, right: 0, top: 60, bottom: 18,
         display: "flex", flexDirection: "column",
         overflow: "hidden", zIndex: 1,
       }}>
 
         {/* Content */}
-        {tab === "landing" ? (
+        {tab === "about" ? (
           <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column", scrollSnapType: "y mandatory" }}>
             <div style={{ scrollSnapAlign: "start", flexShrink: 0 }}>
               <HeroCarousel savedGames={savedGames} />
