@@ -1270,8 +1270,8 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
   visible = visible.filter(p => p.unlocked).slice(0, 10);
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      {/* Hero */}
+    <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+      {/* Hero — scrolls away */}
       <div style={{
         paddingLeft: 48, paddingRight: 48, paddingTop: 40, paddingBottom: 36,
         background: "linear-gradient(to bottom, rgba(181,255,129,0.04) 0%, transparent 100%)",
@@ -1286,10 +1286,13 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
           Locked items become available as you earn points and climb the leaderboard.
         </p>
       </div>
-      {/* Filter bar */}
+      {/* Filter bar — sticks to top of scroll container once hero scrolls away */}
       <div style={{
-        display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", flexShrink: 0,
-        paddingLeft: 48, paddingRight: 48, paddingTop: 16, paddingBottom: 14,
+        position: "sticky", top: 0, zIndex: 10,
+        display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap",
+        paddingLeft: 48, paddingRight: 48, paddingTop: 14, paddingBottom: 14,
+        background: "rgba(14,14,14,0.96)", backdropFilter: "blur(16px)",
+        borderBottom: `1px solid ${C.border}`,
       }}>
         {CATS.map(c => (
           <button key={c.key} className="btn" onClick={() => setShopFilter(c.key)} style={{
@@ -1314,17 +1317,15 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
         </span>
       </div>
       {/* Grid */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
-        <div style={{
-          display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 24, padding: "28px 48px 40px",
-        }}>
-          {visible.map(item => (
-            <PreorderCard key={item.id} item={item}
-              inCart={!!cartItems.find(c => c.id === item.id)}
-              onAdd={onAdd} onRemove={onRemove} />
-          ))}
-        </div>
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+        gap: 24, padding: "28px 48px 40px",
+      }}>
+        {visible.map(item => (
+          <PreorderCard key={item.id} item={item}
+            inCart={!!cartItems.find(c => c.id === item.id)}
+            onAdd={onAdd} onRemove={onRemove} />
+        ))}
       </div>
     </div>
   );
