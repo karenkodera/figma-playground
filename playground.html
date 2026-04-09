@@ -1525,7 +1525,7 @@ function App() {
               pointerEvents: "none",
             }} />
             {[
-              { key: "about",    label: "About Bridg" },
+              { key: "about",    label: "About"        },
               { key: "play",     label: "Play"         },
               { key: "preorder", label: "Pre-order"    },
             ].map(t => (
@@ -1666,30 +1666,25 @@ function App() {
                     <Logo />
                     <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: "2px", color: C.text1, textTransform: "uppercase", fontFamily: "'Rajdhani', sans-serif" }}>bridg</span>
                   </div>
-                  <p style={{ fontSize: 13, color: C.text3, lineHeight: 1.7, maxWidth: 280 }}>
-                    Fashion discovery, gamified. Play, unlock, and pre-order before anyone else.
-                  </p>
+                  <p style={{ fontSize: 13, color: C.green, letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, marginBottom: 4 }}>CONSCIOUS CREATION</p>
+                  <p style={{ fontSize: 12, color: C.text3 }}>© 2025 Bridg. All rights reserved.</p>
                 </div>
                 {/* Links */}
                 <div style={{ display: "flex", gap: 64 }}>
                   <div>
                     <p style={{ fontSize: 10, fontWeight: 700, color: C.green, letterSpacing: "3px", fontFamily: "'Rajdhani', sans-serif", marginBottom: 16 }}>EXPLORE</p>
-                    {["About Bridg", "Play", "Pre-order", "Leaderboard"].map(l => (
+                    {["About", "Play", "Pre-order"].map(l => (
                       <p key={l} style={{ fontSize: 13, color: C.text2, marginBottom: 10, cursor: "pointer" }}
-                         onClick={() => setTab(l === "About Bridg" ? "about" : l === "Pre-order" ? "preorder" : "play")}>{l}</p>
+                         onClick={() => setTab(l === "About" ? "about" : l === "Pre-order" ? "preorder" : "play")}>{l}</p>
                     ))}
                   </div>
                   <div>
                     <p style={{ fontSize: 10, fontWeight: 700, color: C.green, letterSpacing: "3px", fontFamily: "'Rajdhani', sans-serif", marginBottom: 16 }}>COMPANY</p>
-                    {["Careers", "Press", "Privacy Policy", "Terms"].map(l => (
+                    {["Careers", "Privacy Policy", "Terms"].map(l => (
                       <p key={l} style={{ fontSize: 13, color: C.text2, marginBottom: 10, cursor: "pointer" }}>{l}</p>
                     ))}
                   </div>
                 </div>
-              </div>
-              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <p style={{ fontSize: 12, color: C.text3 }}>© 2025 Bridg. All rights reserved.</p>
-                <p style={{ fontSize: 12, color: C.text3, fontFamily: "'Rajdhani', sans-serif", letterSpacing: "1px" }}>CONSCIOUS CREATION</p>
               </div>
             </footer>
 
