@@ -197,6 +197,7 @@ const BRAND_LOGOS = {
   "Nike":           "nike%20logo.png",
   "Patagonia":      "patagonia%20logo.svg",
   "Vuori":          "vuori%20logo.png",
+  "Alo Yoga":       "alo%20logo.jpg",
 };
 
 /* ── Design tokens ───────────────────────────────────────────────── */
@@ -531,7 +532,8 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
       <div style={{ position: "relative", height: 340, overflow: "hidden", flexShrink: 0,
                     background: BRAND_LOGOS[item.brand] ? "#ffffff" : "transparent" }}>
         {BRAND_LOGOS[item.brand] ? (
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                        padding: item.brand === "Lululemon" ? 16 : 40 }}>
             <img src={BRAND_LOGOS[item.brand]} alt={item.brand}
                  style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
           </div>
@@ -566,33 +568,21 @@ function PreorderCard({ item, inCart, onAdd, onRemove }) {
           </div>
         )}
 
-        {/* Brand + price pinned to bottom of image */}
-        <div style={{ position: "absolute", bottom: 10, left: 12, right: 12,
-                      display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)",
-                         letterSpacing: "1.5px", fontFamily: "'Rajdhani', sans-serif",
-                         textTransform: "uppercase" }}>{item.brand}</span>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textDecoration: "line-through" }}>
-              ${item.origPrice}
-            </span>
-            <span style={{ fontSize: 16, fontWeight: 800, color: item.unlocked ? C.text1 : C.text3 }}>
-              ${item.price}
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* Info */}
       <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: C.text1, lineHeight: 1.3, flex: 1 }}>{item.name}</p>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: C.text1, lineHeight: 1.3, marginBottom: 4 }}>{item.name}</p>
+            <p style={{ fontSize: 12, color: C.text3 }}>Size {item.size}</p>
+          </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", flexShrink: 0 }}>
             <span style={{ fontSize: 15, fontWeight: 800, color: item.unlocked ? C.text1 : C.text3 }}>${item.price}</span>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", textDecoration: "line-through" }}>${item.origPrice}</span>
           </div>
         </div>
-        <p style={{ fontSize: 12, color: C.text3 }}>{item.color} · Size {item.size}</p>
+        <p style={{ fontSize: 12, color: C.text3 }}>{item.color}</p>
 
         <div style={{ marginTop: 4 }}>
           {item.unlocked ? (
