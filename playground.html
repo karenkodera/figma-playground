@@ -83,6 +83,8 @@
     .congrats-reveal { animation: congratsReveal 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards; }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes cartPop { 0%,100% { transform: scale(1); } 40% { transform: scale(1.35); } 70% { transform: scale(0.9); } }
+    @keyframes addedPop { 0% { opacity:0; transform: scale(0.8); } 60% { transform: scale(1.08); } 100% { opacity:1; transform: scale(1); } }
     @keyframes twinkle {
       0%, 100% { opacity: 0.08; transform: scale(1); }
       50%       { opacity: 0.65; transform: scale(1.5); }
@@ -526,10 +528,18 @@ const CAT_SIZES = {
   footwear:  ["6", "7", "8", "9", "10", "11"],
 };
 
-function PreorderCard({ item, inCart, cartQty, onAdd, onRemove, onUpdateQty }) {
-  const [hovered, setHovered]         = useState(false);
-  const [selectedSize, setSelectedSize] = useState(null);
+function PreorderCard({ item, onAdd, onOpenCart }) {
+  const [hovered, setHovered]   = useState(false);
+  const [added, setAdded]       = useState(false);
   const sizes = CAT_SIZES[item.cat] || ["XS", "S", "M", "L", "XL"];
+
+  const handleSizeClick = (e, size) => {
+    e.stopPropagation();
+    onAdd({ ...item, size });
+    setAdded(true);
+    onOpenCart();
+    setTimeout(() => setAdded(false), 2200);
+  };
 
   return (
     <div className="card"
@@ -580,85 +590,59 @@ function PreorderCard({ item, inCart, cartQty, onAdd, onRemove, onUpdateQty }) {
           </div>
         )}
 
-        {/* Size picker — bottom half on hover, only when unlocked and not in cart */}
-        {hovered && item.unlocked && !inCart && (
+        {/* Quick-add overlay — bottom half on hover, unlocked only */}
+        {(hovered || added) && item.unlocked && (
           <div style={{
             position: "absolute", bottom: 0, left: 0, right: 0, height: "48%",
-            background: "rgba(0,0,0,0.72)", backdropFilter: "blur(6px)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            gap: 8, padding: "0 14px",
+            background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            gap: 10, padding: "0 14px",
             animation: "fadeIn 0.15s ease",
           }}>
-            {sizes.map(s => (
-              <button key={s} className="btn"
-                      onClick={e => { e.stopPropagation(); setSelectedSize(s); }}
-                      style={{
-                        minWidth: 36, height: 36, padding: "0 6px",
-                        background: selectedSize === s ? C.green : "rgba(255,255,255,0.1)",
-                        color: selectedSize === s ? "#1a2612" : C.text1,
-                        border: selectedSize === s ? "none" : "1px solid rgba(255,255,255,0.22)",
-                        fontSize: 12, fontWeight: 700, letterSpacing: "0.5px",
-                        fontFamily: "'Rajdhani', sans-serif", cursor: "pointer",
-                        transition: "background 0.12s, color 0.12s",
-                      }}>{s}</button>
-            ))}
+            {added ? (
+              <p style={{
+                fontSize: 13, fontWeight: 700, color: C.green, letterSpacing: "2px",
+                fontFamily: "'Rajdhani', sans-serif",
+                animation: "addedPop 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards",
+              }}>ADDED TO CART ✓</p>
+            ) : (
+              <>
+                <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)",
+                            letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif" }}>QUICK ADD:</p>
+                <div style={{ display: "flex", gap: 7, flexWrap: "wrap", justifyContent: "center" }}>
+                  {sizes.map(s => (
+                    <button key={s} className="btn"
+                            onClick={e => handleSizeClick(e, s)}
+                            style={{
+                              minWidth: 36, height: 36, padding: "0 6px",
+                              background: "rgba(255,255,255,0.1)",
+                              color: C.text1,
+                              border: "1px solid rgba(255,255,255,0.22)",
+                              fontSize: 12, fontWeight: 700, letterSpacing: "0.5px",
+                              fontFamily: "'Rajdhani', sans-serif", cursor: "pointer",
+                              transition: "background 0.12s, color 0.12s",
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = C.green; e.currentTarget.style.color = "#1a2612"; e.currentTarget.style.border = "none"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = C.text1; e.currentTarget.style.border = "1px solid rgba(255,255,255,0.22)"; }}
+                    >{s}</button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", gap: 6 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: C.text1, lineHeight: 1.3, marginBottom: 4 }}>{item.name}</p>
-            <p style={{ fontSize: 12, color: selectedSize ? C.green : C.text3 }}>
-              {selectedSize ? `Size ${selectedSize}` : "Select a size"}
-            </p>
-          </div>
+          <p style={{ fontSize: 13, fontWeight: 700, color: C.text1, lineHeight: 1.3, flex: 1 }}>{item.name}</p>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", flexShrink: 0 }}>
             <span style={{ fontSize: 15, fontWeight: 800, color: item.unlocked ? C.text1 : C.text3 }}>${item.price}</span>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", textDecoration: "line-through" }}>${item.origPrice}</span>
           </div>
         </div>
         <p style={{ fontSize: 12, color: C.text3 }}>{item.color}</p>
-
-        <div style={{ marginTop: 4 }}>
-          {item.unlocked ? (
-            inCart ? (
-              <div style={{ display: "flex", alignItems: "center", border: `1px solid ${C.border}`, background: "rgba(255,255,255,0.04)" }}>
-                <button className="btn" onClick={() => cartQty > 1 ? onUpdateQty(item.id, cartQty - 1) : onRemove(item.id)}
-                        style={{ flex: 1, padding: "10px 0", fontSize: 18, color: C.text2, background: "transparent", fontWeight: 400 }}>−</button>
-                <span style={{ flex: 1, textAlign: "center", fontSize: 13, fontWeight: 700, color: C.text1 }}>{cartQty}</span>
-                <button className="btn" onClick={() => onUpdateQty(item.id, cartQty + 1)}
-                        style={{ flex: 1, padding: "10px 0", fontSize: 18, color: C.text2, background: "transparent", fontWeight: 400 }}>+</button>
-              </div>
-            ) : (
-              <button className="btn"
-                      onClick={() => selectedSize && onAdd({ ...item, size: selectedSize })}
-                      style={{
-                        width: "100%", borderRadius: 0, padding: "10px 0",
-                        background: selectedSize ? "#B5FF81" : "rgba(255,255,255,0.06)",
-                        color: selectedSize ? "#1a2612" : C.text3,
-                        border: selectedSize ? "none" : `1px solid ${C.border}`,
-                        fontSize: 12, fontWeight: 700, letterSpacing: "0.8px",
-                        fontFamily: "'Rajdhani', sans-serif",
-                        boxShadow: selectedSize ? "0 2px 12px rgba(181,255,129,0.3)" : "none",
-                        cursor: selectedSize ? "pointer" : "default",
-                        transition: "background 0.15s, color 0.15s",
-                      }}>
-                {selectedSize ? "ADD TO CART" : "SELECT SIZE"}
-              </button>
-            )
-          ) : (
-            <div style={{
-              width: "100%", background: "rgba(255,255,255,0.04)",
-              border: `1px solid ${C.border}`,
-              borderRadius: 0, padding: "10px 0", textAlign: "center",
-              fontSize: 11, fontWeight: 700, color: C.text3, letterSpacing: "0.8px",
-              fontFamily: "'Rajdhani', sans-serif",
-            }}>{item.tag.replace("Play ", "▶ Play ")}</div>
-          )}
-        </div>
       </div>
     </div>
   );
@@ -1301,7 +1285,7 @@ function AritziaCongratsPage({ game, onClose }) {
 }
 
 /* ── Preorder Tab ────────────────────────────────────────────────── */
-function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, unlockedOnly, setUnlockedOnly, cartItems, onAdd, onRemove, onUpdateQty }) {
+function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, unlockedOnly, setUnlockedOnly, cartItems, onAdd, onRemove, onUpdateQty, onOpenCart }) {
   const CATS   = [
     { key: "all", label: "All" }, { key: "tops", label: "Tops" },
     { key: "bottoms", label: "Bottoms" }, { key: "outerwear", label: "Outerwear" },
@@ -1368,9 +1352,7 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
       }}>
         {visible.map(item => (
           <PreorderCard key={item.id} item={item}
-            inCart={!!cartItems.find(c => c.id === item.id)}
-            cartQty={cartItems.find(c => c.id === item.id)?.qty || 0}
-            onAdd={onAdd} onRemove={onRemove} onUpdateQty={onUpdateQty} />
+            onAdd={onAdd} onOpenCart={onOpenCart} />
         ))}
       </div>
     </div>
@@ -1532,6 +1514,7 @@ function App() {
   const aboutIsAnimating          = useRef(false);
   const aboutContainerRef         = useRef(null);
   const [cartOpen, setCartOpen]   = useState(false);
+  const [cartPulse, setCartPulse] = useState(false);
   const [cartItems, setCartItems] = useState([
     { ...PREORDERS[0], qty: 1 },
     { ...PREORDERS[3], qty: 1 },
@@ -1554,7 +1537,11 @@ function App() {
 
   const addToCart      = (item) => {
     setCartItems(prev => prev.find(i => i.id === item.id) ? prev : [...prev, { ...item, qty: 1 }]);
+  };
+  const openCart = () => {
     setCartOpen(true);
+    setCartPulse(true);
+    setTimeout(() => setCartPulse(false), 600);
   };
   const removeFromCart = (id)      => setCartItems(p => p.filter(i => i.id !== id));
   const updateQty      = (id, qty) => setCartItems(p => p.map(i => i.id === id ? { ...i, qty } : i));
@@ -1691,6 +1678,7 @@ function App() {
                     borderRadius: 10, width: 36, height: 36,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     color: C.text2,
+                    animation: cartPulse ? "cartPop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards" : "none",
                   }}>
             <IconCart />
             {cartCount > 0 && (
@@ -1977,7 +1965,7 @@ function App() {
             shopFilter={shopFilter} setShopFilter={setShopFilter}
             brandFilter={brandFilter} setBrandFilter={setBrandFilter}
             unlockedOnly={unlockedOnly} setUnlockedOnly={setUnlockedOnly}
-            cartItems={cartItems} onAdd={addToCart} onRemove={removeFromCart} onUpdateQty={updateQty}
+            cartItems={cartItems} onAdd={addToCart} onRemove={removeFromCart} onUpdateQty={updateQty} onOpenCart={openCart}
           />}
 
       </main>
