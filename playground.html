@@ -528,7 +528,7 @@ const CAT_SIZES = {
   footwear:  ["6", "7", "8", "9", "10", "11"],
 };
 
-function PreorderCard({ item, onAdd, onOpenCart }) {
+function PreorderCard({ item, onAdd, onOpenCart, onOpenDetail }) {
   const [hovered, setHovered]   = useState(false);
   const [added, setAdded]       = useState(false);
   const sizes = CAT_SIZES[item.cat] || ["XS", "S", "M", "L", "XL"];
@@ -550,9 +550,11 @@ function PreorderCard({ item, onAdd, onOpenCart }) {
            overflow: "hidden", display: "flex", flexDirection: "column",
            boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
          }}>
-      {/* Image */}
-      <div style={{ position: "relative", height: 340, overflow: "hidden", flexShrink: 0,
-                    background: BRAND_LOGOS[item.brand] ? "#ffffff" : "transparent" }}>
+      {/* Image — click opens detail modal */}
+      <div onClick={() => item.unlocked && onOpenDetail(item)}
+           style={{ position: "relative", height: 340, overflow: "hidden", flexShrink: 0,
+                    background: BRAND_LOGOS[item.brand] ? "#ffffff" : "transparent",
+                    cursor: item.unlocked ? "pointer" : "default" }}>
         {BRAND_LOGOS[item.brand] ? (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
                         padding: item.brand === "Lululemon" ? 16 : 40 }}>
@@ -592,7 +594,7 @@ function PreorderCard({ item, onAdd, onOpenCart }) {
 
         {/* Quick-add overlay — bottom half on hover, unlocked only */}
         {(hovered || added) && item.unlocked && (
-          <div style={{
+          <div onClick={e => e.stopPropagation()} style={{
             position: "absolute", bottom: 0, left: 0, right: 0, height: "48%",
             background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -1284,8 +1286,146 @@ function AritziaCongratsPage({ game, onClose }) {
   );
 }
 
+/* ── Product Detail Modal ────────────────────────────────────────── */
+function ProductModal({ item, onClose, onAdd, onOpenCart }) {
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [added, setAdded]               = useState(false);
+  const sizes = CAT_SIZES[item.cat] || ["XS", "S", "M", "L", "XL"];
+  const logo  = BRAND_LOGOS[item.brand];
+
+  const handleAdd = () => {
+    if (!selectedSize) return;
+    onAdd({ ...item, size: selectedSize });
+    onOpenCart();
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
+
+  return (
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, zIndex: 200,
+      background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      animation: "fadeIn 0.18s ease",
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: "min(900px, 92vw)", maxHeight: "88vh",
+        background: "#161616", border: `1px solid rgba(255,255,255,0.09)`,
+        display: "flex", overflow: "hidden",
+        boxShadow: "0 32px 80px rgba(0,0,0,0.7)",
+      }}>
+        {/* Left — image */}
+        <div style={{
+          flex: "0 0 52%", background: logo ? "#ffffff" : C.card,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: logo ? 48 : 0, position: "relative", overflow: "hidden",
+        }}>
+          {logo ? (
+            <img src={logo} alt={item.brand}
+                 style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+          ) : (
+            <img src={item.img} alt={item.name}
+                 style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.9 }} />
+          )}
+        </div>
+
+        {/* Right — info */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto" }}>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+                        padding: "28px 32px 0" }}>
+            <div>
+              <p style={{ fontSize: 10, fontWeight: 700, color: C.green, letterSpacing: "3px",
+                          fontFamily: "'Rajdhani', sans-serif", marginBottom: 8 }}>{item.brand.toUpperCase()}</p>
+              <p style={{ fontSize: 22, fontWeight: 800, color: C.text1, lineHeight: 1.2,
+                          fontFamily: "'Rajdhani', sans-serif" }}>{item.name}</p>
+            </div>
+            <button className="btn" onClick={onClose}
+                    style={{ background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border}`,
+                             width: 32, height: 32, borderRadius: 8, color: C.text2, fontSize: 18,
+                             display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>×</button>
+          </div>
+
+          {/* Price */}
+          <div style={{ padding: "16px 32px", display: "flex", alignItems: "baseline", gap: 10 }}>
+            <span style={{ fontSize: 28, fontWeight: 800, color: C.text1,
+                           fontFamily: "'Rajdhani', sans-serif" }}>${item.price}</span>
+            <span style={{ fontSize: 16, color: C.text3, textDecoration: "line-through" }}>${item.origPrice}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.green, letterSpacing: "1px",
+                           fontFamily: "'Rajdhani', sans-serif",
+                           background: "rgba(181,255,129,0.1)", padding: "2px 8px" }}>
+              {Math.round((1 - item.price / item.origPrice) * 100)}% OFF
+            </span>
+          </div>
+
+          <div style={{ width: "100%", height: 1, background: C.border }} />
+
+          {/* Details */}
+          <div style={{ padding: "20px 32px", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <span style={{ fontSize: 12, color: C.text3, width: 60 }}>Colour</span>
+              <span style={{ fontSize: 12, color: C.text1, fontWeight: 600 }}>{item.color}</span>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <span style={{ fontSize: 12, color: C.text3, width: 60 }}>Category</span>
+              <span style={{ fontSize: 12, color: C.text1, fontWeight: 600, textTransform: "capitalize" }}>{item.cat}</span>
+            </div>
+          </div>
+
+          <div style={{ width: "100%", height: 1, background: C.border }} />
+
+          {/* Size picker */}
+          <div style={{ padding: "20px 32px" }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: C.text3, letterSpacing: "2px",
+                        fontFamily: "'Rajdhani', sans-serif", marginBottom: 12 }}>SELECT SIZE</p>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {sizes.map(s => (
+                <button key={s} className="btn" onClick={() => setSelectedSize(s)} style={{
+                  minWidth: 48, height: 48, padding: "0 8px",
+                  background: selectedSize === s ? C.green : "rgba(255,255,255,0.05)",
+                  color: selectedSize === s ? "#1a2612" : C.text2,
+                  border: selectedSize === s ? "none" : `1px solid ${C.border}`,
+                  fontSize: 13, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif", cursor: "pointer",
+                  transition: "background 0.12s, color 0.12s",
+                }}>{s}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Add to cart */}
+          <div style={{ padding: "0 32px 32px", marginTop: "auto" }}>
+            <button className="btn" onClick={handleAdd} style={{
+              width: "100%", padding: "16px 0",
+              background: added ? "rgba(181,255,129,0.15)" : selectedSize ? C.green : "rgba(255,255,255,0.06)",
+              color: added ? C.green : selectedSize ? "#1a2612" : C.text3,
+              border: added ? `1px solid ${C.green}` : selectedSize ? "none" : `1px solid ${C.border}`,
+              fontSize: 13, fontWeight: 700, letterSpacing: "2px",
+              fontFamily: "'Rajdhani', sans-serif",
+              cursor: selectedSize ? "pointer" : "default",
+              boxShadow: selectedSize && !added ? "0 4px 20px rgba(181,255,129,0.3)" : "none",
+              transition: "all 0.18s",
+            }}>
+              {added ? "ADDED TO CART ✓" : selectedSize ? "ADD TO CART" : "SELECT A SIZE"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Preorder Tab ────────────────────────────────────────────────── */
-function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, unlockedOnly, setUnlockedOnly, cartItems, onAdd, onRemove, onUpdateQty, onOpenCart }) {
+function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, unlockedOnly, setUnlockedOnly, cartItems, onAdd, onRemove, onUpdateQty, onOpenCart, onOpenDetail }) {
+  const [filterStuck, setFilterStuck] = useState(false);
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => setFilterStuck(!e.isIntersecting), { threshold: 0 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   const CATS   = [
     { key: "all", label: "All" }, { key: "tops", label: "Tops" },
     { key: "bottoms", label: "Bottoms" }, { key: "outerwear", label: "Outerwear" },
@@ -1315,13 +1455,16 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
           Locked items become available as you earn points and climb the leaderboard.
         </p>
       </div>
-      {/* Filter bar — sticks to top of scroll container once hero scrolls away */}
+      {/* Sentinel — when this scrolls off-screen, filter is stuck */}
+      <div ref={sentinelRef} style={{ height: 1 }} />
+      {/* Filter bar — sticks to top once hero scrolls away */}
       <div style={{
         position: "sticky", top: 0, zIndex: 10,
         display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap",
         paddingLeft: 48, paddingRight: 48, paddingTop: 14, paddingBottom: 14,
-        background: "rgba(14,14,14,0.96)", backdropFilter: "blur(16px)",
-        borderBottom: `1px solid ${C.border}`,
+        background: filterStuck ? "rgba(14,14,14,0.97)" : "transparent",
+        backdropFilter: filterStuck ? "blur(16px)" : "none",
+        transition: "background 0.2s",
       }}>
         {CATS.map(c => (
           <button key={c.key} className="btn" onClick={() => setShopFilter(c.key)} style={{
@@ -1352,7 +1495,7 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
       }}>
         {visible.map(item => (
           <PreorderCard key={item.id} item={item}
-            onAdd={onAdd} onOpenCart={onOpenCart} />
+            onAdd={onAdd} onOpenCart={onOpenCart} onOpenDetail={onOpenDetail} />
         ))}
       </div>
     </div>
@@ -1515,6 +1658,7 @@ function App() {
   const aboutContainerRef         = useRef(null);
   const [cartOpen, setCartOpen]   = useState(false);
   const [cartPulse, setCartPulse] = useState(false);
+  const [detailItem, setDetailItem] = useState(null);
   const [cartItems, setCartItems] = useState([
     { ...PREORDERS[0], qty: 1 },
     { ...PREORDERS[3], qty: 1 },
@@ -1536,7 +1680,11 @@ function App() {
   });
 
   const addToCart      = (item) => {
-    setCartItems(prev => prev.find(i => i.id === item.id) ? prev : [...prev, { ...item, qty: 1 }]);
+    setCartItems(prev => {
+      const match = prev.find(i => i.id === item.id && i.size === item.size);
+      if (match) return prev.map(i => i.id === item.id && i.size === item.size ? { ...i, qty: i.qty + 1 } : i);
+      return [...prev, { ...item, qty: 1 }];
+    });
   };
   const openCart = () => {
     setCartOpen(true);
@@ -1965,10 +2113,13 @@ function App() {
             shopFilter={shopFilter} setShopFilter={setShopFilter}
             brandFilter={brandFilter} setBrandFilter={setBrandFilter}
             unlockedOnly={unlockedOnly} setUnlockedOnly={setUnlockedOnly}
-            cartItems={cartItems} onAdd={addToCart} onRemove={removeFromCart} onUpdateQty={updateQty} onOpenCart={openCart}
+            cartItems={cartItems} onAdd={addToCart} onRemove={removeFromCart} onUpdateQty={updateQty} onOpenCart={openCart} onOpenDetail={setDetailItem}
           />}
 
       </main>
+
+      {/* Product detail modal */}
+      {detailItem && <ProductModal item={detailItem} onClose={() => setDetailItem(null)} onAdd={addToCart} onOpenCart={openCart} />}
 
       {/* Game overlay */}
       {activeGame && (activeGame.name === "Aritzia"
