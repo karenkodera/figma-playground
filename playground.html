@@ -1402,7 +1402,7 @@ function HeroCarousel() {
   const scale      = 1 - progress * 0.05;
 
   return (
-    <div ref={wrapperRef} style={{ height: "calc(100vh - 60px)", flexShrink: 0, position: "relative" }}>
+    <div ref={wrapperRef} style={{ height: "100vh", flexShrink: 0, position: "relative" }}>
 
       {/* Scroll fade wrapper — stars + text, fades on scroll */}
       <div style={{
@@ -1449,6 +1449,7 @@ function HeroCarousel() {
 /* ── App ─────────────────────────────────────────────────────────── */
 function App() {
   const [tab, setTab]             = useState("landing");
+  const [playKey, setPlayKey]     = useState(0);
   const [cartOpen, setCartOpen]   = useState(false);
   const [cartItems, setCartItems] = useState([
     { ...PREORDERS[0], qty: 1 },
@@ -1487,8 +1488,8 @@ function App() {
       <CartSidebar open={cartOpen} items={cartItems} onClose={() => setCartOpen(false)}
                    onRemove={removeFromCart} onUpdateQty={updateQty} />
 
-      {/* ── Header ── */}
-      <header style={{
+      {/* ── Header — hidden on landing page ── */}
+      {tab !== "landing" && <header style={{
         position: "absolute", top: 0, left: 0, right: 0, zIndex: 10,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         height: 60, padding: "0 48px",
@@ -1603,24 +1604,28 @@ function App() {
             <IconPerson />
           </button>
         </div>
-      </header>
+      </header>}
 
       {/* ── Main ── */}
       <main style={{
-        position: "absolute", left: 0, right: 0, top: 60, bottom: 18,
+        position: "absolute", left: 0, right: 0,
+        top: tab === "landing" ? 0 : 60,
+        bottom: tab === "landing" ? 0 : 18,
         display: "flex", flexDirection: "column",
         overflow: "hidden", zIndex: 1,
       }}>
 
         {/* Content */}
         {tab === "landing" ? (
-          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
-            <HeroCarousel savedGames={savedGames} />
+          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column", scrollSnapType: "y mandatory" }}>
+            <div style={{ scrollSnapAlign: "start", flexShrink: 0 }}>
+              <HeroCarousel savedGames={savedGames} />
+            </div>
             <img src="earth%20pic%2034.png" alt="Earth" style={{
               display: "block", flexShrink: 0, width: "100%", maxWidth: 1224, margin: "0 auto",
               position: "relative", top: -260, pointerEvents: "none", zIndex: 0,
             }} />
-            <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1260 }}>
+            <div style={{ paddingLeft: 48, paddingRight: 48, paddingBottom: 72, position: "relative", zIndex: 1, marginTop: -1228, scrollSnapAlign: "start" }}>
               <div style={{
                 background: "rgba(14,14,14,0.82)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
                 border: `1px solid ${C.border}`, borderRadius: 24, padding: "48px 60px",
@@ -1639,7 +1644,7 @@ function App() {
                 <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 500 }}>
                   Play games, climb the leaderboard and unlock exclusive pre-order access to drops from your favorite brands, before anyone else.
                 </p>
-                <button onClick={() => setTab("play")} style={{
+                <button onClick={() => { setTab("play"); setPlayKey(k => k + 1); }} style={{
                   marginTop: 32, padding: "14px 36px", width: "100%", borderRadius: 12,
                   border: "none", background: C.green, color: "#0a0a0a", fontSize: 13,
                   fontWeight: 700, letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif",
@@ -1694,7 +1699,7 @@ function App() {
           ];
 
           return (
-            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
+            <div key={playKey} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
               <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 24, paddingBottom: 24 }}>
                 {/* Saved games */}
                 {saved.length > 0 && (
