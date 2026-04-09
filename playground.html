@@ -1319,16 +1319,17 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
         </span>
       </div>
       {/* Grid */}
-      <div style={{
-        flex: 1, minHeight: 0, overflowY: "auto",
-        display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 24, padding: "28px 48px 40px", alignContent: "start",
-      }}>
-        {visible.map(item => (
-          <PreorderCard key={item.id} item={item}
-            inCart={!!cartItems.find(c => c.id === item.id)}
-            onAdd={onAdd} onRemove={onRemove} />
-        ))}
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 24, padding: "28px 48px 40px",
+        }}>
+          {visible.map(item => (
+            <PreorderCard key={item.id} item={item}
+              inCart={!!cartItems.find(c => c.id === item.id)}
+              onAdd={onAdd} onRemove={onRemove} />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1709,7 +1710,7 @@ function App() {
                 {/* Earth as background */}
                 <img src="earth%20pic%2034.png" alt="Earth" style={{
                   position: "absolute", left: "50%", top: "50%",
-                  transform: "translateX(-50%) translateY(calc(-42% - 88px))",
+                  transform: "translateX(-50%) translateY(calc(-42% - 104px))",
                   width: "100%", maxWidth: 1224,
                   pointerEvents: "none", zIndex: 0,
                 }} />
