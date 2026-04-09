@@ -1651,7 +1651,7 @@ function App() {
             <div style={{
               width: "100%",
               transform: `translateY(${aboutPage === 0 ? "0" : "calc(-100vh + 60px)"})`,
-              transition: "transform 0.65s cubic-bezier(0.0, 0.0, 0.2, 1)",
+              transition: "transform 0.6s cubic-bezier(0.4, 0.0, 0.1, 1)",
               willChange: "transform",
             }}>
 
@@ -1660,84 +1660,84 @@ function App() {
                 <HeroCarousel savedGames={savedGames} />
               </div>
 
-              {/* Page 2 — Earth bg + What is Bridg? centered */}
+              {/* Page 2 — Earth bg + What is Bridg? centered + footer at bottom */}
               <div style={{
                 height: "calc(100vh - 60px)", position: "relative",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                paddingBottom: 130,
+                display: "flex", flexDirection: "column",
               }}>
                 {/* Earth as background */}
                 <img src="earth%20pic%2034.png" alt="Earth" style={{
                   position: "absolute", left: "50%", top: "50%",
-                  transform: "translateX(-50%) translateY(-42%)",
+                  transform: "translateX(-50%) translateY(calc(-42% - 8px))",
                   width: "100%", maxWidth: 1224,
                   pointerEvents: "none", zIndex: 0,
                 }} />
-                {/* What is Bridg? box — centered + 16px below */}
-                <div style={{ paddingLeft: 48, paddingRight: 48, width: "100%", position: "relative", zIndex: 1, marginTop: 16 }}>
-                  <div style={{
-                    background: "rgba(14,14,14,0.82)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-                    border: `1px solid ${C.border}`, borderRadius: 24, padding: "48px 60px",
-                    position: "relative", overflow: "hidden", maxWidth: 620, margin: "0 auto",
-                  }}>
-                    <div style={{ position: "absolute", top: -80, right: -80, width: 400, height: 400,
-                                  borderRadius: "50%", background: "radial-gradient(circle, rgba(181,255,129,0.06) 0%, transparent 70%)",
-                                  pointerEvents: "none" }} />
-                    <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
-                                fontFamily: "'Rajdhani', sans-serif", marginBottom: 16 }}>WHAT IS BRIDG?</p>
-                    <p style={{ fontSize: 52, fontWeight: 800, color: C.text1, lineHeight: 1.05,
-                                fontFamily: "'Rajdhani', sans-serif", marginBottom: 24 }}>Fashion meets<br/>the game.</p>
-                    <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.75, maxWidth: 500, marginBottom: 14 }}>
-                      A service that transforms customer feedback into smarter production decisions to create a more sustainable fashion industry, driven by conscious creation.
-                    </p>
-                    <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 500 }}>
-                      Play games, climb the leaderboard and unlock exclusive pre-order access to drops from your favorite brands, before anyone else.
-                    </p>
-                    <button onClick={() => { setTab("play"); setPlayKey(k => k + 1); }} style={{
-                      marginTop: 32, padding: "14px 36px", width: "100%", borderRadius: 12,
-                      border: "none", background: C.green, color: "#0a0a0a", fontSize: 13,
-                      fontWeight: 700, letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif",
-                      cursor: "pointer", textTransform: "uppercase",
-                    }}>Start Playing</button>
+                {/* What is Bridg? box — centered */}
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: 16 }}>
+                  <div style={{ paddingLeft: 48, paddingRight: 48, width: "100%", position: "relative", zIndex: 1, marginTop: 16 }}>
+                    <div style={{
+                      background: "rgba(14,14,14,0.82)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+                      border: `1px solid ${C.border}`, borderRadius: 24, padding: "48px 60px",
+                      position: "relative", overflow: "hidden", maxWidth: 620, margin: "0 auto",
+                    }}>
+                      <div style={{ position: "absolute", top: -80, right: -80, width: 400, height: 400,
+                                    borderRadius: "50%", background: "radial-gradient(circle, rgba(181,255,129,0.06) 0%, transparent 70%)",
+                                    pointerEvents: "none" }} />
+                      <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
+                                  fontFamily: "'Rajdhani', sans-serif", marginBottom: 16 }}>WHAT IS BRIDG?</p>
+                      <p style={{ fontSize: 52, fontWeight: 800, color: C.text1, lineHeight: 1.05,
+                                  fontFamily: "'Rajdhani', sans-serif", marginBottom: 24 }}>Fashion meets<br/>the game.</p>
+                      <p style={{ fontSize: 16, color: C.text2, lineHeight: 1.75, maxWidth: 500, marginBottom: 14 }}>
+                        A service that transforms customer feedback into smarter production decisions to create a more sustainable fashion industry, driven by conscious creation.
+                      </p>
+                      <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 500 }}>
+                        Play games, climb the leaderboard and unlock exclusive pre-order access to drops from your favorite brands, before anyone else.
+                      </p>
+                      <button onClick={() => { setTab("play"); setPlayKey(k => k + 1); }} style={{
+                        marginTop: 32, padding: "14px 36px", width: "100%", borderRadius: 12,
+                        border: "none", background: C.green, color: "#0a0a0a", fontSize: 13,
+                        fontWeight: 700, letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif",
+                        cursor: "pointer", textTransform: "uppercase",
+                      }}>Start Playing</button>
+                    </div>
                   </div>
                 </div>
+                {/* Footer — at bottom of page 2 */}
+                <footer style={{
+                  position: "relative", zIndex: 10,
+                  borderTop: `1px solid ${C.border}`,
+                  padding: "24px 48px 24px",
+                  background: "rgba(10,10,10,0.95)",
+                  backdropFilter: "blur(20px)",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                        <Logo />
+                        <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: "2px", color: C.text1, textTransform: "uppercase", fontFamily: "'Rajdhani', sans-serif" }}>bridg</span>
+                      </div>
+                      <p style={{ fontSize: 13, color: C.green, letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, marginBottom: 4 }}>CONSCIOUS CREATION</p>
+                      <p style={{ fontSize: 12, color: C.text3 }}>© 2025 Bridg. All rights reserved.</p>
+                    </div>
+                    <div style={{ display: "flex", gap: 64 }}>
+                      <div>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: C.green, letterSpacing: "3px", fontFamily: "'Rajdhani', sans-serif", marginBottom: 14 }}>EXPLORE</p>
+                        {["About", "Play", "Pre-order"].map(l => (
+                          <p key={l} style={{ fontSize: 13, color: C.text2, marginBottom: 8, cursor: "pointer" }}
+                             onClick={() => setTab(l === "About" ? "about" : l === "Pre-order" ? "preorder" : "play")}>{l}</p>
+                        ))}
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: C.green, letterSpacing: "3px", fontFamily: "'Rajdhani', sans-serif", marginBottom: 14 }}>COMPANY</p>
+                        {["Careers", "Privacy Policy", "Terms"].map(l => (
+                          <p key={l} style={{ fontSize: 13, color: C.text2, marginBottom: 8, cursor: "pointer" }}>{l}</p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </footer>
               </div>
             </div>
-
-            {/* ── Footer — stuck to bottom ── */}
-            <footer style={{
-              position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10,
-              borderTop: `1px solid ${C.border}`,
-              padding: "24px 48px 24px",
-              background: "rgba(10,10,10,0.95)",
-              backdropFilter: "blur(20px)",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                    <Logo />
-                    <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: "2px", color: C.text1, textTransform: "uppercase", fontFamily: "'Rajdhani', sans-serif" }}>bridg</span>
-                  </div>
-                  <p style={{ fontSize: 13, color: C.green, letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, marginBottom: 4 }}>CONSCIOUS CREATION</p>
-                  <p style={{ fontSize: 12, color: C.text3 }}>© 2025 Bridg. All rights reserved.</p>
-                </div>
-                <div style={{ display: "flex", gap: 64 }}>
-                  <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: C.green, letterSpacing: "3px", fontFamily: "'Rajdhani', sans-serif", marginBottom: 14 }}>EXPLORE</p>
-                    {["About", "Play", "Pre-order"].map(l => (
-                      <p key={l} style={{ fontSize: 13, color: C.text2, marginBottom: 8, cursor: "pointer" }}
-                         onClick={() => setTab(l === "About" ? "about" : l === "Pre-order" ? "preorder" : "play")}>{l}</p>
-                    ))}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: C.green, letterSpacing: "3px", fontFamily: "'Rajdhani', sans-serif", marginBottom: 14 }}>COMPANY</p>
-                    {["Careers", "Privacy Policy", "Terms"].map(l => (
-                      <p key={l} style={{ fontSize: 13, color: C.text2, marginBottom: 8, cursor: "pointer" }}>{l}</p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </footer>
 
           </div>
         ) : tab === "play" ? (() => {
@@ -1788,6 +1788,76 @@ function App() {
           return (
             <div key={playKey} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}>
               <div style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 24, paddingBottom: 24 }}>
+
+                {/* ── Top row: Intro left + Leaderboard right ── */}
+                <div style={{ display: "flex", gap: 40, alignItems: "flex-start", marginBottom: 40 }}>
+                  {/* Left: intro text */}
+                  <div style={{ flex: 1, paddingTop: 8 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: C.green, letterSpacing: "4px",
+                                fontFamily: "'Rajdhani', sans-serif", marginBottom: 14 }}>PLAY. UNLOCK. SHOP.</p>
+                    <p style={{ fontSize: 38, fontWeight: 800, color: C.text1, lineHeight: 1.1,
+                                fontFamily: "'Rajdhani', sans-serif", marginBottom: 20 }}>
+                      Compete for<br/>exclusive access.
+                    </p>
+                    <p style={{ fontSize: 15, color: C.text2, lineHeight: 1.75, maxWidth: 380, marginBottom: 12 }}>
+                      Play brand challenges, earn points, and climb the leaderboard to unlock pre-order access before anyone else.
+                    </p>
+                    <p style={{ fontSize: 14, color: C.text3, lineHeight: 1.75, maxWidth: 360 }}>
+                      New drops added every week. The higher your rank, the earlier your access.
+                    </p>
+                  </div>
+                  {/* Right: leaderboard */}
+                  <div style={{ width: 400, flexShrink: 0 }}>
+                    <SectionHeader label="Leaderboard" />
+                    <div style={{
+                      marginTop: 16, background: C.card, border: `1px solid ${C.border}`,
+                      borderRadius: 16, overflow: "hidden",
+                    }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "40px 1fr 100px 80px 48px",
+                                    padding: "10px 16px", borderBottom: `1px solid ${C.border}` }}>
+                        {["#", "Player", "Points", "Games", ""].map((h, i) => (
+                          <span key={i} style={{ fontSize: 10, fontWeight: 700, color: C.text3,
+                                                 letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif",
+                                                 textAlign: i >= 2 ? "right" : "left" }}>{h}</span>
+                        ))}
+                      </div>
+                      {lbData.map((entry, i) => (
+                        <div key={entry.rank} style={{
+                          display: "grid", gridTemplateColumns: "40px 1fr 100px 80px 48px",
+                          padding: "12px 16px", alignItems: "center",
+                          borderBottom: i < lbData.length - 1 ? `1px solid ${C.border}` : "none",
+                          background: i === 0 ? "rgba(181,255,129,0.04)" : "transparent",
+                        }}>
+                          <span style={{ fontSize: 14, fontWeight: 800, fontFamily: "'Rajdhani', sans-serif",
+                                         color: i === 0 ? C.green : i < 3 ? C.text1 : C.text3 }}>{entry.rank}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{ width: 30, height: 30, borderRadius: "50%",
+                                          background: `hsl(${(entry.rank * 53) % 360}, 35%, 25%)`,
+                                          border: i === 0 ? `2px solid ${C.green}` : `2px solid ${C.border}`,
+                                          display: "flex", alignItems: "center", justifyContent: "center",
+                                          fontSize: 12, fontWeight: 700, color: C.text1 }}>
+                              {entry.name[0]}
+                            </div>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: i === 0 ? C.text1 : C.text2 }}>{entry.name}</span>
+                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: i === 0 ? C.green : C.text1,
+                                         textAlign: "right", fontFamily: "'Rajdhani', sans-serif" }}>
+                            {entry.points.toLocaleString()}
+                          </span>
+                          <span style={{ fontSize: 12, color: C.text3, textAlign: "right" }}>{entry.games} played</span>
+                          <div style={{ textAlign: "right" }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif",
+                                           color: entry.trend === "up" ? C.green : entry.trend === "down" ? "#ff6b6b" : C.text3,
+                                           letterSpacing: "1px" }}>
+                              {entry.trend === "up" ? "↑" : entry.trend === "down" ? "↓" : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Saved games */}
                 {saved.length > 0 && (
                   <>
@@ -1799,67 +1869,6 @@ function App() {
                 {/* For you */}
                 <SectionHeader label="For you" onViewAll={() => setGameView("all")} style={{ marginTop: saved.length > 0 ? 32 : 0 }} />
                 <Carousel games={forYou} {...carouselProps} />
-
-                {/* ── Leaderboard ── */}
-                <div style={{ marginTop: 48 }}>
-                  <SectionHeader label="Leaderboard" />
-                  <div style={{
-                    marginTop: 16, background: C.card, border: `1px solid ${C.border}`,
-                    borderRadius: 16, overflow: "hidden",
-                  }}>
-                    {/* Header row */}
-                    <div style={{ display: "grid", gridTemplateColumns: "48px 1fr 120px 100px 60px",
-                                  padding: "12px 20px", borderBottom: `1px solid ${C.border}` }}>
-                      {["#", "Player", "Points", "Games", ""].map((h, i) => (
-                        <span key={i} style={{ fontSize: 10, fontWeight: 700, color: C.text3,
-                                               letterSpacing: "2px", fontFamily: "'Rajdhani', sans-serif",
-                                               textAlign: i >= 2 ? "right" : "left" }}>{h}</span>
-                      ))}
-                    </div>
-                    {lbData.map((entry, i) => (
-                      <div key={entry.rank} style={{
-                        display: "grid", gridTemplateColumns: "48px 1fr 120px 100px 60px",
-                        padding: "14px 20px", alignItems: "center",
-                        borderBottom: i < lbData.length - 1 ? `1px solid ${C.border}` : "none",
-                        background: i === 0 ? "rgba(181,255,129,0.04)" : "transparent",
-                      }}>
-                        {/* Rank */}
-                        <span style={{ fontSize: 15, fontWeight: 800, fontFamily: "'Rajdhani', sans-serif",
-                                       color: i === 0 ? C.green : i < 3 ? C.text1 : C.text3 }}>
-                          {entry.rank}
-                        </span>
-                        {/* Name + avatar */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                          <div style={{ width: 36, height: 36, borderRadius: "50%",
-                                        background: `hsl(${(entry.rank * 53) % 360}, 35%, 25%)`,
-                                        border: i === 0 ? `2px solid ${C.green}` : `2px solid ${C.border}`,
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 13, fontWeight: 700, color: C.text1 }}>
-                            {entry.name[0]}
-                          </div>
-                          <span style={{ fontSize: 14, fontWeight: 600, color: i === 0 ? C.text1 : C.text2 }}>{entry.name}</span>
-                        </div>
-                        {/* Points */}
-                        <span style={{ fontSize: 15, fontWeight: 700, color: i === 0 ? C.green : C.text1,
-                                       textAlign: "right", fontFamily: "'Rajdhani', sans-serif" }}>
-                          {entry.points.toLocaleString()}
-                        </span>
-                        {/* Games */}
-                        <span style={{ fontSize: 13, color: C.text3, textAlign: "right" }}>
-                          {entry.games} played
-                        </span>
-                        {/* Trend */}
-                        <div style={{ textAlign: "right" }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "'Rajdhani', sans-serif",
-                                         color: entry.trend === "up" ? C.green : entry.trend === "down" ? "#ff6b6b" : C.text3,
-                                         letterSpacing: "1px" }}>
-                            {entry.trend === "up" ? "UP" : entry.trend === "down" ? "DN" : "--"}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
                 {/* New */}
                 <SectionHeader label="New" onViewAll={() => setGameView("all")} style={{ marginTop: 48 }} />
