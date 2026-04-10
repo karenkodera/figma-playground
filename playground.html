@@ -336,7 +336,7 @@ function Logo() {
 }
 
 /* ── Game Card (carousel) ────────────────────────────────────────── */
-function GameCard({ game, isSaved = false, onToggleSave = () => {}, onPlay = () => {} }) {
+function GameCard({ game, onPlay = () => {} }) {
   const jan1         = new Date("2026-01-01");
   const expDate      = new Date(game.expires);
   const daysOut      = (expDate - jan1) / (1000 * 60 * 60 * 24);
@@ -375,19 +375,6 @@ function GameCard({ game, isSaved = false, onToggleSave = () => {}, onPlay = () 
                style={{ width: "100%", height: "100%", objectFit: "cover", opacity: game.done ? 0.15 : 0.78,
                         transition: "opacity 0.18s ease" }} />
         )}
-
-        {/* Save button — top right */}
-        <button className="btn" onClick={e => { e.stopPropagation(); onToggleSave(game.id); }}
-                style={{
-                  position: "absolute", top: 8, right: 8,
-                  background: "rgba(0,0,0,0.52)", backdropFilter: "blur(8px)",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  borderRadius: 8, width: 30, height: 30,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: isSaved ? "#f4c542" : "rgba(255,255,255,0.75)",
-                }}>
-          <IconBookmark filled={isSaved} />
-        </button>
 
         {/* Hover play button — center */}
         {hovered && !game.done && (
@@ -435,7 +422,7 @@ function GameCard({ game, isSaved = false, onToggleSave = () => {}, onPlay = () 
 }
 
 /* ── Carousel ────────────────────────────────────────────────────── */
-function Carousel({ games, savedGames = new Set(), onToggleSave = () => {}, onPlay = () => {} }) {
+function Carousel({ games, onPlay = () => {} }) {
   const [page, setPage] = useState(0);
   const PER_PAGE = 4;
 
@@ -447,7 +434,7 @@ function Carousel({ games, savedGames = new Set(), onToggleSave = () => {}, onPl
     <div style={{ marginBottom: 4 }}>
       <div style={{ position: "relative" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, paddingRight: 64 }}>
-          {visible.map(g => <GameCard key={g.id} game={g} isSaved={savedGames.has(g.id)} onToggleSave={onToggleSave} onPlay={onPlay} />)}
+          {visible.map(g => <GameCard key={g.id} game={g} onPlay={onPlay} />)}
         </div>
 
         {/* Left arrow — sits in left padding zone */}
@@ -507,7 +494,7 @@ function SectionHeader({ label, onViewAll, style: extraStyle }) {
 }
 
 /* ── All Games Page ───────────────────────────────────────────────── */
-function AllGamesPage({ games, onBack, savedGames = new Set(), onToggleSave = () => {}, onPlay = () => {} }) {
+function AllGamesPage({ games, onBack, onPlay = () => {} }) {
   return (
     <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingLeft: 48, paddingRight: 48, paddingTop: 24 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
@@ -522,7 +509,7 @@ function AllGamesPage({ games, onBack, savedGames = new Set(), onToggleSave = ()
         <p style={{ fontSize: 16, fontWeight: 700, color: C.text1, fontFamily: "'Inter', sans-serif" }}>All January games</p>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, paddingBottom: 28 }}>
-        {games.map(g => <GameCard key={g.id} game={g} isSaved={savedGames.has(g.id)} onToggleSave={onToggleSave} onPlay={onPlay} />)}
+        {games.map(g => <GameCard key={g.id} game={g} onPlay={onPlay} />)}
       </div>
     </div>
   );
@@ -595,9 +582,9 @@ function PreorderCard({ item, onAdd, onOpenCart, onOpenDetail }) {
         {item.unlocked && (
           <div style={{
             position: "absolute", top: 10, left: 10,
-            background: "#B5FF81", backdropFilter: "blur(6px)",
+            background: isUrgent ? "#FF8C00" : "#B5FF81", backdropFilter: "blur(6px)",
             borderRadius: 6, padding: "3px 8px",
-            fontSize: 10, fontWeight: 700, color: "#1a2612", letterSpacing: "0.8px",
+            fontSize: 10, fontWeight: 700, color: isUrgent ? "#fff" : "#1a2612", letterSpacing: "0.8px",
             fontFamily: "'Rajdhani', sans-serif",
           }}>UNLOCKED</div>
         )}
@@ -656,15 +643,17 @@ function PreorderCard({ item, onAdd, onOpenCart, onOpenDetail }) {
       </div>
 
       {/* Info */}
-      <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: C.text1, lineHeight: 1.3, flex: 1 }}>{item.name}</p>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: C.text1, lineHeight: 1.3 }}>{item.name}</p>
+            <p style={{ fontSize: 12, color: C.text3 }}>{item.color}</p>
+          </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", flexShrink: 0 }}>
             <span style={{ fontSize: 15, fontWeight: 800, color: item.unlocked ? C.text1 : C.text3 }}>${item.price}</span>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", textDecoration: "line-through" }}>${item.origPrice}</span>
           </div>
         </div>
-        <p style={{ fontSize: 12, color: C.text3 }}>{item.color}</p>
         {expiresLabel && (
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 5, marginTop: 4,
@@ -1474,7 +1463,7 @@ function PreorderTab({ shopFilter, setShopFilter, brandFilter, setBrandFilter, u
   let visible = PREORDERS;
   if (shopFilter !== "all") visible = visible.filter(p => p.cat === shopFilter);
   if (brandFilter !== "All brands") visible = visible.filter(p => p.brand === brandFilter);
-  visible = visible.filter(p => p.unlocked).slice(0, 10);
+  visible = visible.filter(p => p.unlocked).sort((a, b) => new Date(a.expires) - new Date(b.expires)).slice(0, 10);
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
@@ -1703,19 +1692,12 @@ function App() {
     { ...PREORDERS[11], qty: 1 },
   ]);
   const [gameView, setGameView]   = useState("home");
-  const [savedGames, setSavedGames] = useState(new Set([2, 5, 9, 12]));
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [shopFilter, setShopFilter] = useState("all");
   const [brandFilter, setBrandFilter] = useState("All brands");
   const [unlockedOnly, setUnlockedOnly] = useState(false);
   const [activeGame, setActiveGame] = useState(null);
-
-  const toggleSave = id => setSavedGames(prev => {
-    const next = new Set(prev);
-    next.has(id) ? next.delete(id) : next.add(id);
-    return next;
-  });
 
   const addToCart      = (item) => {
     setCartItems(prev => {
@@ -1915,7 +1897,7 @@ function App() {
 
               {/* Page 1 — Hero */}
               <div style={{ height: "calc(100vh - 60px)", overflow: "hidden", position: "relative" }}>
-                <HeroCarousel savedGames={savedGames} />
+                <HeroCarousel />
               </div>
 
               {/* Page 2 — Earth bg + What is Bridg? centered + footer at bottom */}
@@ -2003,10 +1985,6 @@ function App() {
           const done    = GAMES.filter(g => g.done);
           const forYou  = active.filter(g => g.athletic);
           const newGames = GAMES.filter(g => g.isNew && !g.done);
-          const saved   = GAMES.filter(g => savedGames.has(g.id));
-
-          const carouselProps = { savedGames, onToggleSave: toggleSave, onPlay: setActiveGame };
-
           /* ── Search results ── */
           if (searchQuery.trim()) {
             const q = searchQuery.trim().toLowerCase();
@@ -2018,7 +1996,7 @@ function App() {
                 </p>
                 {results.length > 0 ? (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-                    {results.map(g => <GameCard key={g.id} game={g} isSaved={savedGames.has(g.id)} onToggleSave={toggleSave} />)}
+                    {results.map(g => <GameCard key={g.id} game={g} />)}
                   </div>
                 ) : (
                   <p style={{ fontSize: 15, color: C.text3 }}>No brands matched your search.</p>
@@ -2029,7 +2007,7 @@ function App() {
 
           /* ── All games page ── */
           if (gameView === "all") {
-            return <AllGamesPage games={GAMES} onBack={() => setGameView("home")} savedGames={savedGames} onToggleSave={toggleSave} onPlay={setActiveGame} />;
+            return <AllGamesPage games={GAMES} onBack={() => setGameView("home")} onPlay={setActiveGame} />;
           }
 
           /* ── Home view ── */
@@ -2120,7 +2098,7 @@ function App() {
                 <SectionHeader label="Games" />
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginTop: 16 }}>
                   {[...active, ...done].map(g => (
-                    <GameCard key={g.id} game={g} isSaved={savedGames.has(g.id)} onToggleSave={toggleSave} onPlay={setActiveGame} />
+                    <GameCard key={g.id} game={g} onPlay={setActiveGame} />
                   ))}
                 </div>
               </div>
