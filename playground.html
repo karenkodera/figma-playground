@@ -133,53 +133,19 @@ const GAMES = [
 
 const PREORDERS = [
   // Alo Yoga — expires Apr 30 (urgent/orange)
-  { id: 12, brand: "Alo Yoga",    name: "Airlift High-Waist Legging",  cat: "bottoms",   color: "Black",           size: "XS", price: 114, origPrice: 138, unlocked: true,  tag: "Unlocked via Style Predictor", img: "aloairliftlegging%20black.webp",        expires: "2026-04-30" },
-  { id: 13, brand: "Alo Yoga",    name: "Alosoft Finesse Bra",         cat: "tops",      color: "Dust Mauve",      size: "S",  price: 82,  origPrice: 98,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "airliftbramauve.webp",                  expires: "2026-04-30" },
-  { id: 14, brand: "Alo Yoga",    name: "Accolade Slim Sweatpant",     cat: "bottoms",   color: "Dove Grey",       size: "XS", price: 128, origPrice: 158, unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/sweatpant-grey/400/520",    expires: "2026-04-30" },
-  { id: 15, brand: "Alo Yoga",    name: "Muse Sweatshirt",             cat: "tops",      color: "Umber",           size: "S",  price: 118, origPrice: 148, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/muse-sweat/400/520",        expires: "2026-04-30" },
-  { id: 16, brand: "Alo Yoga",    name: "Goddess Ribbed Tank",         cat: "tops",      color: "White",           size: "XS", price: 68,  origPrice: 85,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/ribbed-tank/400/520",       expires: "2026-04-30" },
+  { id: 12, brand: "Alo Yoga",  name: "Airlift High-Waist Legging", cat: "bottoms", color: "Black",      size: "XS", price: 114, origPrice: 138, unlocked: true, tag: "Unlocked via Style Predictor", img: "aloairliftlegging%20black.webp", expires: "2026-04-30" },
+  { id: 13, brand: "Alo Yoga",  name: "Alosoft Finesse Bra",        cat: "tops",    color: "Dust Mauve", size: "S",  price: 82,  origPrice: 98,  unlocked: true, tag: "Unlocked via Trend Quiz",      img: "airliftbramauve.webp",           expires: "2026-04-30" },
   // Lululemon — expires May 31
-  { id:  1, brand: "Lululemon",   name: "Align™ High-Rise Pant",      cat: "bottoms",   color: "Noir Black",      size: "4",  price: 128, origPrice: 158, unlocked: true,  tag: "Unlocked via Style Predictor", img: "lululemon%20align%20pant%20black.webp", images: ["lululemon%20align%20pant%20black.webp","lululemon%20align%20pant%20black%202.webp","lululemon%20align%20pant%20black%203.webp","lululemon%20align%20pant%20black%204.webp","lululemon%20align%20pant%20black%205.webp"], expires: "2026-05-31" },
-  { id:  2, brand: "Lululemon",   name: "Swiftly Tech Long-Sleeve",    cat: "tops",      color: "Ivory White",     size: "S",  price: 88,  origPrice: 108, unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "swiftly%20long%20sleeve%20white.webp", expires: "2026-05-31" },
-  { id:  3, brand: "Lululemon",   name: "Hotty Hot Short 2.5\"",       cat: "bottoms",   color: "Chambray",        size: "4",  price: 68,  origPrice: 84,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/shorts-blue/400/520",      expires: "2026-05-31" },
-  { id:  4, brand: "Lululemon",   name: "Scuba Oversized Half-Zip",    cat: "tops",      color: "Heathered Bone",  size: "M",  price: 118, origPrice: 148, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/scuba-zip/400/520",        expires: "2026-05-31" },
-  { id:  5, brand: "Lululemon",   name: "Define Jacket Nulu",          cat: "outerwear", color: "Sage Green",      size: "M",  price: 138, origPrice: 168, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/jacket-sage/400/520",      expires: "2026-05-31" },
-  { id:  6, brand: "Lululemon",   name: "Wunder Train Tight",          cat: "bottoms",   color: "Deep Navy",       size: "6",  price: 98,  origPrice: 118, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/leggings-navy/400/520",    expires: "2026-05-31" },
+  { id:  1, brand: "Lululemon", name: "Align™ High-Rise Pant",     cat: "bottoms", color: "Noir Black",  size: "4",  price: 128, origPrice: 158, unlocked: true, tag: "Unlocked via Style Predictor", img: "lululemon%20align%20pant%20black.webp", images: ["lululemon%20align%20pant%20black.webp","lululemon%20align%20pant%20black%202.webp","lululemon%20align%20pant%20black%203.webp","lululemon%20align%20pant%20black%204.webp","lululemon%20align%20pant%20black%205.webp"], expires: "2026-05-31" },
+  { id:  2, brand: "Lululemon", name: "Swiftly Tech Long-Sleeve",   cat: "tops",    color: "Ivory White", size: "S",  price: 88,  origPrice: 108, unlocked: true, tag: "Unlocked via Trend Quiz",      img: "swiftly%20long%20sleeve%20white.webp", expires: "2026-05-31" },
   // Gymshark — expires May 31
-  { id:  7, brand: "Gymshark",    name: "Vital Seamless Leggings",     cat: "bottoms",   color: "Cacao Brown",     size: "S",  price: 55,  origPrice: 68,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "vitalseamlessleggingsbrowngymshark.webp", expires: "2026-05-31" },
-  { id:  8, brand: "Gymshark",    name: "Flex High-Waist Shorts",      cat: "bottoms",   color: "Sand Marl",       size: "XS", price: 40,  origPrice: 50,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "gymsharkshortsandmarl.webp",               expires: "2026-05-31" },
-  { id:  9, brand: "Gymshark",    name: "Training Crop Tank",          cat: "tops",      color: "Black",           size: "S",  price: 35,  origPrice: 44,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/crop-tank-black/400/520",   expires: "2026-05-31" },
-  { id: 10, brand: "Gymshark",    name: "Rest Day Oversized Hoodie",   cat: "tops",      color: "Storm Grey",      size: "M",  price: 68,  origPrice: 85,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/oversized-hoodie/400/520",  expires: "2026-05-31" },
-  { id: 11, brand: "Gymshark",    name: "Speed Shorts",                cat: "bottoms",   color: "Teal",            size: "S",  price: 38,  origPrice: 48,  unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/speed-shorts-teal/400/520", expires: "2026-05-31" },
+  { id:  7, brand: "Gymshark",  name: "Vital Seamless Leggings",    cat: "bottoms", color: "Cacao Brown", size: "S",  price: 55,  origPrice: 68,  unlocked: true, tag: "Unlocked via Trend Quiz",      img: "vitalseamlessleggingsbrowngymshark.webp", expires: "2026-05-31" },
+  { id:  8, brand: "Gymshark",  name: "Flex High-Waist Shorts",     cat: "bottoms", color: "Sand Marl",   size: "XS", price: 40,  origPrice: 50,  unlocked: true, tag: "Unlocked via Style Predictor", img: "gymsharkshortsandmarl.webp",              expires: "2026-05-31" },
   // Nike — expires May 31
-  { id: 17, brand: "Nike",        name: "Pro Dri-FIT Tight",           cat: "bottoms",   color: "Iron Grey",       size: "M",  price: 75,  origPrice: 92,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "airliftniketightgray.jpg",              expires: "2026-05-31" },
-  { id: 18, brand: "Nike",        name: "One Dri-FIT Swoosh Bra",      cat: "tops",      color: "Obsidian",        size: "S",  price: 45,  origPrice: 55,  unlocked: true,  tag: "Unlocked via Style Predictor", img: "One%20Dri-FIT%20Swoosh%20Bra%20obsidian.webp", expires: "2026-05-31" },
-  { id: 19, brand: "Nike",        name: "Windrunner Jacket",           cat: "outerwear", color: "Black / White",   size: "M",  price: 110, origPrice: 135, unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/windrunner-blk/400/520",    expires: "2026-05-31" },
-  { id: 20, brand: "Nike",        name: "Dri-FIT ADV Run Jacket",      cat: "outerwear", color: "Volt / Black",    size: "M",  price: 165, origPrice: 200, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/run-jacket-volt/400/520",   expires: "2026-05-31" },
-  { id: 21, brand: "Nike",        name: "Epic Luxe Tight",             cat: "bottoms",   color: "Smoke Grey",      size: "S",  price: 90,  origPrice: 110, unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/epic-tight/400/520",        expires: "2026-05-31" },
-  { id: 22, brand: "Nike",        name: "ACG Therma-FIT Fleece",       cat: "outerwear", color: "Dark Smoke Grey", size: "M",  price: 140, origPrice: 175, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/acg-fleece/400/520",        expires: "2026-05-31" },
+  { id: 17, brand: "Nike",      name: "Pro Dri-FIT Tight",          cat: "bottoms", color: "Iron Grey",   size: "M",  price: 75,  origPrice: 92,  unlocked: true, tag: "Unlocked via Trend Quiz",      img: "airliftniketightgray.jpg",              expires: "2026-05-31" },
+  { id: 18, brand: "Nike",      name: "One Dri-FIT Swoosh Bra",     cat: "tops",    color: "Obsidian",    size: "S",  price: 45,  origPrice: 55,  unlocked: true, tag: "Unlocked via Style Predictor", img: "One%20Dri-FIT%20Swoosh%20Bra%20obsidian.webp", expires: "2026-05-31" },
   // Adidas — expires May 31
-  { id: 23, brand: "Adidas",      name: "Ultraboost 23",               cat: "footwear",  color: "Core Black",      size: "8",  price: 190, origPrice: 220, unlocked: true,  tag: "Unlocked via Style Predictor", img: "adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM1.jpg", images: ["adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM1.jpg","adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM3_hover.jpg","adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM4.jpg","adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM5.jpg","adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM6.jpg"], expires: "2026-05-31" },
-  { id: 24, brand: "Adidas",      name: "Adizero Adios Pro 3",         cat: "footwear",  color: "Solar Red",       size: "8",  price: 225, origPrice: 260, unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/adizero-red/400/520",       expires: "2026-05-31" },
-  { id: 25, brand: "Adidas",      name: "Own The Run Tee",             cat: "tops",      color: "White",           size: "S",  price: 35,  origPrice: 44,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/run-tee-white/400/520",     expires: "2026-05-31" },
-  { id: 26, brand: "Adidas",      name: "Tiro 23 Track Jacket",        cat: "outerwear", color: "Team Navy",       size: "L",  price: 90,  origPrice: 112, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/track-jacket-navy/400/520", expires: "2026-05-31" },
-  { id: 27, brand: "Adidas",      name: "Techfit Compression Tight",   cat: "bottoms",   color: "Black",           size: "M",  price: 55,  origPrice: 68,  unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/techfit-tight/400/520",     expires: "2026-05-31" },
-  // Athleta — expires May 31
-  { id: 28, brand: "Athleta",     name: "Salutation Stash Tight",      cat: "bottoms",   color: "Deep Plum",       size: "S",  price: 89,  origPrice: 109, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/stash-tight-plum/400/520",  expires: "2026-05-31" },
-  { id: 29, brand: "Athleta",     name: "Exhale Crop Tank",            cat: "tops",      color: "Cascade Blue",    size: "XS", price: 49,  origPrice: 60,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/crop-tank-blue/400/520",    expires: "2026-05-31" },
-  { id: 30, brand: "Athleta",     name: "Trekkie North Stretch Pant",  cat: "bottoms",   color: "Heather Grey",    size: "4",  price: 118, origPrice: 145, unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/trekkie-pant/400/520",      expires: "2026-05-31" },
-  // Vuori — expires May 31
-  { id: 31, brand: "Vuori",       name: "Ponto Performance Short",     cat: "bottoms",   color: "Heather Charcoal",size: "M",  price: 68,  origPrice: 85,  unlocked: true,  tag: "Unlocked via Outfit Builder",  img: "https://picsum.photos/seed/ponto-short/400/520",       expires: "2026-05-31" },
-  { id: 32, brand: "Vuori",       name: "Strato Tech Hoodie",          cat: "tops",      color: "Dark Sage",       size: "M",  price: 128, origPrice: 155, unlocked: true,  tag: "Unlocked via Style Predictor", img: "https://picsum.photos/seed/strato-hoodie/400/520",     expires: "2026-05-31" },
-  { id: 33, brand: "Vuori",       name: "Ripstop Climber Pant",        cat: "bottoms",   color: "Dark Navy",       size: "32", price: 108, origPrice: 132, unlocked: false, tag: "Play Color Match to unlock",    img: "https://picsum.photos/seed/climber-pant/400/520",      expires: "2026-05-31" },
-  // Outdoor Voices — expires May 31
-  { id: 34, brand: "Outdoor Voices", name: "CloudKnit Sweatshirt",     cat: "tops",      color: "Grape",           size: "S",  price: 98,  origPrice: 120, unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/cloudknit-grape/400/520",   expires: "2026-05-31" },
-  { id: 35, brand: "Outdoor Voices", name: "TechSweat 7/8 Legging",    cat: "bottoms",   color: "Dusty Rose",      size: "XS", price: 85,  origPrice: 105, unlocked: false, tag: "Play Outfit Builder to unlock", img: "https://picsum.photos/seed/techsweat-rose/400/520",    expires: "2026-05-31" },
-  { id: 36, brand: "Outdoor Voices", name: "Doing Things Shorts",      cat: "bottoms",   color: "Buoy Orange",     size: "XS", price: 65,  origPrice: 80,  unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/doing-shorts-orange/400/520", expires: "2026-05-31" },
-  // Aritzia — expires May 31
-  { id: 37, brand: "Aritzia",     name: "Wilfred Ease Pant",           cat: "bottoms",   color: "Black",           size: "0",  price: 95,  origPrice: 118, unlocked: true,  tag: "Unlocked via Style Quiz",      img: "https://picsum.photos/seed/ease-pant-black/400/520",   expires: "2026-05-31" },
-  { id: 38, brand: "Aritzia",     name: "Contour Bodysuit",            cat: "tops",      color: "Ivory",           size: "XS", price: 68,  origPrice: 85,  unlocked: true,  tag: "Unlocked via Trend Quiz",      img: "https://picsum.photos/seed/bodysuit-ivory/400/520",    expires: "2026-05-31" },
-  { id: 39, brand: "Aritzia",     name: "Super Puff™ Long Vest",       cat: "outerwear", color: "Washed Navy",     size: "XS", price: 178, origPrice: 220, unlocked: false, tag: "Play Style Quiz to unlock",     img: "https://picsum.photos/seed/super-puff-navy/400/520",   expires: "2026-05-31" },
+  { id: 23, brand: "Adidas",    name: "Ultraboost 23",              cat: "footwear", color: "Core Black", size: "8",  price: 190, origPrice: 220, unlocked: true, tag: "Unlocked via Style Predictor", img: "adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM1.jpg", images: ["adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM1.jpg","adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM3_hover.jpg","adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM4.jpg","adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM5.jpg","adidas%20ultraboost%20sneakers_files/Ultraboost_5X_Shoes_Black_IH3110_HM6.jpg"], expires: "2026-05-31" },
 ];
 
 const LEADERBOARD = [
@@ -1332,9 +1298,8 @@ function ProductModal({ item, onClose, onAdd, onOpenCart }) {
   const handleAdd = () => {
     if (!selectedSize) return;
     onAdd({ ...item, size: selectedSize });
+    onClose();
     onOpenCart();
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
   };
 
   return (
@@ -1721,11 +1686,7 @@ function App() {
   const [cartOpen, setCartOpen]   = useState(false);
   const [cartPulse, setCartPulse] = useState(false);
   const [detailItem, setDetailItem] = useState(null);
-  const [cartItems, setCartItems] = useState([
-    { ...PREORDERS[0], qty: 1 },
-    { ...PREORDERS[3], qty: 1 },
-    { ...PREORDERS[11], qty: 1 },
-  ]);
+  const [cartItems, setCartItems] = useState([]);
   const [gameView, setGameView]   = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
