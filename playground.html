@@ -557,7 +557,7 @@ function PreorderCard({ item, onAdd, onOpenCart, onOpenDetail }) {
          }}>
       {/* Image — click opens detail modal */}
       <div onClick={() => item.unlocked && onOpenDetail(item)}
-           style={{ position: "relative", height: 340, overflow: "hidden", flexShrink: 0,
+           style={{ position: "relative", height: 460, overflow: "hidden", flexShrink: 0,
                     background: (item.images || !item.img.startsWith("http")) ? C.card : BRAND_LOGOS[item.brand] ? "#ffffff" : "transparent",
                     cursor: item.unlocked ? "pointer" : "default" }}>
         {item.images ? (
@@ -589,9 +589,9 @@ function PreorderCard({ item, onAdd, onOpenCart, onOpenDetail }) {
         {item.unlocked && (
           <div style={{
             position: "absolute", top: 10, left: 10,
-            background: isUrgent ? "#FF8C00" : "#B5FF81", backdropFilter: "blur(6px)",
+            background: "#B5FF81", backdropFilter: "blur(6px)",
             borderRadius: 6, padding: "3px 8px",
-            fontSize: 10, fontWeight: 700, color: isUrgent ? "#fff" : "#1a2612", letterSpacing: "0.8px",
+            fontSize: 10, fontWeight: 700, color: "#1a2612", letterSpacing: "0.8px",
             fontFamily: "'Rajdhani', sans-serif",
           }}>UNLOCKED</div>
         )}
@@ -669,7 +669,7 @@ function PreorderCard({ item, onAdd, onOpenCart, onOpenDetail }) {
             border: isUrgent ? "1px solid rgba(255,140,0,0.35)" : "1px solid rgba(255,255,255,0.08)",
             alignSelf: "flex-start",
           }}>
-            {isUrgent && <span style={{ fontSize: 10 }}>⚠</span>}
+            {isUrgent && <span style={{ fontSize: 10, color: "#FF8C00" }}>⚠</span>}
             <span style={{
               fontSize: 10, fontWeight: 700, letterSpacing: "0.5px",
               fontFamily: "'Rajdhani', sans-serif",
