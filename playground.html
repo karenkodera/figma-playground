@@ -201,6 +201,12 @@ const BRAND_LOGOS = {
   "Patagonia":      "patagonia%20logo.svg",
   "Vuori":          "vuori%20logo.png",
   "Alo Yoga":       "alo%20logo.jpg",
+  "Zara":           "Zara_Logo.svg",
+  "Arc'teryx":      "arcteryx%20logo.png",
+  "Athleta":        "athleta%20logo.png",
+  "Everlane":       "everlane%20logo.png",
+  "Free People":    "free%20people%20logo.jpg",
+  "Reformation":    "reformation%20logo.webp",
 };
 
 /* ── Design tokens ───────────────────────────────────────────────── */
@@ -557,7 +563,7 @@ function PreorderCard({ item, onAdd, onOpenCart, onOpenDetail }) {
                     cursor: item.unlocked ? "pointer" : "default" }}>
         {BRAND_LOGOS[item.brand] ? (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                        padding: item.brand === "Lululemon" ? 16 : 40 }}>
+                        padding: item.brand === "Lululemon" ? 4 : 40 }}>
             <img src={BRAND_LOGOS[item.brand]} alt={item.brand}
                  style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
           </div>
