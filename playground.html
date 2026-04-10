@@ -363,10 +363,12 @@ function GameCard({ game, isSaved = false, onToggleSave = () => {}, onPlay = () 
       <div style={{ height: 150, overflow: "hidden", position: "relative",
                     background: BRAND_LOGOS[game.name] ? (game.done ? "#2a2a2a" : "#ffffff") : "transparent" }}>
         {BRAND_LOGOS[game.name] ? (
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                        padding: game.name === "Lululemon" ? 0 : 24,
                         opacity: game.done ? 0.15 : 1 }}>
             <img src={BRAND_LOGOS[game.name]} alt={game.name}
-                 style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                 style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
+                          transform: game.name === "Lululemon" ? "scale(2.2)" : "none" }} />
           </div>
         ) : (
           <img src={game.img} alt={game.name}
@@ -563,9 +565,10 @@ function PreorderCard({ item, onAdd, onOpenCart, onOpenDetail }) {
                     cursor: item.unlocked ? "pointer" : "default" }}>
         {BRAND_LOGOS[item.brand] ? (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                        padding: item.brand === "Lululemon" ? 4 : 40 }}>
+                        padding: item.brand === "Lululemon" ? 0 : 40 }}>
             <img src={BRAND_LOGOS[item.brand]} alt={item.brand}
-                 style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                 style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
+                          transform: item.brand === "Lululemon" ? "scale(2.2)" : "none" }} />
           </div>
         ) : (
           <>
