@@ -2078,33 +2078,13 @@ function App() {
                   </div>
                 </div>
 
-                {/* Saved games */}
-                {saved.length > 0 && (
-                  <>
-                    <SectionHeader label="Saved" onViewAll={() => setGameView("all")} />
-                    <Carousel games={saved} {...carouselProps} />
-                  </>
-                )}
-
-                {/* For you */}
-                <SectionHeader label="For you" onViewAll={() => setGameView("all")} style={{ marginTop: saved.length > 0 ? 32 : 0 }} />
-                <Carousel games={forYou} {...carouselProps} />
-
-                {/* New */}
-                <SectionHeader label="New" onViewAll={() => setGameView("all")} style={{ marginTop: 48 }} />
-                <Carousel games={newGames} {...carouselProps} />
-
-                {/* January games */}
-                <SectionHeader label="January games" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
-                <Carousel games={active} {...carouselProps} />
-
-                {/* Finished games */}
-                {done.length > 0 && (
-                  <>
-                    <SectionHeader label="Finished games" onViewAll={() => setGameView("all")} style={{ marginTop: 32 }} />
-                    <Carousel games={done} {...carouselProps} />
-                  </>
-                )}
+                {/* All games — active first, completed at end */}
+                <SectionHeader label="Games" />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginTop: 16 }}>
+                  {[...active, ...done].map(g => (
+                    <GameCard key={g.id} game={g} isSaved={savedGames.has(g.id)} onToggleSave={toggleSave} onPlay={setActiveGame} />
+                  ))}
+                </div>
               </div>
             </div>
           );
