@@ -1672,8 +1672,789 @@ function HeroCarousel() {
   );
 }
 
+/* ── Dashboard Page ──────────────────────────────────────────────── */
+function DashboardPage({ onClose }) {
+  const [activeNav, setActiveNav] = useState("Dashboard");
+  const [showInventoryReview, setShowInventoryReview] = useState(false);
+  const [showInventorySuggestions, setShowInventorySuggestions] = useState(false);
+
+  const DB = {
+    bg:       "#0b0b11",
+    sidebar:  "#0d0d15",
+    card:     "#12121a",
+    cardBorder:"rgba(255,255,255,0.07)",
+    border:   "rgba(255,255,255,0.07)",
+    text1:    "#f0f0f0",
+    text2:    "#c2c2d8",
+    text3:    "#8080a8",
+    green:    "#B5FF81",
+    greenDim: "rgba(181,255,129,0.1)",
+    red:      "#ff6060",
+    orange:   "#ffb347",
+    purple:   "#a78bfa",
+    blue:     "#7dd3fc",
+  };
+
+  const navGroups = [
+    { label: "ANALYTICS",  items: [
+      { name:"Dashboard",          alert:null },
+      { name:"Player Insights",    alert:null },
+      { name:"Engagement Data",    alert:null },
+    ]},
+    { label: "CAMPAIGNS",  items: [
+      { name:"Active Campaigns",   alert:1 },
+      { name:"Past Campaigns",     alert:null },
+      { name:"Game Results",       alert:null },
+    ]},
+    { label: "PRE-ORDERS", items: [
+      { name:"Order Pipeline",     alert:null },
+      { name:"Inventory Alerts",   alert:2, alertColor:"#ffb347" },
+      { name:"Fulfillment",        alert:null },
+    ]},
+    { label: "ACCOUNT",    items: [
+      { name:"Brand Settings",     alert:null },
+      { name:"Billing",            alert:null },
+      { name:"Contact Bridg",      alert:null },
+    ]},
+  ];
+
+  /* ── daily players chart (38 days: Jan 1 → Feb 8) ── */
+  const CW = 860, CH = 120;
+  /* daily players: 38 pts (Jan 1–Feb 8), realistic weekday/weekend pattern */
+  const dailyPlayers = [182,218,245,260,192,148,305,388,312,278,298,315,272,195,148,362,418,391,374,348,305,230,162,402,445,418,396,408,375,322,248,192,428,461,435,420,442,380];
+  const playerMax = 480;
+  const playerPts = dailyPlayers.map((v,i) => [i/(dailyPlayers.length-1)*CW, CH-(v/playerMax)*CH]);
+  const smoothCurve = (pts) => pts.map(([x,y],i) => {
+    if (i === 0) return `M${x.toFixed(1)},${y.toFixed(1)}`;
+    const [px,py] = pts[i-1];
+    const [nx,ny] = pts[i+1] || pts[i];
+    const [ppx,ppy] = pts[i-2] || pts[i-1];
+    const cp1x = (px + (x - ppx) / 6).toFixed(1);
+    const cp1y = (py + (y - ppy) / 6).toFixed(1);
+    const cp2x = (x - (nx - px) / 6).toFixed(1);
+    const cp2y = (y - (ny - py) / 6).toFixed(1);
+    return `C${cp1x},${cp1y} ${cp2x},${cp2y} ${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  const playerLine = smoothCurve(playerPts);
+  const playerArea = playerLine + ` L${CW},${CH} L0,${CH} Z`;
+
+  /* pre-order items */
+  const preOrderItems = [
+    { name:"Swiftly Tech Long-Sleeve",   color:"Ivory White / Size S",   orders:412, cap:400, revenue:53560, img:"swiftly%20long%20sleeve%20white.webp", alert:true,  sizes:[{s:"XS",n:124},{s:"S",n:148},{s:"M",n:105},{s:"L",n:64},{s:"XL",n:20}] },
+    { name:"Align™ High-Rise Pant 28\"", color:"Noir Black / Size 4",   orders:487, cap:600, revenue:62336, img:"lululemon%20align%20pant%20black.webp", alert:false, sizes:[{s:"XS",n:58},{s:"S",n:137},{s:"M",n:156},{s:"L",n:97},{s:"XL",n:39}] },
+    { name:"Scuba Half Zip Hoodie",      color:"Alpine White / Size XS", orders:359, cap:500, revenue:31592, img:null, alert:false, sizes:[{s:"XS",n:40},{s:"S",n:106},{s:"M",n:98},{s:"L",n:54},{s:"XL",n:12}] },
+    { name:"Wunder Train High-Rise Tight",color:"Black / Size 4",         orders:280, cap:250, revenue:36400, img:"lululemon%20align%20pant%20black%202.webp", alert:true,  sizes:[{s:"XS",n:62},{s:"S",n:88},{s:"M",n:74},{s:"L",n:42},{s:"XL",n:14}] },
+  ];
+  const maxOrders = 600;
+
+  /* donut — player demographics */
+  const demoData = [
+    { label:"F 18–24", pct:31, color:"#B5FF81" },
+    { label:"F 25–34", pct:37, color:"#7dd3fc" },
+    { label:"F 35–44", pct:18, color:"#a78bfa" },
+    { label:"M 18–34", pct:9,  color:"#ffb347" },
+    { label:"Other",   pct:5,  color:"#334455" },
+  ];
+  let demoDeg = 0;
+  const demoSegs = demoData.map(d => {
+    const s = demoDeg, e = demoDeg + d.pct * 3.6;
+    demoDeg = e;
+    return { ...d, s, e };
+  });
+  const donutArc = (s, e, r=50, ir=30, cx=66, cy=66) => {
+    const rad = d => (d-90) * Math.PI / 180;
+    const x1=cx+r*Math.cos(rad(s)), y1=cy+r*Math.sin(rad(s));
+    const x2=cx+r*Math.cos(rad(e)), y2=cy+r*Math.sin(rad(e));
+    const ix1=cx+ir*Math.cos(rad(e)), iy1=cy+ir*Math.sin(rad(e));
+    const ix2=cx+ir*Math.cos(rad(s)), iy2=cy+ir*Math.sin(rad(s));
+    const lg = e-s > 180 ? 1 : 0;
+    return `M${x1},${y1} A${r},${r} 0 ${lg} 1 ${x2},${y2} L${ix1},${iy1} A${ir},${ir} 0 ${lg} 0 ${ix2},${iy2} Z`;
+  };
+
+  /* funnel data */
+  const funnel = [
+    { label:"Game Players",        n:8430,  pct:100, color:"#B5FF81" },
+    { label:"Unlocked Pre-Order",  n:3847,  pct:45.6, color:"#7dd3fc" },
+    { label:"Placed Pre-Order",    n:1538,  pct:40.0, color:"#a78bfa" },
+    { label:"Order Confirmed",     n:1312,  pct:85.3, color:"#ffb347" },
+  ];
+
+  /* top game by completions */
+  const games = [
+    { name:"Style Predictor",   plays:3240, comp:82, unlocks:2190 },
+    { name:"Trend Quiz",        plays:2880, comp:71, unlocks:1820 },
+    { name:"Lookbook Challenge",plays:1640, comp:68, unlocks:980  },
+    { name:"Fit Finder",        plays:670,  comp:55, unlocks:310  },
+  ];
+
+  /* sparkline helper */
+  const spark = (vals, w, h, color="#B5FF81", fill=false) => {
+    const mx = Math.max(...vals);
+    const line = vals.map((v,i) => `${i===0?"M":"L"}${(i/(vals.length-1)*w).toFixed(1)},${(h - v/mx*h*0.9).toFixed(1)}`).join(" ");
+    const area = line + ` L${w},${h} L0,${h} Z`;
+    return (
+      <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{display:"block",flexShrink:0}}>
+        {fill && (
+          <>
+            <defs>
+              <linearGradient id={`sg${color.replace("#","")}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity="0.25"/>
+                <stop offset="100%" stopColor={color} stopOpacity="0.01"/>
+              </linearGradient>
+            </defs>
+            <path d={area} fill={`url(#sg${color.replace("#","")})`}/>
+          </>
+        )}
+        <path d={line} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    );
+  };
+
+  const card = {background:DB.card,border:`1px solid ${DB.cardBorder}`,borderRadius:12};
+  const label = {fontSize:9,fontWeight:700,letterSpacing:"2px",color:DB.text3,fontFamily:"'Rajdhani',sans-serif"};
+  const subhead = {fontSize:11,color:DB.text2,marginBottom:0};
+
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:50,background:DB.bg,display:"flex",flexDirection:"column",overflow:"hidden",fontFamily:"'Inter',Helvetica,sans-serif"}}>
+
+      {/* ── Header ── */}
+      <header style={{height:52,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 20px 0 0",background:DB.sidebar,borderBottom:`1px solid ${DB.border}`}}>
+        <div onClick={onClose} style={{width:192,display:"flex",alignItems:"center",gap:8,padding:"0 20px",borderRight:`1px solid ${DB.border}`,height:"100%",cursor:"pointer"}}>
+          <Logo />
+          <span style={{fontSize:17,fontWeight:700,letterSpacing:"2px",color:DB.text1,textTransform:"uppercase",fontFamily:"'Rajdhani',sans-serif"}}>bridg</span>
+          <span style={{marginLeft:4,fontSize:9,fontWeight:700,letterSpacing:"1px",color:DB.green,background:DB.greenDim,padding:"2px 6px",borderRadius:4,fontFamily:"'Rajdhani',sans-serif"}}>BRAND</span>
+        </div>
+        <div style={{flex:1,padding:"0 20px",display:"flex",alignItems:"center",gap:6}}>
+          <span style={{fontSize:11,color:DB.text3}}>Analytics</span>
+          <span style={{fontSize:11,color:DB.text3}}>›</span>
+          <span style={{fontSize:11,color:DB.text2,fontWeight:500}}>Dashboard</span>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px",background:"rgba(255,255,255,0.04)",border:`1px solid ${DB.border}`,borderRadius:8}}>
+            <span style={{fontSize:11,fontWeight:600,color:DB.text2,letterSpacing:"0.5px"}}>Lululemon</span>
+          </div>
+        </div>
+      </header>
+
+      {/* ── Body ── */}
+      <div style={{flex:1,display:"flex",overflow:"hidden"}}>
+
+        {/* Sidebar */}
+        <aside style={{width:192,flexShrink:0,background:DB.sidebar,borderRight:`1px solid ${DB.border}`,display:"flex",flexDirection:"column",paddingTop:18,paddingBottom:16,overflowY:"auto"}}>
+          {navGroups.map(group => (
+            <div key={group.label} style={{marginBottom:20}}>
+              <p style={{...label,padding:"0 16px",marginBottom:5}}>{group.label}</p>
+              {group.items.map(({name,alert,alertColor}) => (
+                <div key={name} onClick={() => setActiveNav(name)} style={{
+                  padding:"7px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",
+                  fontSize:12,fontWeight:name===activeNav?600:400,
+                  color:name===activeNav?DB.text1:DB.text2,
+                  background:name===activeNav?"rgba(255,255,255,0.07)":"transparent",
+                  borderLeft:name===activeNav?`2px solid ${DB.green}`:"2px solid transparent",
+                  cursor:"pointer",transition:"all 0.15s",
+                }}>
+                  <span>{name}</span>
+                  {alert && <span style={{fontSize:9,fontWeight:700,background:alertColor||DB.green,color:"#0a0a0a",padding:"1px 5px",borderRadius:9,lineHeight:1.6}}>{alert}</span>}
+                </div>
+              ))}
+            </div>
+          ))}
+          <div style={{flex:1}}/>
+          <div style={{padding:"0 14px"}}>
+            <button style={{width:"100%",padding:"9px 0",borderRadius:8,background:DB.green,border:"none",color:"#0a0a0a",fontSize:11,fontWeight:700,letterSpacing:"1px",fontFamily:"'Rajdhani',sans-serif",cursor:"pointer"}}>+ New Campaign</button>
+          </div>
+        </aside>
+
+        {/* ── Main ── */}
+        <main style={{flex:1,overflowY:"auto",padding:"24px 28px",background:DB.bg}}>
+
+          {/* Title row */}
+          <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",marginBottom:20}}>
+            <div>
+              <p style={{...label,marginBottom:6}}>ACTIVE CAMPAIGN</p>
+              <h1 style={{fontSize:24,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",lineHeight:1}}>January 2026</h1>
+              <p style={{fontSize:12,color:DB.text2,marginTop:4}}>Campaign: Jan 1 – Jan 31 · 3 active game types · 3 pre-order items</p>
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              {["7D","30D","All Time"].map((t,i) => (
+                <button key={t} style={{padding:"5px 12px",borderRadius:7,border:`1px solid ${DB.border}`,background:i===1?"rgba(255,255,255,0.09)":"transparent",color:i===1?DB.text1:DB.text2,fontSize:11,fontWeight:600,cursor:"pointer"}}>{t}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── KPI row ── */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
+            {[
+              {label:"Total Players",    value:"8,430",  delta:"+63%", up:true,  sub:"vs last campaign",  icon:"◎"},
+              {label:"Game Completion",  value:"78%",    delta:"+4pt", up:true,  sub:"completion rate",   icon:"▶"},
+              {label:"Pre-Orders Placed",value:"1,538",  delta:"+22%", up:true,  sub:"of unlocked players",icon:"⬡"},
+              {label:"Forecasted Rev.",  value:"$181K",  delta:"+38%", up:true,  sub:"from pre-orders",   icon:"◈"},
+            ].map(k => (
+              <div key={k.label} style={{...card,padding:"16px 18px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                  <p style={{fontSize:10,color:DB.text2}}>{k.label}</p>
+                  <span style={{fontSize:14,color:DB.text3}}>{k.icon}</span>
+                </div>
+                <p style={{fontSize:28,fontWeight:800,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",lineHeight:1,marginBottom:6}}>{k.value}</p>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <span style={{fontSize:10,fontWeight:700,color:k.up?DB.green:DB.red,background:k.up?"rgba(181,255,129,0.1)":"rgba(255,96,96,0.1)",padding:"2px 6px",borderRadius:4}}>{k.delta}</span>
+                  <span style={{fontSize:10,color:DB.text3}}>{k.sub}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Two-column: players chart + funnel ── */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:12,marginBottom:12}}>
+
+            {/* Daily Players area chart */}
+            <div style={{...card,padding:"18px 20px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+                <div>
+                  <p style={{...subhead,marginBottom:3}}>Daily Game Players</p>
+                  <p style={{fontSize:9,color:DB.text3,letterSpacing:"0.5px"}}>Jan 1 – Feb 8, 2026</p>
+                </div>
+                <div style={{display:"flex",gap:16}}>
+                  {[{label:"Peak day",val:"461"},{label:"Avg/day",val:"222"}].map(s=>(
+                    <div key={s.label} style={{textAlign:"right"}}>
+                      <p style={{fontSize:16,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",lineHeight:1}}>{s.val}</p>
+                      <p style={{fontSize:9,color:DB.text3}}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <svg width="100%" viewBox={`0 0 ${CW} ${CH+20}`} preserveAspectRatio="none" style={{display:"block",height:100}}>
+                <defs>
+                  <linearGradient id="playersGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#B5FF81" stopOpacity="0.2"/>
+                    <stop offset="100%" stopColor="#B5FF81" stopOpacity="0.01"/>
+                  </linearGradient>
+                </defs>
+                {/* grid lines */}
+                {[0.25,0.5,0.75].map(f => (
+                  <line key={f} x1="0" y1={CH*f} x2={CW} y2={CH*f} stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+                ))}
+                <path d={playerArea} fill="url(#playersGrad)"/>
+                <path d={playerLine} fill="none" stroke="#B5FF81" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* x-axis labels */}
+                {[["Jan 1",0],["Jan 8",188],["Jan 15",377],["Jan 22",566],["Jan 29",754],["Feb 5",905]].map(([lbl,x]) => (
+                  <text key={lbl} x={Math.min(x, CW-20)} y={CH+16} fontSize="8" fill={DB.text3} textAnchor="middle" fontFamily="Inter">{lbl}</text>
+                ))}
+              </svg>
+            </div>
+
+            {/* Conversion funnel */}
+            <div style={{...card,padding:"18px 20px"}}>
+              <p style={{...subhead,marginBottom:16}}>Player Conversion Funnel</p>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {funnel.map((f,i) => (
+                  <div key={f.label}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                      <span style={{fontSize:10,color:DB.text2}}>{f.label}</span>
+                      <span style={{fontSize:10,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>{f.n.toLocaleString()}</span>
+                    </div>
+                    <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:3,overflow:"hidden"}}>
+                      <div style={{height:"100%",width:`${f.pct}%`,background:f.color,borderRadius:3,transition:"width 0.4s"}}/>
+                    </div>
+                    {i < funnel.length-1 && <p style={{fontSize:9,color:DB.text3,marginTop:3,textAlign:"right"}}>{funnel[i+1].pct.toFixed(0)}% proceed</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Pre-order items ── */}
+          <div style={{...card,padding:"18px 20px",marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+              <div>
+                <p style={{...subhead,marginBottom:2}}>Pre-Order Pipeline</p>
+                <p style={{fontSize:9,color:DB.text3}}>Demand vs. production capacity — Jan 2026</p>
+              </div>
+              <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                {[{c:DB.green,l:"Under capacity"},{c:DB.orange,l:"Over capacity"}].map(i=>(
+                  <div key={i.l} style={{display:"flex",alignItems:"center",gap:5}}>
+                    <div style={{width:6,height:6,borderRadius:"50%",background:i.c}}/>
+                    <span style={{fontSize:9,color:DB.text3}}>{i.l}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Alert banner */}
+            <div style={{background:"rgba(255,179,71,0.07)",border:"1px solid rgba(255,179,71,0.22)",borderRadius:8,padding:"9px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:13}}>⚠️</span>
+              <p style={{fontSize:11,color:DB.text1}}><strong>2 items exceeding inventory cap.</strong> Swiftly Tech Long-Sleeve (+3%) and Wunder Train High-Rise Tight (+12%) — consider increasing production runs.</p>
+              <div style={{display:"flex",gap:8,marginLeft:"auto",flexShrink:0}}>
+                <button onClick={() => setShowInventoryReview(true)} style={{background:"rgba(255,179,71,0.1)",border:"1px solid rgba(255,179,71,0.25)",borderRadius:6,color:"#ffb347",fontSize:10,fontWeight:700,padding:"5px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Review →</button>
+                <button onClick={() => setShowInventorySuggestions(true)} style={{background:"rgba(181,255,129,0.1)",border:"1px solid rgba(181,255,129,0.25)",borderRadius:6,color:DB.green,fontSize:10,fontWeight:700,padding:"5px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Suggestions →</button>
+              </div>
+            </div>
+
+            {/* Item rows */}
+            {preOrderItems.map((item,idx) => {
+              const pct = (item.orders / maxOrders) * 100;
+              const capPct = (item.cap / maxOrders) * 100;
+              const over = item.orders > item.cap;
+              const sparkVals = Array.from({length:14}, (_,i) => Math.max(10, Math.round(item.orders/14 * (0.5 + Math.random()*0.8 + i*0.04))));
+              return (
+                <div key={item.name} style={{display:"grid",gridTemplateColumns:"220px 1fr 180px",gap:16,alignItems:"center",padding:"11px 0",borderTop:idx>0?`1px solid ${DB.border}`:"none"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    {item.img ? <img src={item.img} alt={item.name} style={{width:36,height:36,objectFit:"cover",borderRadius:6,background:"#fff",flexShrink:0}}/> : <div style={{width:36,height:36,borderRadius:6,background:"rgba(255,255,255,0.06)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>👕</div>}
+                    <div>
+                      <p style={{fontSize:11,fontWeight:600,color:DB.text1,lineHeight:1.2}}>{item.name}</p>
+                      <p style={{fontSize:9,color:DB.text3,marginTop:1}}>{item.color}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                      <div style={{display:"flex",gap:10,alignItems:"baseline"}}>
+                        <span style={{fontSize:13,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>{item.orders.toLocaleString()}</span>
+                        <span style={{fontSize:9,color:DB.text3}}>orders</span>
+                        {over && <span style={{fontSize:9,fontWeight:700,color:DB.orange,background:"rgba(255,179,71,0.12)",padding:"1px 5px",borderRadius:3}}>+{Math.round((item.orders/item.cap-1)*100)}% over cap</span>}
+                      </div>
+                      <span style={{fontSize:9,color:DB.text3}}>cap {item.cap.toLocaleString()}</span>
+                    </div>
+                    <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:3,position:"relative"}}>
+                      <div style={{height:"100%",width:`${pct}%`,maxWidth:"100%",background:over?DB.orange:DB.green,borderRadius:3}}/>
+                      <div style={{position:"absolute",top:0,bottom:0,left:`${capPct}%`,width:1.5,background:"rgba(255,255,255,0.3)",borderRadius:1}}/>
+                    </div>
+                    {/* Size breakdown mini bars */}
+                    <div style={{display:"flex",gap:4,marginTop:7,alignItems:"flex-end"}}>
+                      {item.sizes.map(({s,n}) => {
+                        const sMax = Math.max(...item.sizes.map(x=>x.n));
+                        return (
+                          <div key={s} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flex:1}}>
+                            <div style={{width:"100%",height:Math.round((n/sMax)*24),background:over?"rgba(255,179,71,0.35)":"rgba(181,255,129,0.3)",borderRadius:2,minHeight:2}}/>
+                            <span style={{fontSize:8,color:DB.text3}}>{s}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:1,alignItems:"flex-end"}}>
+                    <p style={{fontSize:13,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>${item.revenue.toLocaleString()}</p>
+                    <p style={{fontSize:9,color:DB.text3}}>forecasted revenue</p>
+                    {spark(sparkVals, 80, 24, over?DB.orange:DB.green)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Bottom row: demographics + top games ── */}
+          <div style={{display:"grid",gridTemplateColumns:"260px 1fr",gap:12}}>
+
+            {/* Demographics donut */}
+            <div style={{...card,padding:"18px 20px"}}>
+              <p style={{...subhead,marginBottom:14}}>Player Demographics</p>
+              <div style={{display:"flex",alignItems:"center",gap:14}}>
+                <svg width="132" height="132" viewBox="0 0 132 132" style={{flexShrink:0}}>
+                  {demoSegs.map((seg,i) => <path key={i} d={donutArc(seg.s,seg.e)} fill={seg.color}/>)}
+                  <circle cx="66" cy="66" r="27" fill={DB.card}/>
+                  <text x="66" y="63" textAnchor="middle" fontSize="13" fontWeight="700" fill={DB.text1} fontFamily="Rajdhani">8,430</text>
+                  <text x="66" y="76" textAnchor="middle" fontSize="8" fill={DB.text2} fontFamily="Inter">players</text>
+                </svg>
+                <div style={{display:"flex",flexDirection:"column",gap:7}}>
+                  {demoData.map(d => (
+                    <div key={d.label} style={{display:"flex",alignItems:"center",gap:7}}>
+                      <div style={{width:7,height:7,borderRadius:2,background:d.color,flexShrink:0}}/>
+                      <span style={{fontSize:10,color:DB.text2,flex:1}}>{d.label}</span>
+                      <span style={{fontSize:10,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>{d.pct}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Top games table */}
+            <div style={{...card,padding:"18px 20px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                <p style={{...subhead}}>Game Performance Breakdown</p>
+                <span style={{fontSize:9,color:DB.text3}}>Jan 2026</span>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr repeat(3,90px)",gap:0}}>
+                {["Game","%Completion","Plays","Pre-Order Unlocks"].map(h => (
+                  <p key={h} style={{fontSize:9,fontWeight:700,color:DB.text3,letterSpacing:"0.5px",padding:"0 0 8px",textAlign:h==="Game"?"left":"right"}}>{h}</p>
+                ))}
+                {games.map((g,i) => {
+                  const sparkV = Array.from({length:10}, (_,k) => Math.round(g.plays/10*(0.6+Math.random()*0.7+k*0.04)));
+                  return (
+                    <React.Fragment key={g.name}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 0",borderTop:`1px solid ${DB.border}`}}>
+                        <div style={{width:4,height:24,borderRadius:2,background:i===0?DB.green:i===1?DB.blue:i===2?DB.purple:DB.text3,flexShrink:0}}/>
+                        <div>
+                          <p style={{fontSize:11,fontWeight:600,color:DB.text1}}>{g.name}</p>
+                          {spark(sparkV, 60, 16, i===0?DB.green:i===1?DB.blue:DB.purple)}
+                        </div>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",borderTop:`1px solid ${DB.border}`,padding:"10px 0"}}>
+                        <div>
+                          <div style={{height:4,width:54,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden",marginBottom:4}}>
+                            <div style={{height:"100%",width:`${g.comp}%`,background:g.comp>75?DB.green:g.comp>65?DB.blue:DB.text2,borderRadius:2}}/>
+                          </div>
+                          <p style={{fontSize:10,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",textAlign:"right"}}>{g.comp}%</p>
+                        </div>
+                      </div>
+                      <p style={{fontSize:12,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",textAlign:"right",display:"flex",alignItems:"center",justifyContent:"flex-end",borderTop:`1px solid ${DB.border}`,padding:"10px 0"}}>{g.plays.toLocaleString()}</p>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:6,borderTop:`1px solid ${DB.border}`,padding:"10px 0"}}>
+                        <p style={{fontSize:12,fontWeight:700,color:DB.green,fontFamily:"'Rajdhani',sans-serif"}}>{g.unlocks.toLocaleString()}</p>
+                        <span style={{fontSize:9,color:DB.text3}}>{Math.round(g.unlocks/g.plays*100)}%</span>
+                      </div>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div style={{height:24}}/>
+        </main>
+      </div>
+
+      {showInventoryReview && <InventoryReviewModal onClose={() => setShowInventoryReview(false)} onGoToSuggestions={() => { setShowInventoryReview(false); setShowInventorySuggestions(true); }} DB={DB} preOrderItems={preOrderItems} />}
+      {showInventorySuggestions && <InventorySuggestionsModal onClose={() => setShowInventorySuggestions(false)} DB={DB} preOrderItems={preOrderItems} />}
+    </div>
+  );
+}
+
+/* ── Inventory Review Modal (data only) ─────────────────────────── */
+function InventoryReviewModal({ onClose, onGoToSuggestions, DB, preOrderItems }) {
+  const alertItems = preOrderItems.filter(i => i.alert);
+  const overpct = item => Math.round((item.orders / item.cap - 1) * 100);
+
+  /* weekly demand sparkline (simulated) */
+  const weeklyDemand = item => {
+    const weeks = 5;
+    const base = item.orders / weeks;
+    return Array.from({length: weeks}, (_, i) =>
+      Math.round(base * (0.65 + i * 0.12 + Math.random() * 0.18))
+    );
+  };
+
+  const card = { background: DB.card, border: `1px solid ${DB.cardBorder}`, borderRadius: 12 };
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:60,
+      background:"rgba(5,5,10,0.85)", backdropFilter:"blur(8px)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:24,
+    }} onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{
+        width:"100%", maxWidth:820, maxHeight:"90vh",
+        background:DB.sidebar, border:`1px solid ${DB.border}`,
+        borderRadius:16, display:"flex", flexDirection:"column",
+        overflow:"hidden", boxShadow:"0 32px 80px rgba(0,0,0,0.6)",
+      }}>
+
+        {/* Modal header */}
+        <div style={{padding:"20px 24px 16px", borderBottom:`1px solid ${DB.border}`, flexShrink:0}}>
+          <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between"}}>
+            <div>
+              <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:6}}>
+                <div style={{width:6, height:6, borderRadius:"50%", background:DB.orange, boxShadow:`0 0 8px ${DB.orange}`}}/>
+                <span style={{fontSize:10, fontWeight:700, color:DB.orange, letterSpacing:"2px", fontFamily:"'Rajdhani',sans-serif"}}>INVENTORY REVIEW</span>
+              </div>
+              <h2 style={{fontSize:20, fontWeight:700, color:DB.text1, fontFamily:"'Rajdhani',sans-serif", lineHeight:1, marginBottom:4}}>
+                2 Items Exceeding Production Cap
+              </h2>
+              <p style={{fontSize:12, color:DB.text2}}>Current pre-order demand, weekly velocity, and size breakdown for flagged items.</p>
+            </div>
+            <button onClick={onClose} style={{background:"rgba(255,255,255,0.06)", border:`1px solid ${DB.border}`, borderRadius:8, color:DB.text2, cursor:"pointer", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+              </svg>
+            </button>
+          </div>
+          <div style={{display:"flex", gap:12, marginTop:14}}>
+            {[
+              { label:"Total Over-Cap Orders", value: alertItems.reduce((s,i) => s + Math.max(0, i.orders - i.cap), 0).toString(), color: DB.orange },
+              { label:"Revenue at Risk",        value: `$${alertItems.reduce((s,i) => s + Math.max(0, i.orders - i.cap) * Math.round(i.revenue/i.orders), 0).toLocaleString()}`, color: DB.green },
+              { label:"Avg Fulfillment Window", value: "14–21 days", color: DB.blue },
+            ].map(s => (
+              <div key={s.label} style={{flex:1, background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:8, padding:"10px 14px"}}>
+                <p style={{fontSize:10, color:DB.text3, marginBottom:4}}>{s.label}</p>
+                <p style={{fontSize:18, fontWeight:800, color:s.color, fontFamily:"'Rajdhani',sans-serif", lineHeight:1}}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Item cards — data only */}
+        <div style={{overflowY:"auto", padding:"18px 24px", flex:1}}>
+          {alertItems.map((item, idx) => {
+            const over = item.orders - item.cap;
+            const ovPct = overpct(item);
+            const weekly = (() => {
+              const base = item.orders / 5;
+              return Array.from({length:5}, (_,i) => Math.round(base * (0.65 + i*0.12 + (i*7+item.orders)%17*0.01)));
+            })();
+            const weekMax = Math.max(...weekly);
+            const card2 = { background:DB.card, border:`1px solid ${DB.cardBorder}`, borderRadius:12 };
+            return (
+              <div key={item.name} style={{...card2, padding:"20px 22px", marginBottom: idx < alertItems.length-1 ? 14 : 0}}>
+                <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:18}}>
+                  <div style={{display:"flex", alignItems:"center", gap:12}}>
+                    {item.img
+                      ? <img src={item.img} alt={item.name} style={{width:44, height:44, objectFit:"cover", borderRadius:8, background:"#fff", flexShrink:0}}/>
+                      : <div style={{width:44, height:44, borderRadius:8, background:"rgba(255,255,255,0.06)", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20}}>👕</div>
+                    }
+                    <div>
+                      <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:3}}>
+                        <p style={{fontSize:14, fontWeight:700, color:DB.text1}}>{item.name}</p>
+                        <span style={{fontSize:9, fontWeight:700, color:DB.orange, background:"rgba(255,179,71,0.12)", padding:"2px 6px", borderRadius:3}}>+{ovPct}% OVER CAP</span>
+                      </div>
+                      <p style={{fontSize:11, color:DB.text3}}>{item.color}</p>
+                    </div>
+                  </div>
+                  <div style={{display:"flex", gap:20, textAlign:"right"}}>
+                    {[
+                      { label:"Production Cap", val: item.cap.toLocaleString(),    color: DB.text2 },
+                      { label:"Orders Placed",  val: item.orders.toLocaleString(), color: DB.orange },
+                      { label:"Units Over",     val: `+${over}`,                   color: DB.red },
+                    ].map(s => (
+                      <div key={s.label}>
+                        <p style={{fontSize:17, fontWeight:700, color:s.color, fontFamily:"'Rajdhani',sans-serif", lineHeight:1}}>{s.val}</p>
+                        <p style={{fontSize:9, color:DB.text3, marginTop:3}}>{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:14}}>
+                  {/* Weekly velocity bars */}
+                  <div style={{background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:10, padding:"12px 14px"}}>
+                    <p style={{fontSize:10, color:DB.text2, marginBottom:10}}>Weekly Pre-Order Velocity</p>
+                    <div style={{display:"flex", alignItems:"flex-end", gap:6, height:56}}>
+                      {weekly.map((v, i) => (
+                        <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3}}>
+                          <div style={{width:"100%", height:Math.round((v/weekMax)*44), background:i===weekly.length-1?DB.orange:"rgba(255,179,71,0.28)", borderRadius:"3px 3px 0 0", minHeight:4}}/>
+                          <span style={{fontSize:8, color:DB.text3}}>W{i+1}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p style={{fontSize:9, color:DB.text3, marginTop:6}}>Week 5 pace: <span style={{color:DB.orange, fontWeight:700}}>{weekly[4]} orders</span> — trending up</p>
+                  </div>
+
+                  {/* Size breakdown */}
+                  <div style={{background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:10, padding:"12px 14px"}}>
+                    <p style={{fontSize:10, color:DB.text2, marginBottom:10}}>Size Distribution</p>
+                    <div style={{display:"flex", flexDirection:"column", gap:6}}>
+                      {item.sizes.map(({s, n}) => {
+                        const sMax = Math.max(...item.sizes.map(x=>x.n));
+                        const isTop = n === sMax;
+                        return (
+                          <div key={s} style={{display:"flex", alignItems:"center", gap:8}}>
+                            <span style={{fontSize:9, fontWeight:600, color:isTop?DB.text1:DB.text3, width:18, flexShrink:0}}>{s}</span>
+                            <div style={{flex:1, height:5, background:"rgba(255,255,255,0.06)", borderRadius:3}}>
+                              <div style={{height:"100%", width:`${(n/sMax)*100}%`, background:isTop?DB.orange:"rgba(255,179,71,0.3)", borderRadius:3}}/>
+                            </div>
+                            <span style={{fontSize:9, color:isTop?DB.text1:DB.text3, width:24, textAlign:"right", fontWeight:isTop?700:400}}>{n}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{padding:"16px 24px", borderTop:`1px solid ${DB.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"space-between", background:DB.sidebar}}>
+          <p style={{fontSize:11, color:DB.text3}}>Ready to act on this data?</p>
+          <div style={{display:"flex", gap:10}}>
+            <button onClick={onClose} style={{padding:"9px 18px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Close</button>
+            <button onClick={onGoToSuggestions} style={{padding:"9px 22px", borderRadius:8, border:"none", background:DB.green, color:"#0a0a0a", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Rajdhani',sans-serif", letterSpacing:"0.5px"}}>View Suggestions →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Inventory Suggestions Modal (actions) ───────────────────────── */
+function InventorySuggestionsModal({ onClose, DB, preOrderItems }) {
+  const alertItems = preOrderItems.filter(i => i.alert);
+  const [decisions, setDecisions] = React.useState(() =>
+    Object.fromEntries(alertItems.map(item => [item.name, {
+      action: "increase",
+      newCap: item.cap + Math.ceil((item.orders - item.cap) * 1.25),
+      note: "",
+    }]))
+  );
+  const [submitted, setSubmitted] = React.useState(false);
+  const setDecision = (name, patch) => setDecisions(prev => ({ ...prev, [name]: { ...prev[name], ...patch } }));
+
+  const overpct = item => Math.round((item.orders / item.cap - 1) * 100);
+
+  /* Bridg AI suggestions per item */
+  const suggestions = {
+    "Swiftly Tech Long-Sleeve": {
+      headline: "Increase production by 15 units",
+      rationale: "Demand is accelerating in Week 5. Historical data shows Swiftly Tech tops hold strong conversion through end of campaign. A modest increase captures revenue without overextending.",
+      impact: "+$1,950 forecasted revenue",
+      confidence: 87,
+    },
+    "Wunder Train High-Rise Tight": {
+      headline: "Increase production by 40 units",
+      rationale: "Size M and S are driving outsized demand. Wunder Train has a 94% fulfillment satisfaction rate in past campaigns — high confidence that additional units will convert.",
+      impact: "+$5,200 forecasted revenue",
+      confidence: 92,
+    },
+  };
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:60,
+      background:"rgba(5,5,10,0.85)", backdropFilter:"blur(8px)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:24,
+    }} onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{
+        width:"100%", maxWidth:820, maxHeight:"90vh",
+        background:DB.sidebar, border:`1px solid ${DB.border}`,
+        borderRadius:16, display:"flex", flexDirection:"column",
+        overflow:"hidden", boxShadow:"0 32px 80px rgba(0,0,0,0.6)",
+      }}>
+
+        {/* Header */}
+        <div style={{padding:"20px 24px 18px", borderBottom:`1px solid ${DB.border}`, flexShrink:0}}>
+          <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between"}}>
+            <div>
+              <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:6}}>
+                <div style={{width:6, height:6, borderRadius:"50%", background:DB.green, boxShadow:`0 0 8px ${DB.green}`}}/>
+                <span style={{fontSize:10, fontWeight:700, color:DB.green, letterSpacing:"2px", fontFamily:"'Rajdhani',sans-serif"}}>BRIDG SUGGESTIONS</span>
+              </div>
+              <h2 style={{fontSize:20, fontWeight:700, color:DB.text1, fontFamily:"'Rajdhani',sans-serif", lineHeight:1, marginBottom:4}}>
+                Recommended Production Adjustments
+              </h2>
+              <p style={{fontSize:12, color:DB.text2}}>Bridg has analysed your campaign data and pre-order trends. Review each suggestion and confirm your decision.</p>
+            </div>
+            <button onClick={onClose} style={{background:"rgba(255,255,255,0.06)", border:`1px solid ${DB.border}`, borderRadius:8, color:DB.text2, cursor:"pointer", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Item action cards */}
+        <div style={{overflowY:"auto", padding:"18px 24px", flex:1}}>
+          {alertItems.map((item, idx) => {
+            const dec = decisions[item.name];
+            const suggest = Math.ceil((item.orders - item.cap) * 1.25);
+            const sug = suggestions[item.name];
+            const card2 = { background:DB.card, border:`1px solid ${DB.cardBorder}`, borderRadius:12 };
+            return (
+              <div key={item.name} style={{...card2, padding:"20px 22px", marginBottom: idx < alertItems.length-1 ? 14 : 0}}>
+
+                {/* Item row */}
+                <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:16}}>
+                  {item.img
+                    ? <img src={item.img} alt={item.name} style={{width:40, height:40, objectFit:"cover", borderRadius:8, background:"#fff", flexShrink:0}}/>
+                    : <div style={{width:40, height:40, borderRadius:8, background:"rgba(255,255,255,0.06)", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18}}>👕</div>
+                  }
+                  <div style={{flex:1}}>
+                    <p style={{fontSize:13, fontWeight:700, color:DB.text1}}>{item.name}</p>
+                    <p style={{fontSize:10, color:DB.text3}}>{item.color} · +{overpct(item)}% over cap</p>
+                  </div>
+                </div>
+
+                {/* Bridg suggestion callout */}
+                {sug && (
+                  <div style={{background:"rgba(181,255,129,0.05)", border:"1px solid rgba(181,255,129,0.16)", borderRadius:10, padding:"14px 16px", marginBottom:16}}>
+                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8}}>
+                      <div style={{display:"flex", alignItems:"center", gap:6}}>
+                        <span style={{fontSize:10, fontWeight:700, color:DB.green, letterSpacing:"1px", fontFamily:"'Rajdhani',sans-serif"}}>BRIDG RECOMMENDS</span>
+                      </div>
+                      <div style={{display:"flex", alignItems:"center", gap:5, background:"rgba(181,255,129,0.1)", borderRadius:5, padding:"2px 8px"}}>
+                        <span style={{fontSize:9, color:DB.green, fontWeight:700}}>{sug.confidence}% confidence</span>
+                      </div>
+                    </div>
+                    <p style={{fontSize:13, fontWeight:700, color:DB.text1, marginBottom:5}}>{sug.headline}</p>
+                    <p style={{fontSize:11, color:DB.text2, lineHeight:1.6, marginBottom:8}}>{sug.rationale}</p>
+                    <p style={{fontSize:11, fontWeight:600, color:DB.green}}>{sug.impact}</p>
+                  </div>
+                )}
+
+                {/* Decision options */}
+                <div style={{marginBottom:14}}>
+                  <p style={{fontSize:9, fontWeight:700, color:DB.text3, letterSpacing:"1.5px", marginBottom:10, fontFamily:"'Rajdhani',sans-serif"}}>YOUR DECISION</p>
+                  <div style={{display:"flex", gap:8}}>
+                    {[
+                      { key:"increase", label:"Increase Production", desc:`Add ${suggest} units (suggested)` },
+                      { key:"waitlist", label:"Open Waitlist",        desc:"Cap orders, notify waitlist" },
+                      { key:"hold",     label:"Hold for Now",         desc:"Flag for team review" },
+                    ].map(opt => (
+                      <button key={opt.key} onClick={() => setDecision(item.name, {action: opt.key})} style={{
+                        flex:1, padding:"10px 12px", borderRadius:8, cursor:"pointer", textAlign:"left",
+                        background: dec.action===opt.key ? (opt.key==="increase"?"rgba(181,255,129,0.1)":opt.key==="waitlist"?"rgba(125,211,252,0.08)":"rgba(255,255,255,0.07)") : "rgba(255,255,255,0.03)",
+                        border: dec.action===opt.key ? `1.5px solid ${opt.key==="increase"?DB.green:opt.key==="waitlist"?DB.blue:"rgba(255,255,255,0.2)"}` : `1px solid ${DB.border}`,
+                        transition:"all 0.15s",
+                      }}>
+                        <p style={{fontSize:11, fontWeight:700, color: dec.action===opt.key?(opt.key==="increase"?DB.green:opt.key==="waitlist"?DB.blue:DB.text1):DB.text2, marginBottom:2}}>{opt.label}</p>
+                        <p style={{fontSize:9, color:DB.text3}}>{opt.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {dec.action === "increase" && (
+                  <div style={{display:"flex", alignItems:"center", gap:10, background:DB.bg, borderRadius:8, padding:"10px 14px"}}>
+                    <p style={{fontSize:11, color:DB.text2, whiteSpace:"nowrap"}}>New production cap:</p>
+                    <button onClick={() => setDecision(item.name, {newCap: Math.max(item.orders, dec.newCap-25)})} style={{width:26, height:26, borderRadius:6, border:`1px solid ${DB.border}`, background:"rgba(255,255,255,0.06)", color:DB.text1, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center"}}>−</button>
+                    <div style={{padding:"4px 16px", borderRadius:7, border:"1px solid rgba(181,255,129,0.3)", background:"rgba(181,255,129,0.07)", minWidth:72, textAlign:"center"}}>
+                      <span style={{fontSize:14, fontWeight:800, color:DB.green, fontFamily:"'Rajdhani',sans-serif"}}>{dec.newCap}</span>
+                    </div>
+                    <button onClick={() => setDecision(item.name, {newCap: dec.newCap+25})} style={{width:26, height:26, borderRadius:6, border:`1px solid ${DB.border}`, background:"rgba(255,255,255,0.06)", color:DB.text1, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center"}}>+</button>
+                    <p style={{fontSize:10, color:DB.text3}}>+{dec.newCap - item.cap} units · <span style={{color:DB.green}}>~${((dec.newCap - item.cap) * Math.round(item.revenue/item.orders)).toLocaleString()} additional revenue</span></p>
+                  </div>
+                )}
+                {dec.action === "waitlist" && (
+                  <div style={{background:DB.bg, borderRadius:8, padding:"10px 14px"}}>
+                    <p style={{fontSize:11, color:DB.text2}}><span style={{color:DB.blue, fontWeight:700}}>{Math.max(0, item.orders - item.cap)} customers</span> will be moved to waitlist and notified by email when stock is confirmed.</p>
+                  </div>
+                )}
+                {dec.action === "hold" && (
+                  <input placeholder="Add a note for your team..." value={dec.note} onChange={e => setDecision(item.name, {note:e.target.value})}
+                    style={{width:"100%", background:"rgba(255,255,255,0.05)", border:`1px solid ${DB.border}`, borderRadius:7, padding:"8px 12px", color:DB.text1, fontSize:11, outline:"none", fontFamily:"'Inter',sans-serif", boxSizing:"border-box"}}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        {!submitted ? (
+          <div style={{padding:"16px 24px", borderTop:`1px solid ${DB.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"space-between", background:DB.sidebar}}>
+            <p style={{fontSize:11, color:DB.text3}}>Decisions are logged in Bridg and sent to your production partner.</p>
+            <div style={{display:"flex", gap:10}}>
+              <button onClick={onClose} style={{padding:"9px 18px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Cancel</button>
+              <button onClick={() => setSubmitted(true)} style={{padding:"9px 22px", borderRadius:8, border:"none", background:DB.green, color:"#0a0a0a", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Rajdhani',sans-serif", letterSpacing:"0.5px"}}>Confirm Decisions →</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{padding:"20px 24px", borderTop:`1px solid ${DB.border}`, flexShrink:0, background:DB.sidebar, display:"flex", alignItems:"center", gap:14}}>
+            <div style={{width:32, height:32, borderRadius:"50%", background:DB.greenDim, border:"1px solid rgba(181,255,129,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={DB.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 8.5l4 4 8-8"/></svg>
+            </div>
+            <div style={{flex:1}}>
+              <p style={{fontSize:13, fontWeight:700, color:DB.green, fontFamily:"'Rajdhani',sans-serif", marginBottom:2}}>Decisions confirmed</p>
+              <p style={{fontSize:11, color:DB.text2}}>Your production partner has been notified. Updates will reflect in the Order Pipeline within 24 hours.</p>
+            </div>
+            <button onClick={onClose} style={{padding:"9px 18px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Close</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── App ─────────────────────────────────────────────────────────── */
 function App() {
+  const [showDashboard, setShowDashboard] = useState(false);
   const [tab, setTab]             = useState("about");
   const [playKey, setPlayKey]     = useState(0);
   const [preorderKey, setPreorderKey] = useState(0);
@@ -1762,8 +2543,8 @@ function App() {
         WebkitBackdropFilter: "blur(40px) saturate(180%)",
         boxShadow: "0 1px 0 rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}>
-        {/* Left: Logo + Bridg — clicking returns to About Bridg */}
-        <div onClick={() => setTab("about")} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+        {/* Left: Logo + Bridg — clicking opens Dashboard */}
+        <div onClick={() => setShowDashboard(true)} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
           <Logo />
           <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "2px", color: C.text1, textTransform: "uppercase", fontFamily: "'Rajdhani', sans-serif" }}>
             bridg
@@ -2109,6 +2890,9 @@ function App() {
           />}
 
       </main>
+
+      {/* Dashboard overlay */}
+      {showDashboard && <DashboardPage onClose={() => setShowDashboard(false)} />}
 
       {/* Product detail modal */}
       {detailItem && <ProductModal item={detailItem} onClose={() => setDetailItem(null)} onAdd={addToCart} onOpenCart={openCart} />}
