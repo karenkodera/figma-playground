@@ -1342,12 +1342,9 @@ function AritziaSwipeGame({ game, onClose }) {
   const renderStack = () => {
     const visible = cards.slice(0, Math.min(cards.length, 5));
     return visible.map((card, stackIdx) => {
-      const isTop  = stackIdx === 0;
-      const scale  = 1 - stackIdx * 0.055;
-      const baseY  = stackIdx * 22;
-      const nextScale = 1 - Math.max(0, stackIdx - 1) * 0.055;
-      const nextY     = Math.max(0, stackIdx - 1) * 22;
-      const cardOpacity = 1 - stackIdx * 0.1;
+      const isTop = stackIdx === 0;
+      // Right-side stacking: each card behind peeks to the right and slightly down
+      const STACK_X = 14, STACK_Y = 7;
 
       let tx, ty, rot, transition;
       if (isTop) {
@@ -1361,7 +1358,9 @@ function AritziaSwipeGame({ game, onClose }) {
                    : drag.active ? "none"
                    : "transform 0.25s cubic-bezier(0.34,1.56,0.64,1)";
       } else {
-        tx = 0; ty = 0; rot = 0;
+        // When a card is flying away, this card advances one position forward
+        const idx = flyDir ? stackIdx - 1 : stackIdx;
+        tx = idx * STACK_X; ty = idx * STACK_Y; rot = 0;
         transition = flyDir ? "transform 0.44s ease" : "transform 0.15s ease";
       }
 
@@ -1370,14 +1369,12 @@ function AritziaSwipeGame({ game, onClose }) {
       const nopeAmt = (isTop && flyDir === "left")  ? 1 : dragNopeAmt;
       const loveAmt = (isTop && flyDir === "right") ? 1 : dragLoveAmt;
 
-      const finalScale = isTop ? 1 : (flyDir ? nextScale : scale);
-      const finalY     = isTop ? 0 : (flyDir ? nextY : baseY);
-      const finalOpacity = isTop ? 1 : (flyDir ? 1 - Math.max(0, stackIdx - 1) * 0.1 : cardOpacity);
+      const finalOpacity = isTop ? 1 : 1 - (flyDir ? Math.max(0, stackIdx - 1) : stackIdx) * 0.15;
 
       return (
         <div key={card.id} style={{
           position: "absolute", inset: 0,
-          transform: `translate(${tx}px, ${ty}px) scale(${finalScale}) translateY(${finalY}px) rotate(${rot}deg)`,
+          transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg)`,
           transition, zIndex: 10 - stackIdx,
           opacity: finalOpacity,
           borderRadius: 22, overflow: "hidden",
@@ -1519,7 +1516,8 @@ function AritziaSwipeGame({ game, onClose }) {
         const thumbUpPath = "M96.3063 46.9079C94.1344 42.5837 88.1657 42.0524 85.2593 45.9157L65.8183 71.7357C65.4277 72.2553 64.8066 72.5638 64.1503 72.5638H55.8144V72.4818C55.8144 70.181 53.9511 68.3138 51.6503 68.3138H43.3144C41.0136 68.3138 39.1503 70.181 39.1503 72.4818V118.314C39.1503 120.615 41.0136 122.482 43.3144 122.482H51.6503C53.9511 122.482 55.8144 120.615 55.8144 118.314V116.232H62.1464C62.7792 116.232 63.3769 116.521 63.7714 117.013L67.1034 121.173C69.869 124.634 74.0604 126.65 78.4904 126.65H107.9C112.502 126.65 116.232 122.919 116.232 118.314C116.232 116.775 115.814 115.333 115.088 114.095C119.248 113.63 122.482 110.099 122.482 105.814C122.482 104.099 121.963 102.505 121.076 101.181C124.322 100.041 126.65 96.9507 126.65 93.314C126.65 91.6109 126.139 90.0288 125.26 88.7085C128.494 87.5679 130.815 84.4937 130.815 80.8726C130.815 76.2749 127.076 72.564 122.483 72.564H91.8735L96.7719 60.947C98.6781 56.4236 98.5095 51.2946 96.3063 46.9079ZM55.8143 76.7319H64.1502C66.1111 76.7319 67.9666 75.81 69.1463 74.2397L88.5873 48.4197C89.6381 47.0252 91.8021 47.2205 92.5795 48.7791C94.2357 52.076 94.3647 55.9275 92.9311 59.3261L87.4194 72.4001C86.5483 74.4665 88.0756 76.7321 90.2983 76.7321H122.482C124.791 76.7321 126.65 78.5915 126.65 80.8727C126.65 83.1539 124.791 85.0133 122.482 85.0133C116.232 85.0133 109.986 84.982 103.732 84.982C102.58 84.982 101.65 85.9156 101.65 87.064V87.0992C101.65 88.2476 102.58 89.1812 103.732 89.1812H118.841C120.892 89.439 122.482 91.1929 122.482 93.314C122.482 95.6148 120.615 97.482 118.314 97.482H103.732C102.58 97.482 101.65 98.4156 101.65 99.564C101.65 100.716 102.58 101.65 103.732 101.65H114.15C116.451 101.65 118.314 103.513 118.314 105.814C118.314 108.115 116.451 109.982 114.15 109.982H103.588C102.439 109.982 101.506 110.916 101.506 112.064C101.506 113.216 102.439 114.15 103.588 114.15H107.9C110.201 114.15 112.064 116.013 112.064 118.314C112.064 120.615 110.201 122.482 107.9 122.482H78.4904C75.3263 122.482 72.3342 121.045 70.3576 118.572L67.0256 114.412C65.842 112.927 64.0451 112.064 62.1467 112.064H55.8147L55.8143 76.7319ZM51.6502 118.314H43.3143V72.4819H51.6502V118.314Z";
         return (
           <div style={{ flex: 1, display: "flex", flexDirection: "row",
-                        alignItems: "center", justifyContent: "center", gap: 40, padding: "20px 32px 60px" }}>
+                        alignItems: "center", justifyContent: "center", gap: 24, padding: "12px 16px 24px",
+                        overflow: "hidden" }}>
             {cards.length > 0 && (
               <>
                 {/* Nope button — inline SVG, no outer ring */}
@@ -1535,7 +1533,7 @@ function AritziaSwipeGame({ game, onClose }) {
                 </button>
 
                 {/* Card stack */}
-                <div style={{ position: "relative", width: 320, height: 460, overflow: "visible" }}>
+                <div style={{ position: "relative", width: 560, height: 800, overflow: "visible" }}>
                   {renderStack()}
                 </div>
 
