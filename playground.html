@@ -1161,6 +1161,8 @@ function AritziaSwipeGame({ game, onClose }) {
   const flyTimeout  = useRef(null);
   const cardsRef    = useRef(SWIPE_CARDS);
   const choicesRef  = useRef([]);
+  // Ref-based flyDir so event handlers always see the latest value synchronously
+  const flyDirRef   = useRef(null);
 
   useEffect(() => { cardsRef.current  = cards;  }, [cards]);
   useEffect(() => { choicesRef.current = choices; }, [choices]);
@@ -1168,7 +1170,9 @@ function AritziaSwipeGame({ game, onClose }) {
   const wonItem = PREORDERS.find(p => p.brand === "Aritzia") || PREORDERS[0];
 
   const commitSwipe = (dir) => {
-    if (flyDir || cardsRef.current.length === 0) return;
+    if (flyDirRef.current || cardsRef.current.length === 0) return;
+    flyDirRef.current = dir;   // sync update — blocks re-entry instantly
+    wheelAccRef.current = 0;   // reset accumulator
     setFlyDir(dir);
     clearTimeout(flyTimeout.current);
     flyTimeout.current = setTimeout(() => {
@@ -1181,15 +1185,16 @@ function AritziaSwipeGame({ game, onClose }) {
       });
       dragRef.current = { x: 0, y: 0 };
       setDrag({ x: 0, y: 0, active: false });
+      flyDirRef.current = null;  // allow next swipe
       setFlyDir(null);
-    }, 380);
+    }, 420);
   };
 
   // Mouse events
   useEffect(() => {
     if (phase !== "playing") return;
     const onMove = e => {
-      if (!isDragging.current || flyDir) return;
+      if (!isDragging.current || flyDirRef.current) return;
       const x = e.clientX - startPos.current.x;
       const y = e.clientY - startPos.current.y;
       dragRef.current = { x, y };
@@ -1199,19 +1204,19 @@ function AritziaSwipeGame({ game, onClose }) {
       if (!isDragging.current) return;
       isDragging.current = false;
       const { x } = dragRef.current;
-      if (Math.abs(x) > 100) { commitSwipe(x > 0 ? "right" : "left"); }
+      if (Math.abs(x) > 90) { commitSwipe(x > 0 ? "right" : "left"); }
       else { dragRef.current = { x: 0, y: 0 }; setDrag({ x: 0, y: 0, active: false }); }
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
     return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
-  }, [phase, flyDir, cards]);
+  }, [phase, cards]);
 
   // Touch events
   useEffect(() => {
     if (phase !== "playing") return;
     const onMove = e => {
-      if (!isDragging.current || flyDir) return;
+      if (!isDragging.current || flyDirRef.current) return;
       const t = e.touches[0];
       const x = t.clientX - startPos.current.x;
       const y = t.clientY - startPos.current.y;
@@ -1222,45 +1227,46 @@ function AritziaSwipeGame({ game, onClose }) {
       if (!isDragging.current) return;
       isDragging.current = false;
       const { x } = dragRef.current;
-      if (Math.abs(x) > 100) { commitSwipe(x > 0 ? "right" : "left"); }
+      if (Math.abs(x) > 90) { commitSwipe(x > 0 ? "right" : "left"); }
       else { dragRef.current = { x: 0, y: 0 }; setDrag({ x: 0, y: 0, active: false }); }
     };
     window.addEventListener("touchmove", onMove, { passive: true });
     window.addEventListener("touchend", onEnd);
     return () => { window.removeEventListener("touchmove", onMove); window.removeEventListener("touchend", onEnd); };
-  }, [phase, flyDir, cards]);
+  }, [phase, cards]);
 
   // Keyboard
   useEffect(() => {
     if (phase !== "playing") return;
     const onKey = e => {
-      if (flyDir) return;
+      if (flyDirRef.current) return;
       if (e.key === "ArrowLeft")  commitSwipe("left");
       if (e.key === "ArrowRight") commitSwipe("right");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, flyDir, cards]);
+  }, [phase, cards]);
 
   // Trackpad two-finger horizontal swipe via wheel
+  // Mac natural scroll: swipe fingers right → deltaX negative; swipe left → deltaX positive
   const wheelAccRef = useRef(0);
   useEffect(() => {
     if (phase !== "playing") return;
     const onWheel = e => {
-      if (flyDir) return;
-      if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 0.5) return; // mainly horizontal
+      if (flyDirRef.current) return;                                  // ref check — no stale closure
+      if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 0.6) return;    // must be mainly horizontal
       wheelAccRef.current += e.deltaX;
-      if (wheelAccRef.current > 55) {
+      if (wheelAccRef.current > 80) {
         wheelAccRef.current = 0;
-        commitSwipe("right");
-      } else if (wheelAccRef.current < -55) {
+        commitSwipe("left");   // fingers moved left → nope
+      } else if (wheelAccRef.current < -80) {
         wheelAccRef.current = 0;
-        commitSwipe("left");
+        commitSwipe("right");  // fingers moved right → love
       }
     };
     window.addEventListener("wheel", onWheel, { passive: true });
     return () => { window.removeEventListener("wheel", onWheel); wheelAccRef.current = 0; };
-  }, [phase, flyDir, cards]);
+  }, [phase, cards]);
 
   // Next game countdown
   useEffect(() => {
@@ -1317,8 +1323,11 @@ function AritziaSwipeGame({ game, onClose }) {
         transition = flyDir ? "transform 0.38s ease" : "transform 0.2s ease";
       }
 
-      const nopeAmt = isTop ? Math.max(0, -drag.x / 120) : 0;
-      const loveAmt = isTop ? Math.max(0, drag.x / 120) : 0;
+      const dragNopeAmt = isTop ? Math.max(0, -drag.x / 80) : 0;
+      const dragLoveAmt = isTop ? Math.max(0, drag.x / 80) : 0;
+      // Show label at full opacity during fly-off, or proportionally during drag
+      const nopeAmt = (isTop && flyDir === "left")  ? 1 : dragNopeAmt;
+      const loveAmt = (isTop && flyDir === "right") ? 1 : dragLoveAmt;
 
       const finalScale = isTop ? 1 : (flyDir ? nextScale : scale);
       const finalY     = isTop ? 0 : (flyDir ? nextY : baseY);
@@ -1351,7 +1360,7 @@ function AritziaSwipeGame({ game, onClose }) {
                 border: "4px solid #ff5a5a", borderRadius: 10, padding: "8px 22px",
                 fontSize: 36, fontWeight: 900, color: "#ff5a5a",
                 fontFamily: "'Rajdhani',sans-serif", letterSpacing: "2px",
-                opacity: Math.min(1, nopeAmt * 2.5),
+                opacity: Math.min(1, nopeAmt * 1.4),
                 transform: "translate(-50%, -50%) rotate(-18deg)",
                 textShadow: "0 0 20px rgba(255,90,90,0.6)", pointerEvents: "none",
                 whiteSpace: "nowrap",
@@ -1364,7 +1373,7 @@ function AritziaSwipeGame({ game, onClose }) {
                 border: "4px solid #B5FF81", borderRadius: 10, padding: "8px 22px",
                 fontSize: 36, fontWeight: 900, color: "#B5FF81",
                 fontFamily: "'Rajdhani',sans-serif", letterSpacing: "2px",
-                opacity: Math.min(1, loveAmt * 2.5),
+                opacity: Math.min(1, loveAmt * 1.4),
                 transform: "translate(-50%, -50%) rotate(18deg)",
                 textShadow: "0 0 20px rgba(181,255,129,0.6)", pointerEvents: "none",
                 whiteSpace: "nowrap",
