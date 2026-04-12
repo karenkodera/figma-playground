@@ -828,7 +828,7 @@ function GamePage({ game, onClose }) {
     canvas.addEventListener("mousemove", onMove);
 
     let last = performance.now();
-    const BASKW = 940, BASKH = 58, CW = 380, CH = 268;
+    const BASKW = 200, BASKH = 58, CW = 380, CH = 268;
 
     const timerRef = { id: null };
     timerRef.id = setInterval(() => {
@@ -913,12 +913,11 @@ function GamePage({ game, onClose }) {
         if (c.y - CH/2 > canvas.height) continue;
         next.push(c);
 
-        // Draw card — neutral background pad, no glow
-        const PAD = 14, R = 14;
-        // Outer card background
-        ctx.fillStyle = "#2c2c2c";
+        // Draw card — white background
+        const PAD = 10, R = 16;
+        ctx.fillStyle = "#ffffff";
         rr(ctx, c.x-CW/2, c.y-CH/2, CW, CH, R); ctx.fill();
-        // Image inset — object-fit: contain (no stretch)
+        // Image inset — object-fit: contain on white fill
         const shoeImg = imgRefs.current[c.cat];
         if (shoeImg && shoeImg.complete && shoeImg.naturalWidth > 0) {
           const targetW = CW - PAD * 2, targetH = CH - PAD * 2;
@@ -926,17 +925,20 @@ function GamePage({ game, onClose }) {
           const dw = shoeImg.naturalWidth * scale, dh = shoeImg.naturalHeight * scale;
           const dx = c.x - CW/2 + PAD + (targetW - dw) / 2;
           const dy = c.y - CH/2 + PAD + (targetH - dh) / 2;
+          // White inset fill (visible around image when smaller than card)
+          ctx.fillStyle = "#ffffff";
           ctx.save();
           ctx.beginPath();
           rr(ctx, c.x-CW/2+PAD, c.y-CH/2+PAD, targetW, targetH, R-4); ctx.clip();
+          ctx.fillRect(c.x-CW/2+PAD, c.y-CH/2+PAD, targetW, targetH);
           ctx.drawImage(shoeImg, dx, dy, dw, dh);
           ctx.restore();
         } else {
           ctx.font = "48px sans-serif"; ctx.textAlign = "center";
           ctx.fillText("👟", c.x, c.y + 16);
         }
-        // Subtle border
-        ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.lineWidth = 1.5;
+        // Subtle gray border
+        ctx.strokeStyle = "rgba(0,0,0,0.08)"; ctx.lineWidth = 1.5;
         rr(ctx, c.x-CW/2, c.y-CH/2, CW, CH, R); ctx.stroke();
         // Shoe name below card
         ctx.font = "bold 22px 'Rajdhani', sans-serif";
@@ -1205,7 +1207,8 @@ function AritziaSwipeGame({ game, onClose }) {
       setDrag({ x: 0, y: 0, active: false });
       flyDirRef.current = null;  // allow next swipe
       setFlyDir(null);
-    }, 260);
+      wheelAccRef.current = 0;  // clear any accumulated wheel delta during animation
+    }, 480);
   };
 
   // Mouse events
@@ -1274,10 +1277,10 @@ function AritziaSwipeGame({ game, onClose }) {
       if (flyDirRef.current) return;                                  // ref check — no stale closure
       if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 0.6) return;    // must be mainly horizontal
       wheelAccRef.current += e.deltaX;
-      if (wheelAccRef.current > 80) {
+      if (wheelAccRef.current > 160) {
         wheelAccRef.current = 0;
         commitSwipe("left");   // fingers moved left → nope
-      } else if (wheelAccRef.current < -80) {
+      } else if (wheelAccRef.current < -160) {
         wheelAccRef.current = 0;
         commitSwipe("right");  // fingers moved right → love
       }
@@ -1367,7 +1370,7 @@ function AritziaSwipeGame({ game, onClose }) {
         onTouchStart={isTop ? handleTouchStart : undefined}
         >
           {/* Image area */}
-          <div style={{ position: "relative", height: "82%" }}>
+          <div style={{ position: "relative", height: "88%" }}>
             <img src={card.img} alt={card.name} draggable={false}
                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
             <div style={{ position: "absolute", inset: 0,
@@ -1410,14 +1413,11 @@ function AritziaSwipeGame({ game, onClose }) {
             )}
           </div>
 
-          {/* Card info */}
-          <div style={{ padding: "8px 14px 10px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <p style={{ fontSize: 13, fontWeight: 800, color: SA.text1,
-                        fontFamily: "'Rajdhani',sans-serif", letterSpacing: "0.5px", marginBottom: 1 }}>{card.name}</p>
-            <p style={{ fontSize: 9, color: SA.text3, fontWeight: 600, letterSpacing: "1.5px",
-                        fontFamily: "'Rajdhani',sans-serif" }}>
-              {card.cat.toUpperCase()} · {card.color.toUpperCase()}
-            </p>
+          {/* Card info — name only */}
+          <div style={{ padding: "6px 14px 8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: SA.text1,
+                        fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px",
+                        textAlign: "center", lineHeight: 1.2 }}>{card.name}</p>
           </div>
         </div>
       );
