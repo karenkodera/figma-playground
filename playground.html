@@ -921,7 +921,7 @@ function GamePage({ game, onClose }) {
         const shoeImg = imgRefs.current[c.cat];
         if (shoeImg && shoeImg.complete && shoeImg.naturalWidth > 0) {
           const targetW = CW - PAD * 2, targetH = CH - PAD * 2;
-          const scale = Math.min(targetW / shoeImg.naturalWidth, targetH / shoeImg.naturalHeight);
+          const scale = Math.max(targetW / shoeImg.naturalWidth, targetH / shoeImg.naturalHeight);
           const dw = shoeImg.naturalWidth * scale, dh = shoeImg.naturalHeight * scale;
           const dx = c.x - CW/2 + PAD + (targetW - dw) / 2;
           const dy = c.y - CH/2 + PAD + (targetH - dh) / 2;
