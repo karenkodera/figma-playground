@@ -1271,22 +1271,37 @@ function AritziaSwipeGame({ game, onClose }) {
   // Trackpad two-finger horizontal swipe via wheel
   // Mac natural scroll: swipe fingers right → deltaX negative; swipe left → deltaX positive
   const wheelAccRef = useRef(0);
+  const wheelReleaseTimer = useRef(null);
   useEffect(() => {
     if (phase !== "playing") return;
     const onWheel = e => {
-      if (flyDirRef.current) return;                                  // ref check — no stale closure
-      if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 0.6) return;    // must be mainly horizontal
+      if (flyDirRef.current) return;
+      if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 0.6) return;
       wheelAccRef.current += e.deltaX;
-      if (wheelAccRef.current > 160) {
-        wheelAccRef.current = 0;
-        commitSwipe("left");   // fingers moved left → nope
-      } else if (wheelAccRef.current < -160) {
-        wheelAccRef.current = 0;
-        commitSwipe("right");  // fingers moved right → love
-      }
+      // Mirror accumulation as a visual drag (clamped) so card tilts live
+      const visualX = Math.max(-220, Math.min(220, -wheelAccRef.current * 0.9));
+      dragRef.current = { x: visualX, y: 0 };
+      setDrag({ x: visualX, y: 0, active: true });
+      // Release detection: no new wheel event for 220ms → treat as finger lift
+      clearTimeout(wheelReleaseTimer.current);
+      wheelReleaseTimer.current = setTimeout(() => {
+        if (flyDirRef.current) return;
+        const { x } = dragRef.current;
+        if (Math.abs(x) > 140) {
+          commitSwipe(x > 0 ? "right" : "left");
+        } else {
+          dragRef.current = { x: 0, y: 0 };
+          setDrag({ x: 0, y: 0, active: false });
+          wheelAccRef.current = 0;
+        }
+      }, 220);
     };
     window.addEventListener("wheel", onWheel, { passive: true });
-    return () => { window.removeEventListener("wheel", onWheel); wheelAccRef.current = 0; };
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      wheelAccRef.current = 0;
+      clearTimeout(wheelReleaseTimer.current);
+    };
   }, [phase, cards]);
 
   // Next game countdown
@@ -1370,11 +1385,11 @@ function AritziaSwipeGame({ game, onClose }) {
         onTouchStart={isTop ? handleTouchStart : undefined}
         >
           {/* Image area */}
-          <div style={{ position: "relative", height: "88%" }}>
+          <div style={{ position: "relative", height: "100%" }}>
             <img src={card.img} alt={card.name} draggable={false}
                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
             <div style={{ position: "absolute", inset: 0,
-                          background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 45%)" }} />
+                          background: "linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 40%)" }} />
 
             {/* nope! stamp — Figma Chango style */}
             {isTop && (
@@ -1413,12 +1428,6 @@ function AritziaSwipeGame({ game, onClose }) {
             )}
           </div>
 
-          {/* Card info — name only */}
-          <div style={{ padding: "6px 14px 8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: SA.text1,
-                        fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px",
-                        textAlign: "center", lineHeight: 1.2 }}>{card.name}</p>
-          </div>
         </div>
       );
     }).reverse();
@@ -1480,43 +1489,59 @@ function AritziaSwipeGame({ game, onClose }) {
 
       {/* PLAYING */}
       {phase === "playing" && (() => {
-        const nopeFill = Math.min(1, Math.max(0, -drag.x / 100));
-        const loveFill = Math.min(1, Math.max(0, drag.x / 100));
-        // Blend from white → red / green as drag increases
-        const leftBg   = `rgba(255,${Math.round(255 - nopeFill*165)},${Math.round(255 - nopeFill*165)},${0.12 + nopeFill*0.55})`;
-        const leftBdr  = `rgba(255,${Math.round(255 - nopeFill*165)},${Math.round(255 - nopeFill*165)},${0.3 + nopeFill*0.5})`;
-        const rightBg  = `rgba(${Math.round(255 - loveFill*74)},255,${Math.round(255 - loveFill*126)},${0.12 + loveFill*0.55})`;
-        const rightBdr = `rgba(${Math.round(255 - loveFill*74)},255,${Math.round(255 - loveFill*126)},${0.3 + loveFill*0.5})`;
+        const nopeFill = Math.min(1, Math.max(0, flyDir === "left" ? 1 : -drag.x / 120));
+        const loveFill = Math.min(1, Math.max(0, flyDir === "right" ? 1 : drag.x / 120));
+        const nopeR = 255, nopeG = Math.round(255 - nopeFill * 165), nopeB = Math.round(255 - nopeFill * 165);
+        const loveR = Math.round(255 - loveFill * 74), loveG = 255, loveB = Math.round(255 - loveFill * 126);
+        const nopeCircleFill = nopeFill > 0 ? `rgb(${nopeR},${nopeG},${nopeB})` : "white";
+        const loveCircleFill = loveFill > 0 ? `rgb(${loveR},${loveG},${loveB})` : "white";
+        const nopeCircleOpacity = 0.15 + nopeFill * 0.65;
+        const loveCircleOpacity = 0.15 + loveFill * 0.65;
+        const svgTransition = drag.active ? "none" : "all 0.2s ease";
+        // Thumb-down SVG path
+        const thumbDownPath = "M105.815 97.401H114.15V97.4831C114.15 99.7839 116.014 101.651 118.315 101.651H126.65C128.951 101.651 130.815 99.7839 130.815 97.4831V51.6511C130.815 49.3503 128.951 47.4831 126.65 47.4831H118.315C116.014 47.4831 114.15 49.3503 114.15 51.6511V53.7331H107.818C107.186 53.7331 106.588 53.444 106.193 52.9518L102.861 48.7877C100.096 45.3307 95.9044 43.315 91.4744 43.315H62.0644C57.4628 43.315 53.7324 47.0455 53.7324 51.6509C53.7324 53.19 54.1504 54.6314 54.8769 55.8697C50.7167 56.3345 47.4824 59.8658 47.4824 64.1509C47.4824 65.8657 48.002 67.4595 48.8886 68.7837C45.6425 69.9243 43.3144 73.0142 43.3144 76.6509C43.3144 78.354 43.8261 79.9361 44.705 81.2564C41.4706 82.397 39.1503 85.4712 39.1503 89.0923C39.1503 93.69 42.8886 97.4009 47.4823 97.4009H78.0913L73.1929 109.018C71.2867 113.541 71.4546 118.67 73.6578 123.057C75.8297 127.381 81.7984 127.912 84.7048 124.049L104.146 98.2291C104.536 97.7096 105.158 97.401 105.815 97.401ZM118.315 78.737V97.483H126.65V51.651H118.315V78.737ZM114.15 93.233H105.815C103.854 93.233 101.998 94.1549 100.818 95.7252L81.3774 121.545C80.3266 122.94 78.1626 122.744 77.3852 121.186C75.729 117.889 75.6 114.037 77.0337 110.639L82.5454 97.5648C83.4165 95.4984 81.8891 93.2328 79.6665 93.2328H47.4825C45.1739 93.2328 43.3145 91.3734 43.3145 89.0922C43.3145 86.811 45.1739 84.9516 47.4825 84.9516H50.9044C51.1505 84.9712 51.3966 84.9829 51.6505 84.9829H66.2325C67.3848 84.9829 68.3144 84.0493 68.3144 82.9009V82.8657C68.3144 81.7173 67.3848 80.7837 66.2325 80.7837H51.1235C49.0727 80.5259 47.4829 78.772 47.4829 76.6509C47.4829 74.3501 49.3501 72.4829 51.6509 72.4829H66.2329C67.3852 72.4829 68.3148 71.5493 68.3148 70.4009C68.3148 69.2486 67.3852 68.315 66.2329 68.315H55.8149C53.5141 68.315 51.6508 66.4517 51.6508 64.1509C51.6508 61.8501 53.5141 59.9829 55.8149 59.9829H66.3769C67.5253 59.9829 68.4589 59.0493 68.4589 57.9009C68.4589 56.7486 67.5253 55.815 66.3769 55.815H62.0566C59.7597 55.8111 57.9004 53.9478 57.9004 51.6509C57.9004 49.3501 59.7637 47.4829 62.0645 47.4829H91.4744C94.6385 47.4829 97.6307 48.9204 99.6073 51.3931L102.939 55.5533C104.123 57.0377 105.92 57.901 107.818 57.901H114.15L114.15 93.233Z";
+        // Thumb-up SVG path
+        const thumbUpPath = "M96.3063 46.9079C94.1344 42.5837 88.1657 42.0524 85.2593 45.9157L65.8183 71.7357C65.4277 72.2553 64.8066 72.5638 64.1503 72.5638H55.8144V72.4818C55.8144 70.181 53.9511 68.3138 51.6503 68.3138H43.3144C41.0136 68.3138 39.1503 70.181 39.1503 72.4818V118.314C39.1503 120.615 41.0136 122.482 43.3144 122.482H51.6503C53.9511 122.482 55.8144 120.615 55.8144 118.314V116.232H62.1464C62.7792 116.232 63.3769 116.521 63.7714 117.013L67.1034 121.173C69.869 124.634 74.0604 126.65 78.4904 126.65H107.9C112.502 126.65 116.232 122.919 116.232 118.314C116.232 116.775 115.814 115.333 115.088 114.095C119.248 113.63 122.482 110.099 122.482 105.814C122.482 104.099 121.963 102.505 121.076 101.181C124.322 100.041 126.65 96.9507 126.65 93.314C126.65 91.6109 126.139 90.0288 125.26 88.7085C128.494 87.5679 130.815 84.4937 130.815 80.8726C130.815 76.2749 127.076 72.564 122.483 72.564H91.8735L96.7719 60.947C98.6781 56.4236 98.5095 51.2946 96.3063 46.9079ZM55.8143 76.7319H64.1502C66.1111 76.7319 67.9666 75.81 69.1463 74.2397L88.5873 48.4197C89.6381 47.0252 91.8021 47.2205 92.5795 48.7791C94.2357 52.076 94.3647 55.9275 92.9311 59.3261L87.4194 72.4001C86.5483 74.4665 88.0756 76.7321 90.2983 76.7321H122.482C124.791 76.7321 126.65 78.5915 126.65 80.8727C126.65 83.1539 124.791 85.0133 122.482 85.0133C116.232 85.0133 109.986 84.982 103.732 84.982C102.58 84.982 101.65 85.9156 101.65 87.064V87.0992C101.65 88.2476 102.58 89.1812 103.732 89.1812H118.841C120.892 89.439 122.482 91.1929 122.482 93.314C122.482 95.6148 120.615 97.482 118.314 97.482H103.732C102.58 97.482 101.65 98.4156 101.65 99.564C101.65 100.716 102.58 101.65 103.732 101.65H114.15C116.451 101.65 118.314 103.513 118.314 105.814C118.314 108.115 116.451 109.982 114.15 109.982H103.588C102.439 109.982 101.506 110.916 101.506 112.064C101.506 113.216 102.439 114.15 103.588 114.15H107.9C110.201 114.15 112.064 116.013 112.064 118.314C112.064 120.615 110.201 122.482 107.9 122.482H78.4904C75.3263 122.482 72.3342 121.045 70.3576 118.572L67.0256 114.412C65.842 112.927 64.0451 112.064 62.1467 112.064H55.8147L55.8143 76.7319ZM51.6502 118.314H43.3143V72.4819H51.6502V118.314Z";
         return (
           <div style={{ flex: 1, display: "flex", flexDirection: "row",
-                        alignItems: "center", justifyContent: "center", gap: 48, padding: "20px 40px 80px" }}>
+                        alignItems: "center", justifyContent: "center", gap: 40, padding: "20px 32px 60px" }}>
             {cards.length > 0 && (
               <>
-                {/* Thumbs down — left */}
+                {/* Nope button — inline SVG, no outer ring */}
                 <button className="btn" onClick={() => commitSwipe("left")} style={{
-                  width: 88, height: 88, borderRadius: "50%", flexShrink: 0,
-                  background: leftBg, border: `2px solid ${leftBdr}`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: 0, boxShadow: "0 6px 24px rgba(0,0,0,0.2)",
-                  backdropFilter: "blur(8px)",
-                  transition: drag.active ? "none" : "background 0.2s, border-color 0.2s" }}>
-                  <img src="thumb-down.svg" style={{ width: 52, height: 52 }} />
+                  width: 80, height: 80, flexShrink: 0,
+                  background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+                  <svg viewBox="0 0 169.965 169.965" fill="none" xmlns="http://www.w3.org/2000/svg"
+                       style={{ width: "100%", height: "100%", transition: svgTransition }}>
+                    <rect width="169.965" height="169.965" rx="84.9824"
+                      fill={nopeCircleFill} fillOpacity={nopeCircleOpacity} />
+                    <path fillRule="evenodd" clipRule="evenodd" d={thumbDownPath} fill="white" />
+                  </svg>
                 </button>
 
-                {/* Card stack — overflow visible so stacked cards peek below */}
-                <div style={{ position: "relative", width: 340, height: 490, overflow: "visible" }}>
-                  {renderStack()}
+                {/* Card stack + name below */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+                  <div style={{ position: "relative", width: 320, height: 460, overflow: "visible" }}>
+                    {renderStack()}
+                  </div>
+                  <p style={{
+                    fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.9)",
+                    fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1.5px",
+                    textAlign: "center", margin: 0,
+                    textShadow: "0 2px 8px rgba(0,0,0,0.6)"
+                  }}>{cards[0].name.toUpperCase()}</p>
                 </div>
 
-                {/* Thumbs up — right */}
+                {/* Love button — inline SVG, no outer ring */}
                 <button className="btn" onClick={() => commitSwipe("right")} style={{
-                  width: 88, height: 88, borderRadius: "50%", flexShrink: 0,
-                  background: rightBg, border: `2px solid ${rightBdr}`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: 0, boxShadow: "0 6px 24px rgba(0,0,0,0.2)",
-                  backdropFilter: "blur(8px)",
-                  transition: drag.active ? "none" : "background 0.2s, border-color 0.2s" }}>
-                  <img src="thumb-up.svg" style={{ width: 52, height: 52 }} />
+                  width: 80, height: 80, flexShrink: 0,
+                  background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+                  <svg viewBox="0 0 169.965 169.965" fill="none" xmlns="http://www.w3.org/2000/svg"
+                       style={{ width: "100%", height: "100%", transition: svgTransition }}>
+                    <rect width="169.965" height="169.965" rx="84.9824"
+                      fill={loveCircleFill} fillOpacity={loveCircleOpacity} />
+                    <path fillRule="evenodd" clipRule="evenodd" d={thumbUpPath} fill="white" />
+                  </svg>
                 </button>
               </>
             )}
