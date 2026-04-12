@@ -820,6 +820,13 @@ function GamePage({ game, onClose }) {
     g.running     = true;
     g.spawnTimer  = 0;
     g.catchBursts = [];
+    // Shuffle all shoe types into a queue — each shoe appears exactly once
+    const _sq = [...CARD_TYPES];
+    for (let i = _sq.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [_sq[i], _sq[j]] = [_sq[j], _sq[i]];
+    }
+    g.spawnQueue = _sq;
 
     const onMove = e => {
       const r = canvas.getBoundingClientRect();
@@ -855,19 +862,10 @@ function GamePage({ game, onClose }) {
       last = now;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Spawn
+      // Spawn — work through queue so each shoe appears exactly once
       g.spawnTimer -= dt;
-      if (g.spawnTimer <= 0) {
-        // Pick a type not currently visible on screen
-        const onScreenCats = new Set(g.cards.map(c => c.cat));
-        const available = CARD_TYPES.filter(t => !onScreenCats.has(t.cat));
-        const pool = available.length > 0 ? available : CARD_TYPES;
-        const t = pool[Math.floor(Math.random() * pool.length)];
-
-        // Because all cards share the same speed, the y-distance between any two
-        // cards is FIXED after spawn. A new card at y=-CH overlaps vertically only
-        // with cards whose center y < CH (their y-gap from -CH is < CH).
-        // So we only need to avoid x-overlap with those "near-top" cards.
+      if (g.spawnTimer <= 0 && g.spawnQueue.length > 0) {
+        const t = g.spawnQueue[0]; // peek next shoe
         const nearTop = g.cards.filter(ex => ex.y < CH);
         let newX = null;
         for (let a = 0; a < 40; a++) {
@@ -878,9 +876,9 @@ function GamePage({ game, onClose }) {
           }
         }
         if (newX === null) {
-          // No valid slot yet — try again shortly
-          g.spawnTimer = 18;
+          g.spawnTimer = 18; // no room yet, retry soon
         } else {
+          g.spawnQueue.shift(); // consume from queue
           g.cards.push({ x: newX, y: -CH, speed: 2.3, ...t, id: Math.random() });
           g.spawnTimer = 55 + Math.random()*45;
         }
@@ -1170,7 +1168,14 @@ function AritziaSwipeGame({ game, onClose }) {
   ];
 
   const [phase, setPhase]               = useState("intro");
-  const [cards, setCards]               = useState(SWIPE_CARDS);
+  const [cards, setCards]               = useState(() => {
+    const a = [...SWIPE_CARDS];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  });
   const [choices, setChoices]           = useState([]);
   const [drag, setDrag]                 = useState({ x: 0, y: 0, active: false });
   const [flyDir, setFlyDir]             = useState(null);
