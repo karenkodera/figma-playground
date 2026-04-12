@@ -778,10 +778,16 @@ function GamePage({ game, onClose }) {
   const [nextGameTimer, setNextGameTimer] = useState(5);
 
   const CARD_TYPES = [
-    { cat: "shoe1", color: "#4a9eff", border: "#2d7de0", label: "NIKE AIR MAX", img: "nike%20show%201.webp" },
-    { cat: "shoe2", color: "#ff9f4a", border: "#e07a28", label: "NIKE REACT",   img: "nike%20shoe%202.webp" },
-    { cat: "shoe3", color: "#4adf86", border: "#2db862", label: "NIKE ZOOM",    img: "nike%20shoe%203.avif" },
-    { cat: "shoe4", color: "#a78bfa", border: "#7c5ce6", label: "NIKE FLY",     img: "nike%20shoe%204.webp" },
+    { cat: "shoe1",  label: "Nike Air Max 1",      img: "nike%20show%201.webp"  },
+    { cat: "shoe2",  label: "Nike React Infinity",  img: "nike%20shoe%202.webp"  },
+    { cat: "shoe3",  label: "Nike Zoom Fly 5",      img: "nike%20shoe%203.avif"  },
+    { cat: "shoe4",  label: "Nike Air Force 1",     img: "nike%20shoe%204.webp"  },
+    { cat: "shoe5",  label: "Nike Pegasus 41",      img: "nike%20shoe%205.avif"  },
+    { cat: "shoe6",  label: "Nike Dunk Low",        img: "nike%20shoe%206.webp"  },
+    { cat: "shoe7",  label: "Nike Free Run",        img: "nike%20shoe%207.avif"  },
+    { cat: "shoe8",  label: "Nike Air Zoom GT",     img: "nike%20shoe%208.avif"  },
+    { cat: "shoe9",  label: "Nike Cortez",          img: "nike%20shoe%209.webp"  },
+    { cat: "shoe10", label: "Nike Blazer Mid",      img: "nike%20shoe%2010.jpg"  },
   ];
 
   function rr(ctx, x, y, w, h, r) {
@@ -927,6 +933,13 @@ function GamePage({ game, onClose }) {
         // Subtle border
         ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.lineWidth = 1.5;
         rr(ctx, c.x-CW/2, c.y-CH/2, CW, CH, R); ctx.stroke();
+        // Shoe name below card
+        ctx.font = "bold 22px 'Rajdhani', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 8;
+        ctx.fillText(c.label, c.x, c.y + CH/2 + 30);
+        ctx.shadowBlur = 0;
       }
       g.cards = next;
 
