@@ -1707,7 +1707,7 @@ function DashboardPage({ onClose }) {
     ]},
     { label: "PRE-ORDERS", items: [
       { name:"Order Pipeline",     alert:null },
-      { name:"Inventory Alerts",   alert:2, alertColor:"#ffb347" },
+      { name:"Inventory Alerts",   alert:1, alertColor:"#ffb347" },
       { name:"Fulfillment",        alert:null },
     ]},
     { label: "ACCOUNT",    items: [
@@ -1742,7 +1742,7 @@ function DashboardPage({ onClose }) {
     { name:"Swiftly Tech Long-Sleeve",   color:"Ivory White / Size S",   orders:412, cap:400, revenue:53560, img:"swiftly%20long%20sleeve%20white.webp", alert:true,  sizes:[{s:"XS",n:124},{s:"S",n:148},{s:"M",n:105},{s:"L",n:64},{s:"XL",n:20}] },
     { name:"Align™ High-Rise Pant 28\"", color:"Noir Black / Size 4",   orders:487, cap:600, revenue:62336, img:"lululemon%20align%20pant%20black.webp", alert:false, sizes:[{s:"XS",n:58},{s:"S",n:137},{s:"M",n:156},{s:"L",n:97},{s:"XL",n:39}] },
     { name:"Scuba Half Zip Hoodie",      color:"Alpine White / Size XS", orders:359, cap:500, revenue:31592, img:null, alert:false, sizes:[{s:"XS",n:40},{s:"S",n:106},{s:"M",n:98},{s:"L",n:54},{s:"XL",n:12}] },
-    { name:"Wunder Train High-Rise Tight",color:"Black / Size 4",         orders:280, cap:250, revenue:36400, img:"lululemon%20align%20pant%20black%202.webp", alert:true,  sizes:[{s:"XS",n:62},{s:"S",n:88},{s:"M",n:74},{s:"L",n:42},{s:"XL",n:14}] },
+    { name:"Wunder Train High-Rise Tight",color:"Black / Size 4",         orders:218, cap:250, revenue:28340, img:"lululemon%20align%20pant%20black%202.webp", alert:false, sizes:[{s:"XS",n:48},{s:"S",n:72},{s:"M",n:60},{s:"L",n:28},{s:"XL",n:10}] },
   ];
   const maxOrders = 600;
 
@@ -1982,7 +1982,7 @@ function DashboardPage({ onClose }) {
             {/* Alert banner */}
             <div style={{background:"rgba(255,179,71,0.07)",border:"1px solid rgba(255,179,71,0.22)",borderRadius:8,padding:"9px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
               <span style={{fontSize:13}}>⚠️</span>
-              <p style={{fontSize:11,color:DB.text1}}><strong>2 items exceeding inventory cap.</strong> Swiftly Tech Long-Sleeve (+3%) and Wunder Train High-Rise Tight (+12%) — consider increasing production runs.</p>
+              <p style={{fontSize:11,color:DB.text1}}><strong>1 item exceeding inventory cap.</strong> Swiftly Tech Long-Sleeve (+3%) — consider increasing production run.</p>
               <button onClick={() => setShowInventoryReview(true)} style={{marginLeft:"auto",flexShrink:0,background:"rgba(255,179,71,0.1)",border:"1px solid rgba(255,179,71,0.25)",borderRadius:6,color:"#ffb347",fontSize:10,fontWeight:700,padding:"5px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Review →</button>
             </div>
 
@@ -2182,7 +2182,7 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
                 <span style={{fontSize:10, fontWeight:700, color:DB.orange, letterSpacing:"2px", fontFamily:"'Rajdhani',sans-serif"}}>INVENTORY REVIEW</span>
               </div>
               <h2 style={{fontSize:20, fontWeight:700, color:DB.text1, fontFamily:"'Rajdhani',sans-serif", lineHeight:1, marginBottom:4}}>
-                2 Items Exceeding Production Cap
+                1 Item Exceeding Production Cap
               </h2>
               <p style={{fontSize:12, color:DB.text2}}>Current pre-order demand, weekly velocity, and size breakdown for flagged items.</p>
             </div>
@@ -2196,7 +2196,7 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
             {[
               { label:"Total Over-Cap Orders", value: alertItems.reduce((s,i) => s + Math.max(0, i.orders - i.cap), 0).toString(), color: DB.orange },
               { label:"Revenue at Risk",        value: `$${alertItems.reduce((s,i) => s + Math.max(0, i.orders - i.cap) * Math.round(i.revenue/i.orders), 0).toLocaleString()}`, color: DB.green },
-              { label:"Avg Fulfillment Window", value: "14–21 days", color: DB.blue },
+              { label:"Avg Fulfillment Window", value: "14–21 days", color: DB.text1 },
             ].map(s => (
               <div key={s.label} style={{flex:1, background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:8, padding:"10px 14px"}}>
                 <p style={{fontSize:10, color:DB.text3, marginBottom:4}}>{s.label}</p>
@@ -2399,7 +2399,7 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
         </div>
 
         <div style={{padding:"16px 24px", borderTop:`1px solid ${DB.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"flex-end", background:DB.sidebar}}>
-          <button onClick={onClose} style={{padding:"9px 22px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Close</button>
+          <button onClick={onClose} style={{padding:"9px 22px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Done</button>
         </div>
       </div>
     </div>
