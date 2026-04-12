@@ -1208,7 +1208,7 @@ function AritziaSwipeGame({ game, onClose }) {
       flyDirRef.current = null;  // allow next swipe
       setFlyDir(null);
       wheelAccRef.current = 0;  // clear any accumulated wheel delta during animation
-    }, 480);
+    }, 960);
   };
 
   // Mouse events
@@ -1225,7 +1225,7 @@ function AritziaSwipeGame({ game, onClose }) {
       if (!isDragging.current) return;
       isDragging.current = false;
       const { x } = dragRef.current;
-      if (Math.abs(x) > 90) { commitSwipe(x > 0 ? "right" : "left"); }
+      if (Math.abs(x) > 140) { commitSwipe(x > 0 ? "right" : "left"); }
       else { dragRef.current = { x: 0, y: 0 }; setDrag({ x: 0, y: 0, active: false }); }
     };
     window.addEventListener("mousemove", onMove);
@@ -1248,7 +1248,7 @@ function AritziaSwipeGame({ game, onClose }) {
       if (!isDragging.current) return;
       isDragging.current = false;
       const { x } = dragRef.current;
-      if (Math.abs(x) > 90) { commitSwipe(x > 0 ? "right" : "left"); }
+      if (Math.abs(x) > 140) { commitSwipe(x > 0 ? "right" : "left"); }
       else { dragRef.current = { x: 0, y: 0 }; setDrag({ x: 0, y: 0, active: false }); }
     };
     window.addEventListener("touchmove", onMove, { passive: true });
@@ -1335,14 +1335,14 @@ function AritziaSwipeGame({ game, onClose }) {
                  : flyDir === "left"  ? -window.innerWidth * 1.4
                  : drag.x;
         const fy = flyDir ? drag.y + 60 : drag.y;
-        rot = flyDir ? (flyDir === "right" ? 18 : -18) : drag.x * 0.12;
+        rot = flyDir ? (flyDir === "right" ? 18 : -18) : drag.x * 0.15;
         tx  = fw; ty = fy;
-        transition = flyDir ? "transform 0.22s cubic-bezier(0.5,0,1,1)"
+        transition = flyDir ? "transform 0.44s cubic-bezier(0.5,0,1,1)"
                    : drag.active ? "none"
                    : "transform 0.25s cubic-bezier(0.34,1.56,0.64,1)";
       } else {
         tx = 0; ty = 0; rot = 0;
-        transition = flyDir ? "transform 0.22s ease" : "transform 0.15s ease";
+        transition = flyDir ? "transform 0.44s ease" : "transform 0.15s ease";
       }
 
       const dragNopeAmt = isTop ? Math.max(0, -drag.x / 80) : 0;
@@ -1497,9 +1497,11 @@ function AritziaSwipeGame({ game, onClose }) {
                   width: 88, height: 88, borderRadius: "50%", flexShrink: 0,
                   background: leftBg, border: `2px solid ${leftBdr}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 38, boxShadow: "0 6px 24px rgba(0,0,0,0.2)",
+                  padding: 0, boxShadow: "0 6px 24px rgba(0,0,0,0.2)",
                   backdropFilter: "blur(8px)",
-                  transition: drag.active ? "none" : "background 0.2s, border-color 0.2s" }}>👎</button>
+                  transition: drag.active ? "none" : "background 0.2s, border-color 0.2s" }}>
+                  <img src="thumb-down.svg" style={{ width: 52, height: 52 }} />
+                </button>
 
                 {/* Card stack — overflow visible so stacked cards peek below */}
                 <div style={{ position: "relative", width: 340, height: 490, overflow: "visible" }}>
@@ -1511,9 +1513,11 @@ function AritziaSwipeGame({ game, onClose }) {
                   width: 88, height: 88, borderRadius: "50%", flexShrink: 0,
                   background: rightBg, border: `2px solid ${rightBdr}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 38, boxShadow: "0 6px 24px rgba(0,0,0,0.2)",
+                  padding: 0, boxShadow: "0 6px 24px rgba(0,0,0,0.2)",
                   backdropFilter: "blur(8px)",
-                  transition: drag.active ? "none" : "background 0.2s, border-color 0.2s" }}>👍</button>
+                  transition: drag.active ? "none" : "background 0.2s, border-color 0.2s" }}>
+                  <img src="thumb-up.svg" style={{ width: 52, height: 52 }} />
+                </button>
               </>
             )}
           </div>
