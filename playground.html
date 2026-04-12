@@ -765,20 +765,23 @@ function GamePage({ game, onClose }) {
   const canvasRef   = useRef(null);
   const gRef        = useRef({ basket: 500, cards: [], running: false, spawnTimer: 0, rafId: null });
   const [phase, setPhase]           = useState("intro");
-  const [timeLeft, setTimeLeft]     = useState(20);
+  const [timeLeft, setTimeLeft]     = useState(15);
   const [caughtList, setCaughtList] = useState([]);
   const [unlocked, setUnlocked]     = useState(null);
-  const [sparkles]                  = useState(() => Array.from({ length: 14 }, (_, i) => ({
-    angle: (i / 14) * 360,
-    dist: 90 + Math.random() * 60,
-    delay: Math.random() * 0.4,
+  const [sparkles]                  = useState(() => Array.from({ length: 40 }, (_, i) => ({
+    angle: (i / 40) * 360 + Math.random() * 9,
+    dist: 70 + Math.random() * 160,
+    delay: Math.random() * 1.8,
+    dur: 1.0 + Math.random() * 0.8,
+    size: 5 + Math.floor(Math.random() * 7),
   })));
+  const [nextGameTimer, setNextGameTimer] = useState(5);
 
   const CARD_TYPES = [
-    { cat: "tops",      color: "#4a9eff", border: "#2d7de0", label: "TOP",     icon: "👕" },
-    { cat: "bottoms",   color: "#41582A", border: "#2d3f1e", label: "BOTTOMS", icon: "👖" },
-    { cat: "footwear",  color: "#ff9f4a", border: "#e07a28", label: "SHOES",   icon: "👟" },
-    { cat: "outerwear", color: "#4adf86", border: "#2db862", label: "JACKET",  icon: "🧥" },
+    { cat: "shoe1", color: "#4a9eff", border: "#2d7de0", label: "NIKE AIR MAX", img: "nike%20show%201.webp" },
+    { cat: "shoe2", color: "#ff9f4a", border: "#e07a28", label: "NIKE REACT",   img: "nike%20shoe%202.webp" },
+    { cat: "shoe3", color: "#4adf86", border: "#2db862", label: "NIKE ZOOM",    img: "nike%20shoe%203.avif" },
+    { cat: "shoe4", color: "#a78bfa", border: "#7c5ce6", label: "NIKE FLY",     img: "nike%20shoe%204.webp" },
   ];
 
   function rr(ctx, x, y, w, h, r) {
@@ -789,6 +792,15 @@ function GamePage({ game, onClose }) {
     ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
     ctx.closePath();
   }
+
+  const imgRefs = useRef({});
+  useEffect(() => {
+    CARD_TYPES.forEach(t => {
+      const img = new Image();
+      img.src = t.img;
+      imgRefs.current[t.cat] = img;
+    });
+  }, []);
 
   useEffect(() => {
     if (phase !== "playing") return;
@@ -809,7 +821,7 @@ function GamePage({ game, onClose }) {
     canvas.addEventListener("mousemove", onMove);
 
     let last = performance.now();
-    const BASKW = 150, BASKH = 46, CW = 88, CH = 62;
+    const BASKW = 680, BASKH = 58, CW = 380, CH = 268;
 
     const timerRef = { id: null };
     timerRef.id = setInterval(() => {
@@ -839,14 +851,36 @@ function GamePage({ game, onClose }) {
       // Spawn
       g.spawnTimer -= dt;
       if (g.spawnTimer <= 0) {
-        const t = CARD_TYPES[Math.floor(Math.random() * CARD_TYPES.length)];
-        g.cards.push({ x: CW/2 + 20 + Math.random()*(canvas.width-CW-40), y: -CH,
-          speed: 1.8 + Math.random()*1.8, ...t, id: Math.random() });
-        g.spawnTimer = 35 + Math.random()*35;
+        // Pick a type not currently visible on screen
+        const onScreenCats = new Set(g.cards.map(c => c.cat));
+        const available = CARD_TYPES.filter(t => !onScreenCats.has(t.cat));
+        const pool = available.length > 0 ? available : CARD_TYPES;
+        const t = pool[Math.floor(Math.random() * pool.length)];
+
+        // Because all cards share the same speed, the y-distance between any two
+        // cards is FIXED after spawn. A new card at y=-CH overlaps vertically only
+        // with cards whose center y < CH (their y-gap from -CH is < CH).
+        // So we only need to avoid x-overlap with those "near-top" cards.
+        const nearTop = g.cards.filter(ex => ex.y < CH);
+        let newX = null;
+        for (let a = 0; a < 40; a++) {
+          const candidate = CW/2 + 20 + Math.random() * (canvas.width - CW - 40);
+          if (!nearTop.some(ex => Math.abs(ex.x - candidate) < CW + 20)) {
+            newX = candidate;
+            break;
+          }
+        }
+        if (newX === null) {
+          // No valid slot yet — try again shortly
+          g.spawnTimer = 18;
+        } else {
+          g.cards.push({ x: newX, y: -CH, speed: 2.3, ...t, id: Math.random() });
+          g.spawnTimer = 55 + Math.random()*45;
+        }
       }
 
       const bx = Math.max(BASKW/2, Math.min(canvas.width-BASKW/2, g.basket));
-      const by = canvas.height - 28;
+      const by = canvas.height - 90;
 
       // Cards
       const next = [];
@@ -861,31 +895,35 @@ function GamePage({ game, onClose }) {
         if (c.y - CH/2 > canvas.height) continue;
         next.push(c);
 
-        // Draw card
-        ctx.save();
-        ctx.shadowColor = c.color; ctx.shadowBlur = 14;
-        ctx.fillStyle = c.color + "30";
-        rr(ctx, c.x-CW/2, c.y-CH/2, CW, CH, 12); ctx.fill();
-        ctx.strokeStyle = c.border; ctx.lineWidth = 1.8; ctx.stroke();
-        ctx.restore();
-        ctx.font = "26px sans-serif"; ctx.textAlign = "center";
-        ctx.fillText(c.icon, c.x, c.y + 2);
-        ctx.font = "bold 10px Inter,sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.85)";
-        ctx.fillText(c.label, c.x, c.y + CH/2 - 6);
+        // Draw card — neutral background pad, no glow
+        const PAD = 14, R = 14;
+        // Outer card background
+        ctx.fillStyle = "#2c2c2c";
+        rr(ctx, c.x-CW/2, c.y-CH/2, CW, CH, R); ctx.fill();
+        // Image inset with padding
+        const shoeImg = imgRefs.current[c.cat];
+        if (shoeImg && shoeImg.complete && shoeImg.naturalWidth > 0) {
+          ctx.save();
+          ctx.beginPath();
+          rr(ctx, c.x-CW/2+PAD, c.y-CH/2+PAD, CW-PAD*2, CH-PAD*2, R-4); ctx.clip();
+          ctx.drawImage(shoeImg, c.x-CW/2+PAD, c.y-CH/2+PAD, CW-PAD*2, CH-PAD*2);
+          ctx.restore();
+        } else {
+          ctx.font = "48px sans-serif"; ctx.textAlign = "center";
+          ctx.fillText("👟", c.x, c.y + 16);
+        }
+        // Subtle border
+        ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.lineWidth = 1.5;
+        rr(ctx, c.x-CW/2, c.y-CH/2, CW, CH, R); ctx.stroke();
       }
       g.cards = next;
 
-      // Basket
+      // Basket — no container, just glowing emoji
       ctx.save();
-      ctx.shadowColor = "rgba(181,255,129,0.7)"; ctx.shadowBlur = 22;
-      const grad = ctx.createLinearGradient(bx-BASKW/2, by-BASKH, bx+BASKW/2, by);
-      grad.addColorStop(0, "rgba(181,255,129,0.35)"); grad.addColorStop(1, "rgba(65,88,42,0.25)");
-      ctx.fillStyle = grad;
-      rr(ctx, bx-BASKW/2, by-BASKH, BASKW, BASKH, 10); ctx.fill();
-      ctx.strokeStyle = "#41582A"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.shadowColor = "rgba(181,255,129,0.95)"; ctx.shadowBlur = 60;
+      ctx.font = "120px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("🧺", bx, by - 4);
       ctx.restore();
-      ctx.font = "22px sans-serif"; ctx.textAlign = "center";
-      ctx.fillText("🧺", bx, by - BASKH/2 + 8);
 
       g.rafId = requestAnimationFrame(loop);
     };
@@ -899,6 +937,13 @@ function GamePage({ game, onClose }) {
     };
   }, [phase]);
 
+  // Loop next-game countdown 5→4→3→2→1→5→...
+  useEffect(() => {
+    if (phase !== "done") return;
+    const id = setTimeout(() => setNextGameTimer(t => t <= 1 ? 5 : t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [phase, nextGameTimer]);
+
   const urgency = timeLeft <= 5;
 
   return (
@@ -907,47 +952,30 @@ function GamePage({ game, onClose }) {
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "16px 32px", borderBottom: `1px solid ${C.border}`,
+                    padding: "14px 28px", borderBottom: `1px solid ${C.border}`,
                     background: "rgba(255,255,255,0.03)", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <img src={game.img} alt={game.name}
-               style={{ width: 40, height: 40, borderRadius: 8, objectFit: "cover", opacity: 0.8 }} />
-          <div>
-            <p style={{ fontSize: 11, color: C.text3, fontWeight: 600, letterSpacing: "1.5px",
-                        fontFamily: "'Rajdhani',sans-serif" }}>STYLE QUIZ</p>
-            <p style={{ fontSize: 18, fontWeight: 800, color: C.text1,
-                        fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>{game.name.toUpperCase()}</p>
-          </div>
-        </div>
-        {phase === "playing" && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8,
-                        animation: urgency ? "countdownPulse 0.5s ease infinite" : "none" }}>
-            <div style={{ fontSize: 32, fontWeight: 800, fontFamily: "'Rajdhani',sans-serif",
+        {/* Exit game (left) */}
+        <button className="btn" onClick={onClose} style={{
+          background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border}`,
+          borderRadius: 10, padding: "8px 18px", color: C.text2,
+          fontSize: 12, fontWeight: 700, letterSpacing: "1.5px",
+          fontFamily: "'Rajdhani',sans-serif" }}>EXIT GAME</button>
+        {/* Timer (right) */}
+        <div style={{ minWidth: 80, textAlign: "right" }}>
+          {phase === "playing" && (
+            <div style={{ fontSize: 30, fontWeight: 800, fontFamily: "'Rajdhani',sans-serif",
                           color: urgency ? "#ff5a5a" : C.green, letterSpacing: "2px",
+                          animation: urgency ? "countdownPulse 0.5s ease infinite" : "none",
                           textShadow: urgency ? "0 0 20px rgba(255,90,90,0.6)" : "0 0 20px rgba(181,255,129,0.5)" }}>
               {String(timeLeft).padStart(2,"0")}s
             </div>
-          </div>
-        )}
-        <button className="btn" onClick={onClose} style={{
-          background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border}`,
-          borderRadius: 10, width: 36, height: 36, color: C.text2,
-          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>×</button>
+          )}
+        </div>
       </div>
 
       {/* Canvas */}
       <canvas ref={canvasRef} style={{ flex: 1, width: "100%", cursor: "none",
         background: "radial-gradient(ellipse at 50% 30%, rgba(181,255,129,0.15) 0%, transparent 70%)" }} />
-
-      {/* Caught counter */}
-      {phase === "playing" && (
-        <div style={{ position: "absolute", bottom: 80, right: 32,
-                      background: "rgba(255,255,255,0.92)", backdropFilter: "blur(10px)",
-                      borderRadius: 12, padding: "10px 18px", border: `1px solid ${C.border}` }}>
-          <p style={{ fontSize: 11, color: C.text3, letterSpacing: "1px", fontFamily: "'Rajdhani',sans-serif" }}>CAUGHT</p>
-          <p style={{ fontSize: 28, fontWeight: 800, color: C.green, fontFamily: "'Rajdhani',sans-serif" }}>{caughtList.length}</p>
-        </div>
-      )}
 
       {/* ── INTRO MODAL ── */}
       {phase === "intro" && (
@@ -955,29 +983,23 @@ function GamePage({ game, onClose }) {
                       justifyContent: "center", background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}>
           <div style={{ background: "#18181f", border: `1px solid rgba(181,255,129,0.2)`,
                         borderRadius: 24, padding: "40px 48px", maxWidth: 480, width: "90%",
-                        boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 60px rgba(181,255,129,0.1)" }}>
+                        boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 60px rgba(181,255,129,0.1)",
+                        position: "relative" }}>
+            <button className="btn" onClick={onClose} style={{
+              position: "absolute", top: 14, left: 14,
+              background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border}`,
+              borderRadius: 10, padding: "6px 14px", color: C.text2,
+              fontSize: 11, fontWeight: 700, letterSpacing: "1.5px",
+              fontFamily: "'Rajdhani',sans-serif" }}>EXIT GAME</button>
             <div style={{ fontSize: 48, textAlign: "center", marginBottom: 16 }}>🧺</div>
             <p style={{ fontSize: 26, fontWeight: 800, color: C.text1, textAlign: "center",
                         fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1.5px", marginBottom: 8 }}>
               CATCH YOUR STYLE
             </p>
-            <p style={{ fontSize: 14, color: C.text2, textAlign: "center", lineHeight: 1.7, marginBottom: 28 }}>
-              Move your mouse to control the basket.<br/>
-              Catch clothing cards that match your style — what you catch tells us what you love.<br/>
-              <span style={{ color: C.green, fontWeight: 600 }}>You have 20 seconds.</span> Complete the quiz to unlock an exclusive pre-order item!
+            <p style={{ fontSize: 14, color: C.text2, textAlign: "center", lineHeight: 1.8, marginBottom: 28 }}>
+              Move your mouse to control the basket and catch the shoes falling from above. What you catch tells us what you love. You have <span style={{ color: C.green, fontWeight: 600 }}>15 seconds</span> to complete the quiz and unlock an exclusive pre-order item.
             </p>
-            <div style={{ display: "flex", gap: 12, marginBottom: 24, justifyContent: "center" }}>
-              {CARD_TYPES.map(t => (
-                <div key={t.cat} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 10, background: t.color+"25",
-                                border: `1.5px solid ${t.border}`, display: "flex", alignItems: "center",
-                                justifyContent: "center", fontSize: 22 }}>{t.icon}</div>
-                  <span style={{ fontSize: 10, color: C.text3, fontWeight: 600,
-                                 fontFamily: "'Rajdhani',sans-serif" }}>{t.label}</span>
-                </div>
-              ))}
-            </div>
-            <button className="btn" onClick={() => { setPhase("playing"); setTimeLeft(20); }} style={{
+            <button className="btn" onClick={() => { setPhase("playing"); setTimeLeft(15); }} style={{
               width: "100%", height: 52,
               background: "#B5FF81",
               color: "#1a2612", borderRadius: 14, fontSize: 16, fontWeight: 800,
@@ -993,25 +1015,27 @@ function GamePage({ game, onClose }) {
       {phase === "done" && unlocked && (
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center",
                       justifyContent: "center", background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}>
+
           <div style={{ position: "relative", textAlign: "center", maxWidth: 400, width: "90%" }}>
-            {/* Sparkles */}
+            {/* Fireworks — loop indefinitely */}
             {sparkles.map((s, i) => {
               const tx = Math.cos(s.angle * Math.PI/180) * s.dist;
               const ty = Math.sin(s.angle * Math.PI/180) * s.dist;
+              const colors = ["#B5FF81","#ffd700","#ffffff","#ff9f4a","#a78bfa","#7dd3fc","#ff6b9d"];
               return (
                 <div key={i} style={{
-                  position: "absolute", left: "50%", top: "35%",
-                  width: 8, height: 8, borderRadius: "50%",
-                  background: i%3===0 ? "#41582A" : i%3===1 ? "#fff" : "#ffd700",
+                  position: "absolute", left: "50%", top: "38%",
+                  width: s.size, height: s.size, borderRadius: "50%",
+                  background: colors[i % colors.length],
                   "--tx": tx+"px", "--ty": ty+"px",
-                  animation: `sparkleOut 0.8s ${s.delay}s ease-out both`,
+                  animation: `sparkleOut ${s.dur}s ${s.delay}s ease-out infinite`,
                   pointerEvents: "none",
                 }} />
               );
             })}
 
             <p style={{ fontSize: 13, fontWeight: 700, color: C.green, letterSpacing: "3px",
-                        fontFamily: "'Rajdhani',sans-serif", marginBottom: 8 }}>YOU FINISHED THE QUIZ!</p>
+                        fontFamily: "'Rajdhani',sans-serif", marginBottom: 8 }}>THANKS FOR YOUR FEEDBACK!</p>
             <p style={{ fontSize: 32, fontWeight: 800, color: C.text1, fontFamily: "'Rajdhani',sans-serif",
                         letterSpacing: "1px", marginBottom: 6 }}>MYSTERY UNLOCKED</p>
             <p style={{ fontSize: 14, color: C.text2, marginBottom: 28 }}>Your style preferences have been recorded.</p>
@@ -1036,30 +1060,37 @@ function GamePage({ game, onClose }) {
                   ✦ UNLOCKED
                 </div>
               </div>
-              <div style={{ padding: "14px 16px 18px" }}>
+              <div style={{ padding: "14px 16px 16px", textAlign: "left" }}>
                 <p style={{ fontSize: 11, color: "rgba(181,255,129,0.85)", fontWeight: 700,
                             letterSpacing: "1.5px", fontFamily: "'Rajdhani',sans-serif" }}>{unlocked.brand.toUpperCase()}</p>
                 <p style={{ fontSize: 15, fontWeight: 700, color: C.text1, marginTop: 3, lineHeight: 1.3 }}>{unlocked.name}</p>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 8 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 8, marginBottom: 14 }}>
                   <span style={{ fontSize: 11, color: C.text3, textDecoration: "line-through" }}>${unlocked.origPrice}</span>
                   <span style={{ fontSize: 18, fontWeight: 800, color: C.green }}>${unlocked.price}</span>
                 </div>
+                <button className="btn" onClick={onClose} style={{
+                  width: "100%", padding: "10px 0", borderRadius: 10,
+                  background: "#B5FF81", color: "#1a2612",
+                  fontSize: 13, fontWeight: 800, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1.5px",
+                  boxShadow: "0 4px 16px rgba(181,255,129,0.35)" }}>
+                  PRE-ORDER NOW
+                </button>
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "center" }}>
+            {/* Buttons */}
+            <div style={{ marginTop: 22, display: "flex", gap: 10, justifyContent: "center" }}>
               <button className="btn" onClick={onClose} style={{
-                padding: "12px 28px", borderRadius: 12, background: "rgba(255,255,255,0.07)",
+                padding: "10px 22px", borderRadius: 10, background: "rgba(255,255,255,0.07)",
                 border: `1px solid ${C.border}`, color: C.text2,
-                fontSize: 14, fontWeight: 700, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>
-                BACK
+                fontSize: 13, fontWeight: 700, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>
+                HOME
               </button>
-              <button className="btn" onClick={onClose} style={{
-                padding: "12px 28px", borderRadius: 12,
-                background: "#B5FF81", color: "#1a2612",
-                fontSize: 14, fontWeight: 700, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px",
-                boxShadow: "0 4px 20px rgba(181,255,129,0.3)" }}>
-                PRE-ORDER NOW
+              <button className="btn" onClick={() => { setPhase("intro"); setTimeLeft(15); setNextGameTimer(5); setCaughtList([]); }} style={{
+                padding: "10px 22px", borderRadius: 10,
+                background: "rgba(181,255,129,0.12)", border: `1px solid rgba(181,255,129,0.35)`, color: C.green,
+                fontSize: 13, fontWeight: 700, fontFamily: "'Rajdhani',sans-serif", letterSpacing: "1px" }}>
+                NEXT GAME IN {nextGameTimer} →
               </button>
             </div>
           </div>
@@ -1674,20 +1705,20 @@ function HeroCarousel() {
 
 /* ── Dashboard Page ──────────────────────────────────────────────── */
 function DashboardPage({ onClose }) {
-  const [activeNav, setActiveNav] = useState("Dashboard");
+  const [activeNav, setActiveNav] = useState("Active Campaigns");
   const [showInventoryReview, setShowInventoryReview] = useState(false);
 
   const DB = {
-    bg:       "#0b0b11",
-    sidebar:  "#0d0d15",
-    card:     "#12121a",
+    bg:       "#0e0e0e",
+    sidebar:  "#161616",
+    card:     "#1f1f1f",
     cardBorder:"rgba(255,255,255,0.07)",
     border:   "rgba(255,255,255,0.07)",
     text1:    "#f0f0f0",
-    text2:    "#c2c2d8",
-    text3:    "#8080a8",
+    text2:    "#aaaaaa",
+    text3:    "#666666",
     green:    "#B5FF81",
-    greenDim: "rgba(181,255,129,0.1)",
+    greenDim: "rgba(181,255,129,0.18)",
     red:      "#ff6060",
     orange:   "#ffb347",
     purple:   "#a78bfa",
@@ -1695,25 +1726,15 @@ function DashboardPage({ onClose }) {
   };
 
   const navGroups = [
-    { label: "ANALYTICS",  items: [
-      { name:"Dashboard",          alert:null },
-      { name:"Player Insights",    alert:null },
-      { name:"Engagement Data",    alert:null },
-    ]},
     { label: "CAMPAIGNS",  items: [
-      { name:"Active Campaigns",   alert:1 },
+      { name:"Active Campaigns",   alert:null },
       { name:"Past Campaigns",     alert:null },
       { name:"Game Results",       alert:null },
     ]},
     { label: "PRE-ORDERS", items: [
       { name:"Order Pipeline",     alert:null },
-      { name:"Inventory Alerts",   alert:1, alertColor:"#ffb347" },
+      { name:"Inventory Alerts",   alert:null },
       { name:"Fulfillment",        alert:null },
-    ]},
-    { label: "ACCOUNT",    items: [
-      { name:"Brand Settings",     alert:null },
-      { name:"Billing",            alert:null },
-      { name:"Contact Bridg",      alert:null },
     ]},
   ];
 
@@ -1737,13 +1758,18 @@ function DashboardPage({ onClose }) {
   const playerLine = smoothCurve(playerPts);
   const playerArea = playerLine + ` L${CW},${CH} L0,${CH} Z`;
 
-  /* pre-order items */
-  const preOrderItems = [
+  /* pre-order items — stateful so confirmed decisions update the pipeline */
+  const [preOrderItems, setPreOrderItems] = useState([
     { name:"Swiftly Tech Long-Sleeve",   color:"Ivory White / Size S",   orders:412, cap:400, revenue:53560, img:"swiftly%20long%20sleeve%20white.webp", alert:true,  sizes:[{s:"XS",n:124},{s:"S",n:148},{s:"M",n:105},{s:"L",n:64},{s:"XL",n:20}] },
     { name:"Align™ High-Rise Pant 28\"", color:"Noir Black / Size 4",   orders:487, cap:600, revenue:62336, img:"lululemon%20align%20pant%20black.webp", alert:false, sizes:[{s:"XS",n:58},{s:"S",n:137},{s:"M",n:156},{s:"L",n:97},{s:"XL",n:39}] },
-    { name:"Scuba Half Zip Hoodie",      color:"Alpine White / Size XS", orders:359, cap:500, revenue:31592, img:null, alert:false, sizes:[{s:"XS",n:40},{s:"S",n:106},{s:"M",n:98},{s:"L",n:54},{s:"XL",n:12}] },
     { name:"Wunder Train High-Rise Tight",color:"Black / Size 4",         orders:218, cap:250, revenue:28340, img:"lululemon%20align%20pant%20black%202.webp", alert:false, sizes:[{s:"XS",n:48},{s:"S",n:72},{s:"M",n:60},{s:"L",n:28},{s:"XL",n:10}] },
-  ];
+    { name:"Airlift High-Waist Legging",  color:"Black / Size XS",        orders:164, cap:300, revenue:18860, img:"aloairliftlegging%20black.webp",              alert:false, sizes:[{s:"XS",n:52},{s:"S",n:58},{s:"M",n:34},{s:"L",n:14},{s:"XL",n:6}] },
+  ]);
+  const updateItemCap = (itemName, newCap) => setPreOrderItems(prev =>
+    prev.map(item => item.name === itemName
+      ? { ...item, cap: newCap, alert: item.orders > newCap }
+      : item)
+  );
   const maxOrders = 600;
 
   /* donut — player demographics */
@@ -1770,15 +1796,7 @@ function DashboardPage({ onClose }) {
     return `M${x1},${y1} A${r},${r} 0 ${lg} 1 ${x2},${y2} L${ix1},${iy1} A${ir},${ir} 0 ${lg} 0 ${ix2},${iy2} Z`;
   };
 
-  /* funnel data */
-  const funnel = [
-    { label:"Game Players",        n:8430,  pct:100, color:"#B5FF81" },
-    { label:"Unlocked Pre-Order",  n:3847,  pct:45.6, color:"#7dd3fc" },
-    { label:"Placed Pre-Order",    n:1538,  pct:40.0, color:"#a78bfa" },
-    { label:"Order Confirmed",     n:1312,  pct:85.3, color:"#ffb347" },
-  ];
-
-  /* top game by completions */
+/* top game by completions */
   const games = [
     { name:"Style Predictor",   plays:3240, comp:82, unlocks:2190 },
     { name:"Trend Quiz",        plays:2880, comp:71, unlocks:1820 },
@@ -1810,26 +1828,30 @@ function DashboardPage({ onClose }) {
   };
 
   const card = {background:DB.card,border:`1px solid ${DB.cardBorder}`,borderRadius:12};
-  const label = {fontSize:9,fontWeight:700,letterSpacing:"2px",color:DB.text3,fontFamily:"'Rajdhani',sans-serif"};
-  const subhead = {fontSize:11,color:DB.text2,marginBottom:0};
+  const label = {fontSize:10,fontWeight:700,letterSpacing:"2px",color:DB.text3,fontFamily:"'Rajdhani',sans-serif"};
+  const subhead = {fontSize:13,color:DB.text2,marginBottom:0};
 
   return (
     <div style={{position:"fixed",inset:0,zIndex:50,background:DB.bg,display:"flex",flexDirection:"column",overflow:"hidden",fontFamily:"'Inter',Helvetica,sans-serif"}}>
 
       {/* ── Header ── */}
-      <header style={{height:52,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 20px 0 0",background:DB.sidebar,borderBottom:`1px solid ${DB.border}`}}>
-        <div onClick={onClose} style={{width:192,display:"flex",alignItems:"center",gap:8,padding:"0 20px",borderRight:`1px solid ${DB.border}`,height:"100%",cursor:"pointer"}}>
+      <header style={{height:60,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 28px 0 0",background:"rgba(255,255,255,0.04)",backdropFilter:"blur(40px) saturate(180%)",WebkitBackdropFilter:"blur(40px) saturate(180%)",boxShadow:"0 1px 0 rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.06)"}}>
+        <div onClick={onClose} style={{width:192,display:"flex",alignItems:"center",gap:6,padding:"0 20px",borderRight:`1px solid ${DB.border}`,height:"100%",cursor:"pointer"}}>
           <Logo />
-          <span style={{fontSize:17,fontWeight:700,letterSpacing:"2px",color:DB.text1,textTransform:"uppercase",fontFamily:"'Rajdhani',sans-serif"}}>bridg</span>
+          <span style={{fontSize:20,fontWeight:700,letterSpacing:"2px",color:DB.text1,textTransform:"uppercase",fontFamily:"'Rajdhani',sans-serif"}}>bridg</span>
           <span style={{marginLeft:4,fontSize:9,fontWeight:700,letterSpacing:"1px",color:DB.green,background:DB.greenDim,padding:"2px 6px",borderRadius:4,fontFamily:"'Rajdhani',sans-serif"}}>BRAND</span>
         </div>
         <div style={{flex:1,padding:"0 20px",display:"flex",alignItems:"center",gap:6}}>
-          <span style={{fontSize:11,color:DB.text3}}>Analytics</span>
-          <span style={{fontSize:11,color:DB.text3}}>›</span>
-          <span style={{fontSize:11,color:DB.text2,fontWeight:500}}>Dashboard</span>
+          <span style={{fontSize:12,color:DB.text3}}>Campaigns</span>
+          <span style={{fontSize:12,color:DB.text3}}>›</span>
+          <span style={{fontSize:12,color:DB.text2,fontWeight:500}}>Active Campaigns</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px",background:"rgba(255,255,255,0.04)",border:`1px solid ${DB.border}`,borderRadius:8}}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={DB.text3} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="8" cy="5.5" r="2.5"/>
+              <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+            </svg>
             <span style={{fontSize:11,fontWeight:600,color:DB.text2,letterSpacing:"0.5px"}}>Lululemon</span>
           </div>
         </div>
@@ -1846,7 +1868,7 @@ function DashboardPage({ onClose }) {
               {group.items.map(({name,alert,alertColor}) => (
                 <div key={name} onClick={() => setActiveNav(name)} style={{
                   padding:"7px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",
-                  fontSize:12,fontWeight:name===activeNav?600:400,
+                  fontSize:13,fontWeight:name===activeNav?600:400,
                   color:name===activeNav?DB.text1:DB.text2,
                   background:name===activeNav?"rgba(255,255,255,0.07)":"transparent",
                   borderLeft:name===activeNav?`2px solid ${DB.green}`:"2px solid transparent",
@@ -1860,7 +1882,7 @@ function DashboardPage({ onClose }) {
           ))}
           <div style={{flex:1}}/>
           <div style={{padding:"0 14px"}}>
-            <button style={{width:"100%",padding:"9px 0",borderRadius:8,background:DB.green,border:"none",color:"#0a0a0a",fontSize:11,fontWeight:700,letterSpacing:"1px",fontFamily:"'Rajdhani',sans-serif",cursor:"pointer"}}>+ New Campaign</button>
+            <button style={{width:"100%",padding:"9px 0",borderRadius:8,background:DB.green,border:"none",color:"#0a0a0a",fontSize:14,fontWeight:700,letterSpacing:"1px",fontFamily:"'Rajdhani',sans-serif",cursor:"pointer"}}>+ New Campaign</button>
           </div>
         </aside>
 
@@ -1872,7 +1894,7 @@ function DashboardPage({ onClose }) {
             <div>
               <p style={{...label,marginBottom:6}}>ACTIVE CAMPAIGN</p>
               <h1 style={{fontSize:24,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",lineHeight:1}}>January 2026</h1>
-              <p style={{fontSize:12,color:DB.text2,marginTop:4}}>Campaign: Jan 1 – Jan 31 · 3 active game types · 3 pre-order items</p>
+              <p style={{fontSize:12,color:DB.text2,marginTop:4}}>Campaign: Jan 1 – Jan 31 · 3 active game types · 4 pre-order items</p>
             </div>
             <div style={{display:"flex",gap:8}}>
               {["7D","30D","All Time"].map((t,i) => (
@@ -1891,75 +1913,58 @@ function DashboardPage({ onClose }) {
             ].map(k => (
               <div key={k.label} style={{...card,padding:"16px 18px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-                  <p style={{fontSize:10,color:DB.text2}}>{k.label}</p>
+                  <p style={{fontSize:12,color:DB.text2}}>{k.label}</p>
                   <span style={{fontSize:14,color:DB.text3}}>{k.icon}</span>
                 </div>
                 <p style={{fontSize:28,fontWeight:800,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",lineHeight:1,marginBottom:6}}>{k.value}</p>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <span style={{fontSize:10,fontWeight:700,color:k.up?DB.green:DB.red,background:k.up?"rgba(181,255,129,0.1)":"rgba(255,96,96,0.1)",padding:"2px 6px",borderRadius:4}}>{k.delta}</span>
-                  <span style={{fontSize:10,color:DB.text3}}>{k.sub}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:k.up?DB.green:DB.red,background:k.up?"rgba(181,255,129,0.1)":"rgba(255,96,96,0.1)",padding:"2px 6px",borderRadius:4}}>{k.delta}</span>
+                  <span style={{fontSize:12,color:DB.text3}}>{k.sub}</span>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* ── Two-column: players chart + funnel ── */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:12,marginBottom:12}}>
+          {/* ── Daily players chart ── */}
+          <div style={{marginBottom:12}}>
 
             {/* Daily Players area chart */}
             <div style={{...card,padding:"18px 20px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
                 <div>
                   <p style={{...subhead,marginBottom:3}}>Daily Game Players</p>
-                  <p style={{fontSize:9,color:DB.text3,letterSpacing:"0.5px"}}>Jan 1 – Feb 8, 2026</p>
+                  <p style={{fontSize:11,color:DB.text3,letterSpacing:"0.5px"}}>Jan 1 – Feb 8, 2026</p>
                 </div>
                 <div style={{display:"flex",gap:16}}>
                   {[{label:"Peak day",val:"461"},{label:"Avg/day",val:"222"}].map(s=>(
                     <div key={s.label} style={{textAlign:"right"}}>
                       <p style={{fontSize:16,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",lineHeight:1}}>{s.val}</p>
-                      <p style={{fontSize:9,color:DB.text3}}>{s.label}</p>
+                      <p style={{fontSize:11,color:DB.text3}}>{s.label}</p>
                     </div>
                   ))}
                 </div>
               </div>
-              <svg width="100%" viewBox={`0 0 ${CW} ${CH+20}`} preserveAspectRatio="none" style={{display:"block",height:100}}>
+              <svg width="100%" viewBox={`0 0 ${CW} ${CH}`} preserveAspectRatio="none" style={{display:"block",height:100}}>
                 <defs>
                   <linearGradient id="playersGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#B5FF81" stopOpacity="0.2"/>
                     <stop offset="100%" stopColor="#B5FF81" stopOpacity="0.01"/>
                   </linearGradient>
                 </defs>
-                {/* grid lines */}
                 {[0.25,0.5,0.75].map(f => (
                   <line key={f} x1="0" y1={CH*f} x2={CW} y2={CH*f} stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
                 ))}
                 <path d={playerArea} fill="url(#playersGrad)"/>
                 <path d={playerLine} fill="none" stroke="#B5FF81" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                {/* x-axis labels */}
-                {[["Jan 1",0],["Jan 8",188],["Jan 15",377],["Jan 22",566],["Jan 29",754],["Feb 5",905]].map(([lbl,x]) => (
-                  <text key={lbl} x={Math.min(x, CW-20)} y={CH+16} fontSize="8" fill={DB.text3} textAnchor="middle" fontFamily="Inter">{lbl}</text>
-                ))}
               </svg>
-            </div>
-
-            {/* Conversion funnel */}
-            <div style={{...card,padding:"18px 20px"}}>
-              <p style={{...subhead,marginBottom:16}}>Player Conversion Funnel</p>
-              <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                {funnel.map((f,i) => (
-                  <div key={f.label}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                      <span style={{fontSize:10,color:DB.text2}}>{f.label}</span>
-                      <span style={{fontSize:10,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>{f.n.toLocaleString()}</span>
-                    </div>
-                    <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:3,overflow:"hidden"}}>
-                      <div style={{height:"100%",width:`${f.pct}%`,background:f.color,borderRadius:3,transition:"width 0.4s"}}/>
-                    </div>
-                    {i < funnel.length-1 && <p style={{fontSize:9,color:DB.text3,marginTop:3,textAlign:"right"}}>{funnel[i+1].pct.toFixed(0)}% proceed</p>}
-                  </div>
+              {/* x-axis labels — outside SVG so they don't stretch */}
+              <div style={{position:"relative",height:18,marginTop:4}}>
+                {[["Jan 1",0],["Jan 8",7],["Jan 15",14],["Jan 22",21],["Jan 29",28],["Feb 5",35]].map(([lbl,day]) => (
+                  <span key={lbl} style={{position:"absolute",left:`${(day/37)*100}%`,transform:"translateX(-50%)",fontSize:11,color:DB.text3,whiteSpace:"nowrap"}}>{lbl}</span>
                 ))}
               </div>
             </div>
+
           </div>
 
           {/* ── Pre-order items ── */}
@@ -1967,24 +1972,26 @@ function DashboardPage({ onClose }) {
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
               <div>
                 <p style={{...subhead,marginBottom:2}}>Pre-Order Pipeline</p>
-                <p style={{fontSize:9,color:DB.text3}}>Demand vs. production capacity — Jan 2026</p>
+                <p style={{fontSize:11,color:DB.text3}}>Demand vs. production capacity — Jan 2026</p>
               </div>
               <div style={{display:"flex",gap:12,alignItems:"center"}}>
                 {[{c:DB.green,l:"Under capacity"},{c:DB.orange,l:"Over capacity"}].map(i=>(
                   <div key={i.l} style={{display:"flex",alignItems:"center",gap:5}}>
                     <div style={{width:6,height:6,borderRadius:"50%",background:i.c}}/>
-                    <span style={{fontSize:9,color:DB.text3}}>{i.l}</span>
+                    <span style={{fontSize:11,color:DB.text3}}>{i.l}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Alert banner */}
+            {preOrderItems.some(i => i.alert) && (
             <div style={{background:"rgba(255,179,71,0.07)",border:"1px solid rgba(255,179,71,0.22)",borderRadius:8,padding:"9px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
               <span style={{fontSize:13}}>⚠️</span>
-              <p style={{fontSize:11,color:DB.text1}}><strong>1 item exceeding inventory cap.</strong> Swiftly Tech Long-Sleeve (+3%) — consider increasing production run.</p>
-              <button onClick={() => setShowInventoryReview(true)} style={{marginLeft:"auto",flexShrink:0,background:"rgba(255,179,71,0.1)",border:"1px solid rgba(255,179,71,0.25)",borderRadius:6,color:"#ffb347",fontSize:10,fontWeight:700,padding:"5px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Review →</button>
+              <p style={{fontSize:13,color:DB.text1}}><strong>{preOrderItems.filter(i=>i.alert).length} item{preOrderItems.filter(i=>i.alert).length>1?"s":""} exceeding inventory cap.</strong> {preOrderItems.filter(i=>i.alert).map(i=>i.name).join(", ")} — consider increasing production run.</p>
+              <button onClick={() => setShowInventoryReview(true)} style={{marginLeft:"auto",flexShrink:0,background:"rgba(255,179,71,0.1)",border:"1px solid rgba(255,179,71,0.25)",borderRadius:6,color:"#ffb347",fontSize:12,fontWeight:700,padding:"5px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Review →</button>
             </div>
+            )}
 
             {/* Item rows */}
             {preOrderItems.map((item,idx) => {
@@ -1995,42 +2002,29 @@ function DashboardPage({ onClose }) {
               return (
                 <div key={item.name} style={{display:"grid",gridTemplateColumns:"220px 1fr 180px",gap:16,alignItems:"center",padding:"11px 0",borderTop:idx>0?`1px solid ${DB.border}`:"none"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10}}>
-                    {item.img ? <img src={item.img} alt={item.name} style={{width:36,height:36,objectFit:"cover",borderRadius:6,background:"#fff",flexShrink:0}}/> : <div style={{width:36,height:36,borderRadius:6,background:"rgba(255,255,255,0.06)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>👕</div>}
+                    {item.img ? <img src={item.img} alt={item.name} style={{width:52,height:52,objectFit:"cover",borderRadius:8,background:"#fff",flexShrink:0}}/> : <div style={{width:52,height:52,borderRadius:8,background:"rgba(255,255,255,0.06)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👕</div>}
                     <div>
-                      <p style={{fontSize:11,fontWeight:600,color:DB.text1,lineHeight:1.2}}>{item.name}</p>
-                      <p style={{fontSize:9,color:DB.text3,marginTop:1}}>{item.color}</p>
+                      <p style={{fontSize:13,fontWeight:600,color:DB.text1,lineHeight:1.2}}>{item.name}</p>
+                      <p style={{fontSize:11,color:DB.text3,marginTop:1}}>{item.color}</p>
                     </div>
                   </div>
                   <div>
                     <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
                       <div style={{display:"flex",gap:10,alignItems:"baseline"}}>
-                        <span style={{fontSize:13,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>{item.orders.toLocaleString()}</span>
-                        <span style={{fontSize:9,color:DB.text3}}>orders</span>
-                        {over && <span style={{fontSize:9,fontWeight:700,color:DB.orange,background:"rgba(255,179,71,0.12)",padding:"1px 5px",borderRadius:3}}>+{Math.round((item.orders/item.cap-1)*100)}% over cap</span>}
+                        <span style={{fontSize:16,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>{item.orders.toLocaleString()}</span>
+                        <span style={{fontSize:11,color:DB.text3}}>orders</span>
+                        {over && <span style={{fontSize:11,fontWeight:700,color:DB.orange,background:"rgba(255,179,71,0.12)",padding:"2px 6px",borderRadius:3}}>+{Math.round((item.orders/item.cap-1)*100)}% over cap</span>}
                       </div>
-                      <span style={{fontSize:9,color:DB.text3}}>cap {item.cap.toLocaleString()}</span>
+                      <span style={{fontSize:11,color:DB.text3}}>cap {item.cap.toLocaleString()}</span>
                     </div>
                     <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:3,position:"relative"}}>
                       <div style={{height:"100%",width:`${pct}%`,maxWidth:"100%",background:over?DB.orange:DB.green,borderRadius:3}}/>
-                      <div style={{position:"absolute",top:0,bottom:0,left:`${capPct}%`,width:1.5,background:"rgba(255,255,255,0.3)",borderRadius:1}}/>
-                    </div>
-                    {/* Size breakdown mini bars */}
-                    <div style={{display:"flex",gap:4,marginTop:7,alignItems:"flex-end"}}>
-                      {item.sizes.map(({s,n}) => {
-                        const sMax = Math.max(...item.sizes.map(x=>x.n));
-                        return (
-                          <div key={s} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flex:1}}>
-                            <div style={{width:"100%",height:Math.round((n/sMax)*24),background:over?"rgba(255,179,71,0.35)":"rgba(181,255,129,0.3)",borderRadius:2,minHeight:2}}/>
-                            <span style={{fontSize:8,color:DB.text3}}>{s}</span>
-                          </div>
-                        );
-                      })}
+                      <div style={{position:"absolute",top:-2,bottom:-2,left:`${capPct}%`,width:2.5,background:"rgba(255,255,255,0.55)",borderRadius:1}}/>
                     </div>
                   </div>
                   <div style={{display:"flex",flexDirection:"column",gap:1,alignItems:"flex-end"}}>
-                    <p style={{fontSize:13,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>${item.revenue.toLocaleString()}</p>
-                    <p style={{fontSize:9,color:DB.text3}}>forecasted revenue</p>
-                    {spark(sparkVals, 80, 24, over?DB.orange:DB.green)}
+                    <p style={{fontSize:16,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>${item.revenue.toLocaleString()}</p>
+                    <p style={{fontSize:11,color:DB.text3}}>forecasted revenue</p>
                   </div>
                 </div>
               );
@@ -2054,8 +2048,8 @@ function DashboardPage({ onClose }) {
                   {demoData.map(d => (
                     <div key={d.label} style={{display:"flex",alignItems:"center",gap:7}}>
                       <div style={{width:7,height:7,borderRadius:2,background:d.color,flexShrink:0}}/>
-                      <span style={{fontSize:10,color:DB.text2,flex:1}}>{d.label}</span>
-                      <span style={{fontSize:10,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>{d.pct}%</span>
+                      <span style={{fontSize:12,color:DB.text2,flex:1}}>{d.label}</span>
+                      <span style={{fontSize:12,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif"}}>{d.pct}%</span>
                     </div>
                   ))}
                 </div>
@@ -2066,11 +2060,11 @@ function DashboardPage({ onClose }) {
             <div style={{...card,padding:"18px 20px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
                 <p style={{...subhead}}>Game Performance Breakdown</p>
-                <span style={{fontSize:9,color:DB.text3}}>Jan 2026</span>
+                <span style={{fontSize:11,color:DB.text3}}>Jan 2026</span>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr repeat(3,90px)",gap:0}}>
                 {["Game","%Completion","Plays","Pre-Order Unlocks"].map(h => (
-                  <p key={h} style={{fontSize:9,fontWeight:700,color:DB.text3,letterSpacing:"0.5px",padding:"0 0 8px",textAlign:h==="Game"?"left":"right"}}>{h}</p>
+                  <p key={h} style={{fontSize:11,fontWeight:700,color:DB.text3,letterSpacing:"0.5px",padding:"0 0 8px",textAlign:h==="Game"?"left":"right"}}>{h}</p>
                 ))}
                 {games.map((g,i) => {
                   const sparkV = Array.from({length:10}, (_,k) => Math.round(g.plays/10*(0.6+Math.random()*0.7+k*0.04)));
@@ -2088,13 +2082,13 @@ function DashboardPage({ onClose }) {
                           <div style={{height:4,width:54,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden",marginBottom:4}}>
                             <div style={{height:"100%",width:`${g.comp}%`,background:g.comp>75?DB.green:g.comp>65?DB.blue:DB.text2,borderRadius:2}}/>
                           </div>
-                          <p style={{fontSize:10,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",textAlign:"right"}}>{g.comp}%</p>
+                          <p style={{fontSize:12,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",textAlign:"right"}}>{g.comp}%</p>
                         </div>
                       </div>
                       <p style={{fontSize:12,fontWeight:700,color:DB.text1,fontFamily:"'Rajdhani',sans-serif",textAlign:"right",display:"flex",alignItems:"center",justifyContent:"flex-end",borderTop:`1px solid ${DB.border}`,padding:"10px 0"}}>{g.plays.toLocaleString()}</p>
                       <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:6,borderTop:`1px solid ${DB.border}`,padding:"10px 0"}}>
                         <p style={{fontSize:12,fontWeight:700,color:DB.green,fontFamily:"'Rajdhani',sans-serif"}}>{g.unlocks.toLocaleString()}</p>
-                        <span style={{fontSize:9,color:DB.text3}}>{Math.round(g.unlocks/g.plays*100)}%</span>
+                        <span style={{fontSize:11,color:DB.text3}}>{Math.round(g.unlocks/g.plays*100)}%</span>
                       </div>
                     </React.Fragment>
                   );
@@ -2107,13 +2101,13 @@ function DashboardPage({ onClose }) {
         </main>
       </div>
 
-      {showInventoryReview && <InventoryReviewModal onClose={() => setShowInventoryReview(false)} DB={DB} preOrderItems={preOrderItems} />}
+      {showInventoryReview && <InventoryReviewModal onClose={() => setShowInventoryReview(false)} onConfirm={updateItemCap} DB={DB} preOrderItems={preOrderItems} />}
     </div>
   );
 }
 
 /* ── Inventory Review Modal ──────────────────────────────────────── */
-function InventoryReviewModal({ onClose, DB, preOrderItems }) {
+function InventoryReviewModal({ onClose, onConfirm, DB, preOrderItems }) {
   const alertItems = preOrderItems.filter(i => i.alert);
   const overpct = item => Math.round((item.orders / item.cap - 1) * 100);
 
@@ -2131,7 +2125,9 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
   );
   const setDecision = (name, patch) => setDecisions(prev => ({ ...prev, [name]: { ...prev[name], ...patch } }));
   const [submitted, setSubmitted] = React.useState({});
-  const confirmItem = name => setSubmitted(prev => ({ ...prev, [name]: true }));
+  const confirmItem = (name) => {
+    setSubmitted(prev => ({ ...prev, [name]: true }));
+  };
 
   const suggestions = {
     "Swiftly Tech Long-Sleeve": {
@@ -2179,7 +2175,7 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
             <div>
               <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:6}}>
                 <div style={{width:6, height:6, borderRadius:"50%", background:DB.orange, boxShadow:`0 0 8px ${DB.orange}`}}/>
-                <span style={{fontSize:10, fontWeight:700, color:DB.orange, letterSpacing:"2px", fontFamily:"'Rajdhani',sans-serif"}}>INVENTORY REVIEW</span>
+                <span style={{fontSize:12, fontWeight:700, color:DB.orange, letterSpacing:"2px", fontFamily:"'Rajdhani',sans-serif"}}>INVENTORY REVIEW</span>
               </div>
               <h2 style={{fontSize:20, fontWeight:700, color:DB.text1, fontFamily:"'Rajdhani',sans-serif", lineHeight:1, marginBottom:4}}>
                 1 Item Exceeding Production Cap
@@ -2199,7 +2195,7 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
               { label:"Avg Fulfillment Window", value: "14–21 days", color: DB.text1 },
             ].map(s => (
               <div key={s.label} style={{flex:1, background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:8, padding:"10px 14px"}}>
-                <p style={{fontSize:10, color:DB.text3, marginBottom:4}}>{s.label}</p>
+                <p style={{fontSize:12, color:DB.text3, marginBottom:4}}>{s.label}</p>
                 <p style={{fontSize:18, fontWeight:800, color:s.color, fontFamily:"'Rajdhani',sans-serif", lineHeight:1}}>{s.value}</p>
               </div>
             ))}
@@ -2236,21 +2232,21 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
                       }
                       <div>
                         <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:3}}>
-                          <p style={{fontSize:14, fontWeight:700, color:DB.text1}}>{item.name}</p>
-                          <span style={{fontSize:9, fontWeight:700, color:DB.orange, background:"rgba(255,179,71,0.12)", padding:"2px 6px", borderRadius:3}}>+{ovPct}% OVER CAP</span>
+                          <p style={{fontSize:16, fontWeight:700, color:DB.text1}}>{item.name}</p>
+                          <span style={{fontSize:11, fontWeight:700, color:DB.orange, background:"rgba(255,179,71,0.12)", padding:"2px 6px", borderRadius:3}}>+{ovPct}% OVER CAP</span>
                         </div>
-                        <p style={{fontSize:11, color:DB.text3}}>{item.color}</p>
+                        <p style={{fontSize:12, color:DB.text3}}>{item.color}</p>
                       </div>
                     </div>
                     <div style={{display:"flex", gap:20, textAlign:"right"}}>
                       {[
                         { label:"Production Cap", val: item.cap.toLocaleString(),    color: DB.text2 },
-                        { label:"Orders Placed",  val: item.orders.toLocaleString(), color: DB.orange },
-                        { label:"Units Over",     val: `+${over}`,                   color: DB.red },
+                        { label:"Orders Placed",  val: item.orders.toLocaleString(), color: DB.text1 },
+                        { label:"Units Over",     val: `+${over}`,                   color: DB.orange },
                       ].map(s => (
                         <div key={s.label}>
-                          <p style={{fontSize:17, fontWeight:700, color:s.color, fontFamily:"'Rajdhani',sans-serif", lineHeight:1}}>{s.val}</p>
-                          <p style={{fontSize:9, color:DB.text3, marginTop:3}}>{s.label}</p>
+                          <p style={{fontSize:20, fontWeight:700, color:s.color, fontFamily:"'Rajdhani',sans-serif", lineHeight:1}}>{s.val}</p>
+                          <p style={{fontSize:11, color:DB.text3, marginTop:3}}>{s.label}</p>
                         </div>
                       ))}
                     </div>
@@ -2259,30 +2255,30 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
                   {/* Two-col: velocity + sizes */}
                   <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:16}}>
                     <div style={{background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:10, padding:"12px 14px"}}>
-                      <p style={{fontSize:10, color:DB.text2, marginBottom:10}}>Weekly Pre-Order Velocity</p>
+                      <p style={{fontSize:12, color:DB.text2, marginBottom:10}}>Weekly Pre-Order Velocity</p>
                       <div style={{display:"flex", alignItems:"flex-end", gap:6, height:56}}>
                         {weekly.map((v, i) => (
                           <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3}}>
                             <div style={{width:"100%", height:Math.round((v/weekMax)*44), background:i===weekly.length-1?DB.orange:"rgba(255,179,71,0.28)", borderRadius:"3px 3px 0 0", minHeight:4}}/>
-                            <span style={{fontSize:8, color:DB.text3}}>W{i+1}</span>
+                            <span style={{fontSize:10, color:DB.text3}}>W{i+1}</span>
                           </div>
                         ))}
                       </div>
-                      <p style={{fontSize:9, color:DB.text3, marginTop:6}}>Week 5 pace: <span style={{color:DB.orange, fontWeight:700}}>{weekly[4]} orders</span> — trending up</p>
+                      <p style={{fontSize:11, color:DB.text3, marginTop:6}}>Week 5 pace: <span style={{color:DB.orange, fontWeight:700}}>{weekly[4]} orders</span> — trending up</p>
                     </div>
                     <div style={{background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:10, padding:"12px 14px"}}>
-                      <p style={{fontSize:10, color:DB.text2, marginBottom:10}}>Size Distribution</p>
+                      <p style={{fontSize:12, color:DB.text2, marginBottom:10}}>Size Distribution</p>
                       <div style={{display:"flex", flexDirection:"column", gap:6}}>
                         {item.sizes.map(({s, n}) => {
                           const sMax = Math.max(...item.sizes.map(x=>x.n));
                           const isTop = n === sMax;
                           return (
                             <div key={s} style={{display:"flex", alignItems:"center", gap:8}}>
-                              <span style={{fontSize:9, fontWeight:600, color:isTop?DB.text1:DB.text3, width:18, flexShrink:0}}>{s}</span>
+                              <span style={{fontSize:11, fontWeight:600, color:isTop?DB.text1:DB.text3, width:18, flexShrink:0}}>{s}</span>
                               <div style={{flex:1, height:5, background:"rgba(255,255,255,0.06)", borderRadius:3}}>
                                 <div style={{height:"100%", width:`${(n/sMax)*100}%`, background:isTop?DB.orange:"rgba(255,179,71,0.3)", borderRadius:3}}/>
                               </div>
-                              <span style={{fontSize:9, color:isTop?DB.text1:DB.text3, width:24, textAlign:"right", fontWeight:isTop?700:400}}>{n}</span>
+                              <span style={{fontSize:11, color:isTop?DB.text1:DB.text3, width:24, textAlign:"right", fontWeight:isTop?700:400}}>{n}</span>
                             </div>
                           );
                         })}
@@ -2296,7 +2292,7 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
                     background: isOpen ? "rgba(181,255,129,0.07)" : "rgba(255,255,255,0.04)",
                     border: isOpen ? "1px solid rgba(181,255,129,0.25)" : `1px solid ${DB.border}`,
                     color: isOpen ? DB.green : DB.text2,
-                    fontSize:11, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"space-between",
+                    fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"space-between",
                     transition:"all 0.2s",
                   }}>
                     <span>{isOpen ? "Hide Suggestions" : "View Suggestions"}</span>
@@ -2320,21 +2316,21 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
                     {sug && (
                       <div style={{background:"rgba(181,255,129,0.05)", border:"1px solid rgba(181,255,129,0.16)", borderRadius:10, padding:"14px 16px", marginBottom:16}}>
                         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
-                          <span style={{fontSize:10, fontWeight:700, color:DB.green, letterSpacing:"1px", fontFamily:"'Rajdhani',sans-serif"}}>BRIDG RECOMMENDS</span>
-                          <div style={{background:"rgba(181,255,129,0.1)", borderRadius:5, padding:"2px 8px"}}>
-                            <span style={{fontSize:9, color:DB.green, fontWeight:700}}>{sug.confidence}% confidence</span>
+                          <span style={{fontSize:12, fontWeight:700, color:DB.green, letterSpacing:"1px", fontFamily:"'Rajdhani',sans-serif"}}>BRIDG RECOMMENDS</span>
+                          <div style={{background:"rgba(181,255,129,0.1)", borderRadius:5, padding:"5px 9px", display:"flex", alignItems:"center"}}>
+                            <span style={{fontSize:12, color:DB.green, fontWeight:700, lineHeight:1}}>{sug.confidence}% confidence</span>
                           </div>
                         </div>
-                        <p style={{fontSize:13, fontWeight:700, color:DB.text1, marginBottom:5}}>{sug.headline}</p>
-                        <p style={{fontSize:11, color:DB.text2, lineHeight:1.6, marginBottom:8}}>{sug.rationale}</p>
-                        <p style={{fontSize:11, fontWeight:600, color:DB.green}}>{sug.impact}</p>
+                        <p style={{fontSize:14, fontWeight:700, color:DB.text1, marginBottom:5}}>{sug.headline}</p>
+                        <p style={{fontSize:12, color:DB.text2, lineHeight:1.6, marginBottom:8}}>{sug.rationale}</p>
+                        <p style={{fontSize:12, fontWeight:600, color:DB.green}}>{sug.impact}</p>
                       </div>
                     )}
 
                     {/* Decision options */}
                     {!isConfirmed ? (
                       <>
-                        <p style={{fontSize:9, fontWeight:700, color:DB.text3, letterSpacing:"1.5px", marginBottom:10, fontFamily:"'Rajdhani',sans-serif"}}>YOUR DECISION</p>
+                        <p style={{fontSize:11, fontWeight:700, color:DB.text3, letterSpacing:"1.5px", marginBottom:10, fontFamily:"'Rajdhani',sans-serif"}}>YOUR DECISION</p>
                         <div style={{display:"flex", gap:8, marginBottom:12}}>
                           {[
                             { key:"increase", label:"Increase Production", desc:`Add ${suggest} units (suggested)` },
@@ -2347,36 +2343,36 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
                               border: dec.action===opt.key ? `1.5px solid ${opt.key==="increase"?DB.green:opt.key==="waitlist"?DB.blue:"rgba(255,255,255,0.2)"}` : `1px solid ${DB.border}`,
                               transition:"all 0.15s",
                             }}>
-                              <p style={{fontSize:11, fontWeight:700, color: dec.action===opt.key?(opt.key==="increase"?DB.green:opt.key==="waitlist"?DB.blue:DB.text1):DB.text2, marginBottom:2}}>{opt.label}</p>
-                              <p style={{fontSize:9, color:DB.text3}}>{opt.desc}</p>
+                              <p style={{fontSize:13, fontWeight:700, color: dec.action===opt.key?(opt.key==="increase"?DB.green:opt.key==="waitlist"?DB.blue:DB.text1):DB.text2, marginBottom:2}}>{opt.label}</p>
+                              <p style={{fontSize:11, color:DB.text3}}>{opt.desc}</p>
                             </button>
                           ))}
                         </div>
 
                         {dec.action === "increase" && (
                           <div style={{display:"flex", alignItems:"center", gap:10, background:DB.bg, borderRadius:8, padding:"10px 14px", marginBottom:12}}>
-                            <p style={{fontSize:11, color:DB.text2, whiteSpace:"nowrap"}}>New production cap:</p>
+                            <p style={{fontSize:12, color:DB.text2, whiteSpace:"nowrap"}}>New production cap:</p>
                             <button onClick={() => setDecision(item.name, {newCap: Math.max(item.orders, dec.newCap-25)})} style={{width:26, height:26, borderRadius:6, border:`1px solid ${DB.border}`, background:"rgba(255,255,255,0.06)", color:DB.text1, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center"}}>−</button>
                             <div style={{padding:"4px 16px", borderRadius:7, border:"1px solid rgba(181,255,129,0.3)", background:"rgba(181,255,129,0.07)", minWidth:72, textAlign:"center"}}>
                               <span style={{fontSize:14, fontWeight:800, color:DB.green, fontFamily:"'Rajdhani',sans-serif"}}>{dec.newCap}</span>
                             </div>
                             <button onClick={() => setDecision(item.name, {newCap: dec.newCap+25})} style={{width:26, height:26, borderRadius:6, border:`1px solid ${DB.border}`, background:"rgba(255,255,255,0.06)", color:DB.text1, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center"}}>+</button>
-                            <p style={{fontSize:10, color:DB.text3}}>+{dec.newCap - item.cap} units · <span style={{color:DB.green}}>~${((dec.newCap - item.cap) * Math.round(item.revenue/item.orders)).toLocaleString()} additional revenue</span></p>
+                            <p style={{fontSize:11, color:DB.text3}}>+{dec.newCap - item.cap} units · <span style={{color:DB.green}}>~${((dec.newCap - item.cap) * Math.round(item.revenue/item.orders)).toLocaleString()} additional revenue</span></p>
                           </div>
                         )}
                         {dec.action === "waitlist" && (
                           <div style={{background:DB.bg, borderRadius:8, padding:"10px 14px", marginBottom:12}}>
-                            <p style={{fontSize:11, color:DB.text2}}><span style={{color:DB.blue, fontWeight:700}}>{Math.max(0, item.orders - item.cap)} customers</span> will be moved to waitlist and notified by email when stock is confirmed.</p>
+                            <p style={{fontSize:12, color:DB.text2}}><span style={{color:DB.blue, fontWeight:700}}>{Math.max(0, item.orders - item.cap)} customers</span> will be moved to waitlist and notified by email when stock is confirmed.</p>
                           </div>
                         )}
                         {dec.action === "hold" && (
                           <input placeholder="Add a note for your team..." value={dec.note} onChange={e => setDecision(item.name, {note:e.target.value})}
-                            style={{width:"100%", background:"rgba(255,255,255,0.05)", border:`1px solid ${DB.border}`, borderRadius:7, padding:"8px 12px", color:DB.text1, fontSize:11, outline:"none", fontFamily:"'Inter',sans-serif", boxSizing:"border-box", marginBottom:12}}
+                            style={{width:"100%", background:"rgba(255,255,255,0.05)", border:`1px solid ${DB.border}`, borderRadius:7, padding:"8px 12px", color:DB.text1, fontSize:12, outline:"none", fontFamily:"'Inter',sans-serif", boxSizing:"border-box", marginBottom:12}}
                           />
                         )}
 
                         <div style={{display:"flex", justifyContent:"flex-end"}}>
-                          <button onClick={() => confirmItem(item.name)} style={{padding:"8px 20px", borderRadius:8, border:"none", background:DB.green, color:"#0a0a0a", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Rajdhani',sans-serif"}}>Confirm Decision →</button>
+                          <button onClick={() => confirmItem(item.name)} style={{padding:"8px 20px", borderRadius:8, border:"none", background:DB.green, color:"#0a0a0a", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'Rajdhani',sans-serif"}}>Confirm Decision →</button>
                         </div>
                       </>
                     ) : (
@@ -2385,8 +2381,8 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
                           <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke={DB.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 7.5l3.5 3.5 6.5-7"/></svg>
                         </div>
                         <div>
-                          <p style={{fontSize:12, fontWeight:700, color:DB.green, fontFamily:"'Rajdhani',sans-serif", marginBottom:1}}>Decision confirmed</p>
-                          <p style={{fontSize:10, color:DB.text2}}>Your production partner has been notified for this item.</p>
+                          <p style={{fontSize:14, fontWeight:700, color:DB.green, fontFamily:"'Rajdhani',sans-serif", marginBottom:1}}>Decision confirmed</p>
+                          <p style={{fontSize:12, color:DB.text2}}>Your production partner has been notified for this item.</p>
                         </div>
                       </div>
                     )}
@@ -2399,7 +2395,15 @@ function InventoryReviewModal({ onClose, DB, preOrderItems }) {
         </div>
 
         <div style={{padding:"16px 24px", borderTop:`1px solid ${DB.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"flex-end", background:DB.sidebar}}>
-          <button onClick={onClose} style={{padding:"9px 22px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Done</button>
+          <button onClick={() => {
+            Object.keys(submitted).forEach(name => {
+              const dec = decisions[name];
+              if (dec && dec.action === "increase" && onConfirm) {
+                onConfirm(name, dec.newCap);
+              }
+            });
+            onClose();
+          }} style={{padding:"9px 22px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Done</button>
         </div>
       </div>
     </div>
