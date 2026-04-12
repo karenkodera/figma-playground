@@ -1187,7 +1187,7 @@ function AritziaSwipeGame({ game, onClose }) {
       setDrag({ x: 0, y: 0, active: false });
       flyDirRef.current = null;  // allow next swipe
       setFlyDir(null);
-    }, 420);
+    }, 260);
   };
 
   // Mouse events
@@ -1313,14 +1313,14 @@ function AritziaSwipeGame({ game, onClose }) {
                  : flyDir === "left"  ? -window.innerWidth * 1.4
                  : drag.x;
         const fy = flyDir ? drag.y + 60 : drag.y;
-        rot = flyDir ? (flyDir === "right" ? 22 : -22) : drag.x * 0.08;
+        rot = flyDir ? (flyDir === "right" ? 18 : -18) : drag.x * 0.12;
         tx  = fw; ty = fy;
-        transition = flyDir ? "transform 0.38s cubic-bezier(0.4,0,1,1)"
+        transition = flyDir ? "transform 0.22s cubic-bezier(0.5,0,1,1)"
                    : drag.active ? "none"
-                   : "transform 0.3s cubic-bezier(0.34,1.56,0.64,1)";
+                   : "transform 0.25s cubic-bezier(0.34,1.56,0.64,1)";
       } else {
         tx = 0; ty = 0; rot = 0;
-        transition = flyDir ? "transform 0.38s ease" : "transform 0.2s ease";
+        transition = flyDir ? "transform 0.22s ease" : "transform 0.15s ease";
       }
 
       const dragNopeAmt = isTop ? Math.max(0, -drag.x / 80) : 0;
@@ -1347,7 +1347,7 @@ function AritziaSwipeGame({ game, onClose }) {
         onTouchStart={isTop ? handleTouchStart : undefined}
         >
           {/* Image area */}
-          <div style={{ position: "relative", height: "67%" }}>
+          <div style={{ position: "relative", height: "82%" }}>
             <img src={card.img} alt={card.name} draggable={false}
                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
             <div style={{ position: "absolute", inset: 0,
@@ -1391,13 +1391,13 @@ function AritziaSwipeGame({ game, onClose }) {
           </div>
 
           {/* Card info */}
-          <div style={{ padding: "14px 20px 16px" }}>
-            <p style={{ fontSize: 10, color: SA.text3, fontWeight: 600, letterSpacing: "2px",
-                        fontFamily: "'Rajdhani',sans-serif", marginBottom: 3 }}>
+          <div style={{ padding: "8px 14px 10px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <p style={{ fontSize: 13, fontWeight: 800, color: SA.text1,
+                        fontFamily: "'Rajdhani',sans-serif", letterSpacing: "0.5px", marginBottom: 1 }}>{card.name}</p>
+            <p style={{ fontSize: 9, color: SA.text3, fontWeight: 600, letterSpacing: "1.5px",
+                        fontFamily: "'Rajdhani',sans-serif" }}>
               {card.cat.toUpperCase()} · {card.color.toUpperCase()}
             </p>
-            <p style={{ fontSize: 18, fontWeight: 800, color: SA.text1,
-                        fontFamily: "'Rajdhani',sans-serif", letterSpacing: "0.5px" }}>{card.name}</p>
           </div>
         </div>
       );
