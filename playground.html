@@ -1676,7 +1676,6 @@ function HeroCarousel() {
 function DashboardPage({ onClose }) {
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [showInventoryReview, setShowInventoryReview] = useState(false);
-  const [showInventorySuggestions, setShowInventorySuggestions] = useState(false);
 
   const DB = {
     bg:       "#0b0b11",
@@ -1984,10 +1983,7 @@ function DashboardPage({ onClose }) {
             <div style={{background:"rgba(255,179,71,0.07)",border:"1px solid rgba(255,179,71,0.22)",borderRadius:8,padding:"9px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
               <span style={{fontSize:13}}>⚠️</span>
               <p style={{fontSize:11,color:DB.text1}}><strong>2 items exceeding inventory cap.</strong> Swiftly Tech Long-Sleeve (+3%) and Wunder Train High-Rise Tight (+12%) — consider increasing production runs.</p>
-              <div style={{display:"flex",gap:8,marginLeft:"auto",flexShrink:0}}>
-                <button onClick={() => setShowInventoryReview(true)} style={{background:"rgba(255,179,71,0.1)",border:"1px solid rgba(255,179,71,0.25)",borderRadius:6,color:"#ffb347",fontSize:10,fontWeight:700,padding:"5px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Review →</button>
-                <button onClick={() => setShowInventorySuggestions(true)} style={{background:"rgba(181,255,129,0.1)",border:"1px solid rgba(181,255,129,0.25)",borderRadius:6,color:DB.green,fontSize:10,fontWeight:700,padding:"5px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Suggestions →</button>
-              </div>
+              <button onClick={() => setShowInventoryReview(true)} style={{marginLeft:"auto",flexShrink:0,background:"rgba(255,179,71,0.1)",border:"1px solid rgba(255,179,71,0.25)",borderRadius:6,color:"#ffb347",fontSize:10,fontWeight:700,padding:"5px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Review →</button>
             </div>
 
             {/* Item rows */}
@@ -2111,16 +2107,46 @@ function DashboardPage({ onClose }) {
         </main>
       </div>
 
-      {showInventoryReview && <InventoryReviewModal onClose={() => setShowInventoryReview(false)} onGoToSuggestions={() => { setShowInventoryReview(false); setShowInventorySuggestions(true); }} DB={DB} preOrderItems={preOrderItems} />}
-      {showInventorySuggestions && <InventorySuggestionsModal onClose={() => setShowInventorySuggestions(false)} DB={DB} preOrderItems={preOrderItems} />}
+      {showInventoryReview && <InventoryReviewModal onClose={() => setShowInventoryReview(false)} DB={DB} preOrderItems={preOrderItems} />}
     </div>
   );
 }
 
-/* ── Inventory Review Modal (data only) ─────────────────────────── */
-function InventoryReviewModal({ onClose, onGoToSuggestions, DB, preOrderItems }) {
+/* ── Inventory Review Modal ──────────────────────────────────────── */
+function InventoryReviewModal({ onClose, DB, preOrderItems }) {
   const alertItems = preOrderItems.filter(i => i.alert);
   const overpct = item => Math.round((item.orders / item.cap - 1) * 100);
+
+  /* per-item suggestions open state */
+  const [openSugg, setOpenSugg] = React.useState({});
+  const toggleSugg = name => setOpenSugg(prev => ({ ...prev, [name]: !prev[name] }));
+
+  /* decisions state (for when suggestions are open) */
+  const [decisions, setDecisions] = React.useState(() =>
+    Object.fromEntries(alertItems.map(item => [item.name, {
+      action: "increase",
+      newCap: item.cap + Math.ceil((item.orders - item.cap) * 1.25),
+      note: "",
+    }]))
+  );
+  const setDecision = (name, patch) => setDecisions(prev => ({ ...prev, [name]: { ...prev[name], ...patch } }));
+  const [submitted, setSubmitted] = React.useState({});
+  const confirmItem = name => setSubmitted(prev => ({ ...prev, [name]: true }));
+
+  const suggestions = {
+    "Swiftly Tech Long-Sleeve": {
+      headline: "Increase production by 15 units",
+      rationale: "Demand is accelerating in Week 5. Historical data shows Swiftly Tech tops hold strong conversion through end of campaign. A modest increase captures revenue without overextending.",
+      impact: "+$1,950 forecasted revenue",
+      confidence: 87,
+    },
+    "Wunder Train High-Rise Tight": {
+      headline: "Increase production by 40 units",
+      rationale: "Size M and S are driving outsized demand. Wunder Train has a 94% fulfillment satisfaction rate in past campaigns — high confidence that additional units will convert.",
+      impact: "+$5,200 forecasted revenue",
+      confidence: 92,
+    },
+  };
 
   /* weekly demand sparkline (simulated) */
   const weeklyDemand = item => {
@@ -2180,7 +2206,7 @@ function InventoryReviewModal({ onClose, onGoToSuggestions, DB, preOrderItems })
           </div>
         </div>
 
-        {/* Item cards — data only */}
+        {/* Item cards */}
         <div style={{overflowY:"auto", padding:"18px 24px", flex:1}}>
           {alertItems.map((item, idx) => {
             const over = item.orders - item.cap;
@@ -2190,263 +2216,191 @@ function InventoryReviewModal({ onClose, onGoToSuggestions, DB, preOrderItems })
               return Array.from({length:5}, (_,i) => Math.round(base * (0.65 + i*0.12 + (i*7+item.orders)%17*0.01)));
             })();
             const weekMax = Math.max(...weekly);
-            const card2 = { background:DB.card, border:`1px solid ${DB.cardBorder}`, borderRadius:12 };
-            return (
-              <div key={item.name} style={{...card2, padding:"20px 22px", marginBottom: idx < alertItems.length-1 ? 14 : 0}}>
-                <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:18}}>
-                  <div style={{display:"flex", alignItems:"center", gap:12}}>
-                    {item.img
-                      ? <img src={item.img} alt={item.name} style={{width:44, height:44, objectFit:"cover", borderRadius:8, background:"#fff", flexShrink:0}}/>
-                      : <div style={{width:44, height:44, borderRadius:8, background:"rgba(255,255,255,0.06)", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20}}>👕</div>
-                    }
-                    <div>
-                      <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:3}}>
-                        <p style={{fontSize:14, fontWeight:700, color:DB.text1}}>{item.name}</p>
-                        <span style={{fontSize:9, fontWeight:700, color:DB.orange, background:"rgba(255,179,71,0.12)", padding:"2px 6px", borderRadius:3}}>+{ovPct}% OVER CAP</span>
-                      </div>
-                      <p style={{fontSize:11, color:DB.text3}}>{item.color}</p>
-                    </div>
-                  </div>
-                  <div style={{display:"flex", gap:20, textAlign:"right"}}>
-                    {[
-                      { label:"Production Cap", val: item.cap.toLocaleString(),    color: DB.text2 },
-                      { label:"Orders Placed",  val: item.orders.toLocaleString(), color: DB.orange },
-                      { label:"Units Over",     val: `+${over}`,                   color: DB.red },
-                    ].map(s => (
-                      <div key={s.label}>
-                        <p style={{fontSize:17, fontWeight:700, color:s.color, fontFamily:"'Rajdhani',sans-serif", lineHeight:1}}>{s.val}</p>
-                        <p style={{fontSize:9, color:DB.text3, marginTop:3}}>{s.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:14}}>
-                  {/* Weekly velocity bars */}
-                  <div style={{background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:10, padding:"12px 14px"}}>
-                    <p style={{fontSize:10, color:DB.text2, marginBottom:10}}>Weekly Pre-Order Velocity</p>
-                    <div style={{display:"flex", alignItems:"flex-end", gap:6, height:56}}>
-                      {weekly.map((v, i) => (
-                        <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3}}>
-                          <div style={{width:"100%", height:Math.round((v/weekMax)*44), background:i===weekly.length-1?DB.orange:"rgba(255,179,71,0.28)", borderRadius:"3px 3px 0 0", minHeight:4}}/>
-                          <span style={{fontSize:8, color:DB.text3}}>W{i+1}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <p style={{fontSize:9, color:DB.text3, marginTop:6}}>Week 5 pace: <span style={{color:DB.orange, fontWeight:700}}>{weekly[4]} orders</span> — trending up</p>
-                  </div>
-
-                  {/* Size breakdown */}
-                  <div style={{background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:10, padding:"12px 14px"}}>
-                    <p style={{fontSize:10, color:DB.text2, marginBottom:10}}>Size Distribution</p>
-                    <div style={{display:"flex", flexDirection:"column", gap:6}}>
-                      {item.sizes.map(({s, n}) => {
-                        const sMax = Math.max(...item.sizes.map(x=>x.n));
-                        const isTop = n === sMax;
-                        return (
-                          <div key={s} style={{display:"flex", alignItems:"center", gap:8}}>
-                            <span style={{fontSize:9, fontWeight:600, color:isTop?DB.text1:DB.text3, width:18, flexShrink:0}}>{s}</span>
-                            <div style={{flex:1, height:5, background:"rgba(255,255,255,0.06)", borderRadius:3}}>
-                              <div style={{height:"100%", width:`${(n/sMax)*100}%`, background:isTop?DB.orange:"rgba(255,179,71,0.3)", borderRadius:3}}/>
-                            </div>
-                            <span style={{fontSize:9, color:isTop?DB.text1:DB.text3, width:24, textAlign:"right", fontWeight:isTop?700:400}}>{n}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{padding:"16px 24px", borderTop:`1px solid ${DB.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"space-between", background:DB.sidebar}}>
-          <p style={{fontSize:11, color:DB.text3}}>Ready to act on this data?</p>
-          <div style={{display:"flex", gap:10}}>
-            <button onClick={onClose} style={{padding:"9px 18px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Close</button>
-            <button onClick={onGoToSuggestions} style={{padding:"9px 22px", borderRadius:8, border:"none", background:DB.green, color:"#0a0a0a", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Rajdhani',sans-serif", letterSpacing:"0.5px"}}>View Suggestions →</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Inventory Suggestions Modal (actions) ───────────────────────── */
-function InventorySuggestionsModal({ onClose, DB, preOrderItems }) {
-  const alertItems = preOrderItems.filter(i => i.alert);
-  const [decisions, setDecisions] = React.useState(() =>
-    Object.fromEntries(alertItems.map(item => [item.name, {
-      action: "increase",
-      newCap: item.cap + Math.ceil((item.orders - item.cap) * 1.25),
-      note: "",
-    }]))
-  );
-  const [submitted, setSubmitted] = React.useState(false);
-  const setDecision = (name, patch) => setDecisions(prev => ({ ...prev, [name]: { ...prev[name], ...patch } }));
-
-  const overpct = item => Math.round((item.orders / item.cap - 1) * 100);
-
-  /* Bridg AI suggestions per item */
-  const suggestions = {
-    "Swiftly Tech Long-Sleeve": {
-      headline: "Increase production by 15 units",
-      rationale: "Demand is accelerating in Week 5. Historical data shows Swiftly Tech tops hold strong conversion through end of campaign. A modest increase captures revenue without overextending.",
-      impact: "+$1,950 forecasted revenue",
-      confidence: 87,
-    },
-    "Wunder Train High-Rise Tight": {
-      headline: "Increase production by 40 units",
-      rationale: "Size M and S are driving outsized demand. Wunder Train has a 94% fulfillment satisfaction rate in past campaigns — high confidence that additional units will convert.",
-      impact: "+$5,200 forecasted revenue",
-      confidence: 92,
-    },
-  };
-
-  return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:60,
-      background:"rgba(5,5,10,0.85)", backdropFilter:"blur(8px)",
-      display:"flex", alignItems:"center", justifyContent:"center",
-      padding:24,
-    }} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{
-        width:"100%", maxWidth:820, maxHeight:"90vh",
-        background:DB.sidebar, border:`1px solid ${DB.border}`,
-        borderRadius:16, display:"flex", flexDirection:"column",
-        overflow:"hidden", boxShadow:"0 32px 80px rgba(0,0,0,0.6)",
-      }}>
-
-        {/* Header */}
-        <div style={{padding:"20px 24px 18px", borderBottom:`1px solid ${DB.border}`, flexShrink:0}}>
-          <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between"}}>
-            <div>
-              <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:6}}>
-                <div style={{width:6, height:6, borderRadius:"50%", background:DB.green, boxShadow:`0 0 8px ${DB.green}`}}/>
-                <span style={{fontSize:10, fontWeight:700, color:DB.green, letterSpacing:"2px", fontFamily:"'Rajdhani',sans-serif"}}>BRIDG SUGGESTIONS</span>
-              </div>
-              <h2 style={{fontSize:20, fontWeight:700, color:DB.text1, fontFamily:"'Rajdhani',sans-serif", lineHeight:1, marginBottom:4}}>
-                Recommended Production Adjustments
-              </h2>
-              <p style={{fontSize:12, color:DB.text2}}>Bridg has analysed your campaign data and pre-order trends. Review each suggestion and confirm your decision.</p>
-            </div>
-            <button onClick={onClose} style={{background:"rgba(255,255,255,0.06)", border:`1px solid ${DB.border}`, borderRadius:8, color:DB.text2, cursor:"pointer", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Item action cards */}
-        <div style={{overflowY:"auto", padding:"18px 24px", flex:1}}>
-          {alertItems.map((item, idx) => {
+            const isOpen = !!openSugg[item.name];
             const dec = decisions[item.name];
             const suggest = Math.ceil((item.orders - item.cap) * 1.25);
             const sug = suggestions[item.name];
+            const isConfirmed = !!submitted[item.name];
             const card2 = { background:DB.card, border:`1px solid ${DB.cardBorder}`, borderRadius:12 };
+
             return (
-              <div key={item.name} style={{...card2, padding:"20px 22px", marginBottom: idx < alertItems.length-1 ? 14 : 0}}>
+              <div key={item.name} style={{...card2, marginBottom: idx < alertItems.length-1 ? 14 : 0, overflow:"hidden"}}>
+                <div style={{padding:"20px 22px"}}>
 
-                {/* Item row */}
-                <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:16}}>
-                  {item.img
-                    ? <img src={item.img} alt={item.name} style={{width:40, height:40, objectFit:"cover", borderRadius:8, background:"#fff", flexShrink:0}}/>
-                    : <div style={{width:40, height:40, borderRadius:8, background:"rgba(255,255,255,0.06)", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18}}>👕</div>
-                  }
-                  <div style={{flex:1}}>
-                    <p style={{fontSize:13, fontWeight:700, color:DB.text1}}>{item.name}</p>
-                    <p style={{fontSize:10, color:DB.text3}}>{item.color} · +{overpct(item)}% over cap</p>
+                  {/* Item header */}
+                  <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:18}}>
+                    <div style={{display:"flex", alignItems:"center", gap:12}}>
+                      {item.img
+                        ? <img src={item.img} alt={item.name} style={{width:44, height:44, objectFit:"cover", borderRadius:8, background:"#fff", flexShrink:0}}/>
+                        : <div style={{width:44, height:44, borderRadius:8, background:"rgba(255,255,255,0.06)", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20}}>👕</div>
+                      }
+                      <div>
+                        <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:3}}>
+                          <p style={{fontSize:14, fontWeight:700, color:DB.text1}}>{item.name}</p>
+                          <span style={{fontSize:9, fontWeight:700, color:DB.orange, background:"rgba(255,179,71,0.12)", padding:"2px 6px", borderRadius:3}}>+{ovPct}% OVER CAP</span>
+                        </div>
+                        <p style={{fontSize:11, color:DB.text3}}>{item.color}</p>
+                      </div>
+                    </div>
+                    <div style={{display:"flex", gap:20, textAlign:"right"}}>
+                      {[
+                        { label:"Production Cap", val: item.cap.toLocaleString(),    color: DB.text2 },
+                        { label:"Orders Placed",  val: item.orders.toLocaleString(), color: DB.orange },
+                        { label:"Units Over",     val: `+${over}`,                   color: DB.red },
+                      ].map(s => (
+                        <div key={s.label}>
+                          <p style={{fontSize:17, fontWeight:700, color:s.color, fontFamily:"'Rajdhani',sans-serif", lineHeight:1}}>{s.val}</p>
+                          <p style={{fontSize:9, color:DB.text3, marginTop:3}}>{s.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Two-col: velocity + sizes */}
+                  <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:16}}>
+                    <div style={{background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:10, padding:"12px 14px"}}>
+                      <p style={{fontSize:10, color:DB.text2, marginBottom:10}}>Weekly Pre-Order Velocity</p>
+                      <div style={{display:"flex", alignItems:"flex-end", gap:6, height:56}}>
+                        {weekly.map((v, i) => (
+                          <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3}}>
+                            <div style={{width:"100%", height:Math.round((v/weekMax)*44), background:i===weekly.length-1?DB.orange:"rgba(255,179,71,0.28)", borderRadius:"3px 3px 0 0", minHeight:4}}/>
+                            <span style={{fontSize:8, color:DB.text3}}>W{i+1}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p style={{fontSize:9, color:DB.text3, marginTop:6}}>Week 5 pace: <span style={{color:DB.orange, fontWeight:700}}>{weekly[4]} orders</span> — trending up</p>
+                    </div>
+                    <div style={{background:DB.bg, border:`1px solid ${DB.border}`, borderRadius:10, padding:"12px 14px"}}>
+                      <p style={{fontSize:10, color:DB.text2, marginBottom:10}}>Size Distribution</p>
+                      <div style={{display:"flex", flexDirection:"column", gap:6}}>
+                        {item.sizes.map(({s, n}) => {
+                          const sMax = Math.max(...item.sizes.map(x=>x.n));
+                          const isTop = n === sMax;
+                          return (
+                            <div key={s} style={{display:"flex", alignItems:"center", gap:8}}>
+                              <span style={{fontSize:9, fontWeight:600, color:isTop?DB.text1:DB.text3, width:18, flexShrink:0}}>{s}</span>
+                              <div style={{flex:1, height:5, background:"rgba(255,255,255,0.06)", borderRadius:3}}>
+                                <div style={{height:"100%", width:`${(n/sMax)*100}%`, background:isTop?DB.orange:"rgba(255,179,71,0.3)", borderRadius:3}}/>
+                              </div>
+                              <span style={{fontSize:9, color:isTop?DB.text1:DB.text3, width:24, textAlign:"right", fontWeight:isTop?700:400}}>{n}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* View Suggestions toggle */}
+                  <button onClick={() => toggleSugg(item.name)} style={{
+                    width:"100%", padding:"9px 14px", borderRadius:8, cursor:"pointer",
+                    background: isOpen ? "rgba(181,255,129,0.07)" : "rgba(255,255,255,0.04)",
+                    border: isOpen ? "1px solid rgba(181,255,129,0.25)" : `1px solid ${DB.border}`,
+                    color: isOpen ? DB.green : DB.text2,
+                    fontSize:11, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"space-between",
+                    transition:"all 0.2s",
+                  }}>
+                    <span>{isOpen ? "Hide Suggestions" : "View Suggestions"}</span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                      style={{transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.25s"}}>
+                      <path d="M2 4l4 4 4-4"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {/* ── Suggestions accordion ── */}
+                <div style={{
+                  maxHeight: isOpen ? "600px" : "0",
+                  opacity: isOpen ? 1 : 0,
+                  overflow:"hidden",
+                  transition:"max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
+                }}>
+                  <div style={{borderTop:`1px solid ${DB.border}`, padding:"18px 22px", background:"rgba(181,255,129,0.02)"}}>
+
+                    {/* Bridg recommendation callout */}
+                    {sug && (
+                      <div style={{background:"rgba(181,255,129,0.05)", border:"1px solid rgba(181,255,129,0.16)", borderRadius:10, padding:"14px 16px", marginBottom:16}}>
+                        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+                          <span style={{fontSize:10, fontWeight:700, color:DB.green, letterSpacing:"1px", fontFamily:"'Rajdhani',sans-serif"}}>BRIDG RECOMMENDS</span>
+                          <div style={{background:"rgba(181,255,129,0.1)", borderRadius:5, padding:"2px 8px"}}>
+                            <span style={{fontSize:9, color:DB.green, fontWeight:700}}>{sug.confidence}% confidence</span>
+                          </div>
+                        </div>
+                        <p style={{fontSize:13, fontWeight:700, color:DB.text1, marginBottom:5}}>{sug.headline}</p>
+                        <p style={{fontSize:11, color:DB.text2, lineHeight:1.6, marginBottom:8}}>{sug.rationale}</p>
+                        <p style={{fontSize:11, fontWeight:600, color:DB.green}}>{sug.impact}</p>
+                      </div>
+                    )}
+
+                    {/* Decision options */}
+                    {!isConfirmed ? (
+                      <>
+                        <p style={{fontSize:9, fontWeight:700, color:DB.text3, letterSpacing:"1.5px", marginBottom:10, fontFamily:"'Rajdhani',sans-serif"}}>YOUR DECISION</p>
+                        <div style={{display:"flex", gap:8, marginBottom:12}}>
+                          {[
+                            { key:"increase", label:"Increase Production", desc:`Add ${suggest} units (suggested)` },
+                            { key:"waitlist", label:"Open Waitlist",        desc:"Cap orders, notify waitlist" },
+                            { key:"hold",     label:"Hold for Now",         desc:"Flag for team review" },
+                          ].map(opt => (
+                            <button key={opt.key} onClick={() => setDecision(item.name, {action: opt.key})} style={{
+                              flex:1, padding:"10px 12px", borderRadius:8, cursor:"pointer", textAlign:"left",
+                              background: dec.action===opt.key ? (opt.key==="increase"?"rgba(181,255,129,0.1)":opt.key==="waitlist"?"rgba(125,211,252,0.08)":"rgba(255,255,255,0.07)") : "rgba(255,255,255,0.03)",
+                              border: dec.action===opt.key ? `1.5px solid ${opt.key==="increase"?DB.green:opt.key==="waitlist"?DB.blue:"rgba(255,255,255,0.2)"}` : `1px solid ${DB.border}`,
+                              transition:"all 0.15s",
+                            }}>
+                              <p style={{fontSize:11, fontWeight:700, color: dec.action===opt.key?(opt.key==="increase"?DB.green:opt.key==="waitlist"?DB.blue:DB.text1):DB.text2, marginBottom:2}}>{opt.label}</p>
+                              <p style={{fontSize:9, color:DB.text3}}>{opt.desc}</p>
+                            </button>
+                          ))}
+                        </div>
+
+                        {dec.action === "increase" && (
+                          <div style={{display:"flex", alignItems:"center", gap:10, background:DB.bg, borderRadius:8, padding:"10px 14px", marginBottom:12}}>
+                            <p style={{fontSize:11, color:DB.text2, whiteSpace:"nowrap"}}>New production cap:</p>
+                            <button onClick={() => setDecision(item.name, {newCap: Math.max(item.orders, dec.newCap-25)})} style={{width:26, height:26, borderRadius:6, border:`1px solid ${DB.border}`, background:"rgba(255,255,255,0.06)", color:DB.text1, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center"}}>−</button>
+                            <div style={{padding:"4px 16px", borderRadius:7, border:"1px solid rgba(181,255,129,0.3)", background:"rgba(181,255,129,0.07)", minWidth:72, textAlign:"center"}}>
+                              <span style={{fontSize:14, fontWeight:800, color:DB.green, fontFamily:"'Rajdhani',sans-serif"}}>{dec.newCap}</span>
+                            </div>
+                            <button onClick={() => setDecision(item.name, {newCap: dec.newCap+25})} style={{width:26, height:26, borderRadius:6, border:`1px solid ${DB.border}`, background:"rgba(255,255,255,0.06)", color:DB.text1, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center"}}>+</button>
+                            <p style={{fontSize:10, color:DB.text3}}>+{dec.newCap - item.cap} units · <span style={{color:DB.green}}>~${((dec.newCap - item.cap) * Math.round(item.revenue/item.orders)).toLocaleString()} additional revenue</span></p>
+                          </div>
+                        )}
+                        {dec.action === "waitlist" && (
+                          <div style={{background:DB.bg, borderRadius:8, padding:"10px 14px", marginBottom:12}}>
+                            <p style={{fontSize:11, color:DB.text2}}><span style={{color:DB.blue, fontWeight:700}}>{Math.max(0, item.orders - item.cap)} customers</span> will be moved to waitlist and notified by email when stock is confirmed.</p>
+                          </div>
+                        )}
+                        {dec.action === "hold" && (
+                          <input placeholder="Add a note for your team..." value={dec.note} onChange={e => setDecision(item.name, {note:e.target.value})}
+                            style={{width:"100%", background:"rgba(255,255,255,0.05)", border:`1px solid ${DB.border}`, borderRadius:7, padding:"8px 12px", color:DB.text1, fontSize:11, outline:"none", fontFamily:"'Inter',sans-serif", boxSizing:"border-box", marginBottom:12}}
+                          />
+                        )}
+
+                        <div style={{display:"flex", justifyContent:"flex-end"}}>
+                          <button onClick={() => confirmItem(item.name)} style={{padding:"8px 20px", borderRadius:8, border:"none", background:DB.green, color:"#0a0a0a", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"'Rajdhani',sans-serif"}}>Confirm Decision →</button>
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{display:"flex", alignItems:"center", gap:12, background:"rgba(181,255,129,0.05)", border:"1px solid rgba(181,255,129,0.2)", borderRadius:10, padding:"12px 16px"}}>
+                        <div style={{width:28, height:28, borderRadius:"50%", background:"rgba(181,255,129,0.15)", border:"1px solid rgba(181,255,129,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke={DB.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 7.5l3.5 3.5 6.5-7"/></svg>
+                        </div>
+                        <div>
+                          <p style={{fontSize:12, fontWeight:700, color:DB.green, fontFamily:"'Rajdhani',sans-serif", marginBottom:1}}>Decision confirmed</p>
+                          <p style={{fontSize:10, color:DB.text2}}>Your production partner has been notified for this item.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Bridg suggestion callout */}
-                {sug && (
-                  <div style={{background:"rgba(181,255,129,0.05)", border:"1px solid rgba(181,255,129,0.16)", borderRadius:10, padding:"14px 16px", marginBottom:16}}>
-                    <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8}}>
-                      <div style={{display:"flex", alignItems:"center", gap:6}}>
-                        <span style={{fontSize:10, fontWeight:700, color:DB.green, letterSpacing:"1px", fontFamily:"'Rajdhani',sans-serif"}}>BRIDG RECOMMENDS</span>
-                      </div>
-                      <div style={{display:"flex", alignItems:"center", gap:5, background:"rgba(181,255,129,0.1)", borderRadius:5, padding:"2px 8px"}}>
-                        <span style={{fontSize:9, color:DB.green, fontWeight:700}}>{sug.confidence}% confidence</span>
-                      </div>
-                    </div>
-                    <p style={{fontSize:13, fontWeight:700, color:DB.text1, marginBottom:5}}>{sug.headline}</p>
-                    <p style={{fontSize:11, color:DB.text2, lineHeight:1.6, marginBottom:8}}>{sug.rationale}</p>
-                    <p style={{fontSize:11, fontWeight:600, color:DB.green}}>{sug.impact}</p>
-                  </div>
-                )}
-
-                {/* Decision options */}
-                <div style={{marginBottom:14}}>
-                  <p style={{fontSize:9, fontWeight:700, color:DB.text3, letterSpacing:"1.5px", marginBottom:10, fontFamily:"'Rajdhani',sans-serif"}}>YOUR DECISION</p>
-                  <div style={{display:"flex", gap:8}}>
-                    {[
-                      { key:"increase", label:"Increase Production", desc:`Add ${suggest} units (suggested)` },
-                      { key:"waitlist", label:"Open Waitlist",        desc:"Cap orders, notify waitlist" },
-                      { key:"hold",     label:"Hold for Now",         desc:"Flag for team review" },
-                    ].map(opt => (
-                      <button key={opt.key} onClick={() => setDecision(item.name, {action: opt.key})} style={{
-                        flex:1, padding:"10px 12px", borderRadius:8, cursor:"pointer", textAlign:"left",
-                        background: dec.action===opt.key ? (opt.key==="increase"?"rgba(181,255,129,0.1)":opt.key==="waitlist"?"rgba(125,211,252,0.08)":"rgba(255,255,255,0.07)") : "rgba(255,255,255,0.03)",
-                        border: dec.action===opt.key ? `1.5px solid ${opt.key==="increase"?DB.green:opt.key==="waitlist"?DB.blue:"rgba(255,255,255,0.2)"}` : `1px solid ${DB.border}`,
-                        transition:"all 0.15s",
-                      }}>
-                        <p style={{fontSize:11, fontWeight:700, color: dec.action===opt.key?(opt.key==="increase"?DB.green:opt.key==="waitlist"?DB.blue:DB.text1):DB.text2, marginBottom:2}}>{opt.label}</p>
-                        <p style={{fontSize:9, color:DB.text3}}>{opt.desc}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {dec.action === "increase" && (
-                  <div style={{display:"flex", alignItems:"center", gap:10, background:DB.bg, borderRadius:8, padding:"10px 14px"}}>
-                    <p style={{fontSize:11, color:DB.text2, whiteSpace:"nowrap"}}>New production cap:</p>
-                    <button onClick={() => setDecision(item.name, {newCap: Math.max(item.orders, dec.newCap-25)})} style={{width:26, height:26, borderRadius:6, border:`1px solid ${DB.border}`, background:"rgba(255,255,255,0.06)", color:DB.text1, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center"}}>−</button>
-                    <div style={{padding:"4px 16px", borderRadius:7, border:"1px solid rgba(181,255,129,0.3)", background:"rgba(181,255,129,0.07)", minWidth:72, textAlign:"center"}}>
-                      <span style={{fontSize:14, fontWeight:800, color:DB.green, fontFamily:"'Rajdhani',sans-serif"}}>{dec.newCap}</span>
-                    </div>
-                    <button onClick={() => setDecision(item.name, {newCap: dec.newCap+25})} style={{width:26, height:26, borderRadius:6, border:`1px solid ${DB.border}`, background:"rgba(255,255,255,0.06)", color:DB.text1, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center"}}>+</button>
-                    <p style={{fontSize:10, color:DB.text3}}>+{dec.newCap - item.cap} units · <span style={{color:DB.green}}>~${((dec.newCap - item.cap) * Math.round(item.revenue/item.orders)).toLocaleString()} additional revenue</span></p>
-                  </div>
-                )}
-                {dec.action === "waitlist" && (
-                  <div style={{background:DB.bg, borderRadius:8, padding:"10px 14px"}}>
-                    <p style={{fontSize:11, color:DB.text2}}><span style={{color:DB.blue, fontWeight:700}}>{Math.max(0, item.orders - item.cap)} customers</span> will be moved to waitlist and notified by email when stock is confirmed.</p>
-                  </div>
-                )}
-                {dec.action === "hold" && (
-                  <input placeholder="Add a note for your team..." value={dec.note} onChange={e => setDecision(item.name, {note:e.target.value})}
-                    style={{width:"100%", background:"rgba(255,255,255,0.05)", border:`1px solid ${DB.border}`, borderRadius:7, padding:"8px 12px", color:DB.text1, fontSize:11, outline:"none", fontFamily:"'Inter',sans-serif", boxSizing:"border-box"}}
-                  />
-                )}
               </div>
             );
           })}
         </div>
 
-        {/* Footer */}
-        {!submitted ? (
-          <div style={{padding:"16px 24px", borderTop:`1px solid ${DB.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"space-between", background:DB.sidebar}}>
-            <p style={{fontSize:11, color:DB.text3}}>Decisions are logged in Bridg and sent to your production partner.</p>
-            <div style={{display:"flex", gap:10}}>
-              <button onClick={onClose} style={{padding:"9px 18px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Cancel</button>
-              <button onClick={() => setSubmitted(true)} style={{padding:"9px 22px", borderRadius:8, border:"none", background:DB.green, color:"#0a0a0a", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Rajdhani',sans-serif", letterSpacing:"0.5px"}}>Confirm Decisions →</button>
-            </div>
-          </div>
-        ) : (
-          <div style={{padding:"20px 24px", borderTop:`1px solid ${DB.border}`, flexShrink:0, background:DB.sidebar, display:"flex", alignItems:"center", gap:14}}>
-            <div style={{width:32, height:32, borderRadius:"50%", background:DB.greenDim, border:"1px solid rgba(181,255,129,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={DB.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 8.5l4 4 8-8"/></svg>
-            </div>
-            <div style={{flex:1}}>
-              <p style={{fontSize:13, fontWeight:700, color:DB.green, fontFamily:"'Rajdhani',sans-serif", marginBottom:2}}>Decisions confirmed</p>
-              <p style={{fontSize:11, color:DB.text2}}>Your production partner has been notified. Updates will reflect in the Order Pipeline within 24 hours.</p>
-            </div>
-            <button onClick={onClose} style={{padding:"9px 18px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Close</button>
-          </div>
-        )}
+        <div style={{padding:"16px 24px", borderTop:`1px solid ${DB.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"flex-end", background:DB.sidebar}}>
+          <button onClick={onClose} style={{padding:"9px 22px", borderRadius:8, border:`1px solid ${DB.border}`, background:"transparent", color:DB.text2, fontSize:12, fontWeight:600, cursor:"pointer"}}>Close</button>
+        </div>
       </div>
     </div>
   );
