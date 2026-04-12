@@ -918,13 +918,18 @@ function GamePage({ game, onClose }) {
         // Outer card background
         ctx.fillStyle = "#2c2c2c";
         rr(ctx, c.x-CW/2, c.y-CH/2, CW, CH, R); ctx.fill();
-        // Image inset with padding
+        // Image inset — object-fit: contain (no stretch)
         const shoeImg = imgRefs.current[c.cat];
         if (shoeImg && shoeImg.complete && shoeImg.naturalWidth > 0) {
+          const targetW = CW - PAD * 2, targetH = CH - PAD * 2;
+          const scale = Math.min(targetW / shoeImg.naturalWidth, targetH / shoeImg.naturalHeight);
+          const dw = shoeImg.naturalWidth * scale, dh = shoeImg.naturalHeight * scale;
+          const dx = c.x - CW/2 + PAD + (targetW - dw) / 2;
+          const dy = c.y - CH/2 + PAD + (targetH - dh) / 2;
           ctx.save();
           ctx.beginPath();
-          rr(ctx, c.x-CW/2+PAD, c.y-CH/2+PAD, CW-PAD*2, CH-PAD*2, R-4); ctx.clip();
-          ctx.drawImage(shoeImg, c.x-CW/2+PAD, c.y-CH/2+PAD, CW-PAD*2, CH-PAD*2);
+          rr(ctx, c.x-CW/2+PAD, c.y-CH/2+PAD, targetW, targetH, R-4); ctx.clip();
+          ctx.drawImage(shoeImg, dx, dy, dw, dh);
           ctx.restore();
         } else {
           ctx.font = "48px sans-serif"; ctx.textAlign = "center";
